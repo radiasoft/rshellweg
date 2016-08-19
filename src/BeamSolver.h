@@ -8,7 +8,12 @@
 #include "Matrix.h"
 #include "Spline.h"
 #include "Spectrum.h"
+
+#ifndef RADIA
 #include "SmartProgressBar.h"
+#else
+#include "AnsiString.hpp"
+#endif
 
 //---------------------------------------------------------------------------
 class TBeamSolver
@@ -38,7 +43,9 @@ private:
     TIntegration **K;
     TIntParameters *Par;
     
+    #ifndef RADIA 
     TSmartProgress *SmartProgress;
+    #endif
     //INITIALIZATION
     void Initialize();
     void LoadIniConstants();

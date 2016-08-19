@@ -4,21 +4,26 @@
 #define TypesH
 
 #include <IniFiles.hpp>
-#include <SysUtils.hpp>
 
 #include <fstream>
-#include <system.hpp>
 #include <stdio.h>
 #include <string.h>
-#include <conio.h>
 #include <time.h>
-#include <dir.h>
 #include <math.h>
+
+#ifndef RADIA
+#include <SysUtils.hpp>
+#include <system.hpp>
+#include <conio.h>
+#include <dir.h>
 #include <Vcl.Dialogs.hpp>
+#include "Math.hpp"
+#else
+#include <AnsiString.hpp>
+#endif
 
 #include "ConstUnit.h"
 
-#include "Math.hpp"
 
 //#include "Matrix.h"
 

@@ -3,7 +3,9 @@
 #ifndef ConstUnitH
 #define ConstUnitH
 
+#ifndef RADIA
 #include <Graphics.hpp>
+#endif
 
 //PHYSICAL
 const double c=2.99792458e8;
@@ -33,12 +35,14 @@ const int SeparatrixNumber=20;
 const double SpecLevel=0.5;
 
 //COLORS
+#ifndef RADIA
 const TColor Line1_col_a=clRed;
 const TColor Line1_col_b=clMaroon;
 const TColor Line2_col_a=clBlue;
 const TColor Line2_col_b=clNavy;
 const TColor Particle_col=clRed;
 const TColor Envelope_col=clBlue;
+#endif
 
 //FILES
 const char *CST_FileX="cst_x.txt";

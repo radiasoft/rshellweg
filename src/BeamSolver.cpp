@@ -30,8 +30,10 @@ __fastcall TBeamSolver::~TBeamSolver()
         delete[] K[i];
     delete[] K;
 
+    #ifndef RADIA
     if (SmartProgress!=NULL)
         delete SmartProgress;
+    #endif
 
     delete InputStrings;
     delete ParsedStrings;
@@ -80,7 +82,9 @@ void TBeamSolver::Initialize()
     InputStrings=new TStringList;
     ParsedStrings=new TStringList;
 
+    #ifndef RADIA
     SmartProgress=NULL;
+    #endif
 }
 //---------------------------------------------------------------------------
 void TBeamSolver::SaveToFile(AnsiString& Fname)
@@ -152,10 +156,12 @@ bool TBeamSolver::LoadFromFile(AnsiString& Fname)
     return Success;
 }
 //---------------------------------------------------------------------------
+#ifndef RADIA
 void TBeamSolver::AssignSolverPanel(TObject *SolverPanel)
 {
     SmartProgress=new TSmartProgress(static_cast <TWinControl *>(SolverPanel));
 }
+#endif
 //---------------------------------------------------------------------------
 void TBeamSolver::LoadIniConstants()
 {
@@ -1824,11 +1830,13 @@ void TBeamSolver::Step(int Si)
 //---------------------------------------------------------------------------
 void TBeamSolver::Solve()
 {
+    #ifndef RADIA
     if (SmartProgress==NULL){
         ShowMessage("System Message: ProgressBar not assigned! Code needs to be corrected");
         return;
     }
     SmartProgress->Reset(Npoints-1/*Np*/);
+    #endif
 
   //    logFile=fopen("beam.log","w");
  /* for (int i=0;i<Np;i++){
@@ -1867,12 +1875,16 @@ void TBeamSolver::Solve()
             Beam[i+1]->Particle[j].z=Structure[i+1].ksi*Structure[i+1].lmb;
             Beam[i+1]->Particle[j].phi-=Structure[i+1].dF;
         }
+        #ifndef RADIA
         SmartProgress->operator ++();
         Application->ProcessMessages();
+        #endif
         if (Stop){
             Stop=false;
+            #ifndef RADIA
             ShowMessage("Solve Process Aborted!");
             SmartProgress->Reset();
+            #endif
             return;
         }
         for (int i=0;i<Ncoef;i++)
@@ -1882,8 +1894,10 @@ void TBeamSolver::Solve()
 
    //   
 
+    #ifndef RADIA
     SmartProgress->SetPercent(100);
     SmartProgress->SetTime(0);
+    #endif
 }
 //---------------------------------------------------------------------------
 TResult TBeamSolver::Output(AnsiString& FileName,TMemo *Memo)
