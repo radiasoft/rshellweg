@@ -27,3 +27,11 @@
 *.exe
 *.out
 *.app
+src/Hellweg.cbproj.local
+src/Hellweg.res
+*.#00
+src/Win32/Debug/Hellweg.ilc
+src/Win32/Debug/Hellweg.ilf
+*.map
+src/Win32/Debug/Hellweg.tds
+*.~1~

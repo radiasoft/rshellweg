@@ -197,7 +197,7 @@ inline double ln(double x){
 }
 //---------------------------------------------------------------------------
 inline double log2(double x){
-    return log(x)/log(2);
+    return log(x)/log(2.);
 }
 //---------------------------------------------------------------------------
 inline double GammaToMeV(double g){
