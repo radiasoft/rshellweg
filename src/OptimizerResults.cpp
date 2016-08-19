@@ -10,111 +10,111 @@
 TOptForm *OptForm;
 //---------------------------------------------------------------------------
 __fastcall TOptForm::TOptForm(TComponent* Owner)
-	: TForm(Owner)
+    : TForm(Owner)
 {
 }
 //---------------------------------------------------------------------------
 void __fastcall TOptForm::CloseButtonClick(TObject *Sender)
 {
-	Close();	
+    Close();    
 }
 //---------------------------------------------------------------------------
 void TOptForm::ClearChart()
 {
-	LineSeries->Clear();
-	AddSeries->Clear();
+    LineSeries->Clear();
+    AddSeries->Clear();
 
-	AnsiString S;
-	if (Optimizer.Type==BUNCHER)
-		MainChart->BottomAxis->Title->Caption="E,Ohm^-1/2";
-	else if (Optimizer.Type==BUNCHER)
-		MainChart->BottomAxis->Title->Caption="N";
+    AnsiString S;
+    if (Optimizer.Type==BUNCHER)
+        MainChart->BottomAxis->Title->Caption="E,Ohm^-1/2";
+    else if (Optimizer.Type==BUNCHER)
+        MainChart->BottomAxis->Title->Caption="N";
 }
 //---------------------------------------------------------------------------
 void TOptForm::DrawEnergy()
 {
-	ClearChart();
-	int N=Optimizer.ResultsPushed();
+    ClearChart();
+    int N=Optimizer.ResultsPushed();
 
 
-	MainChart->Title->Caption="Energy";
-	MainChart->LeftAxis->Title->Caption="W,MeV";
+    MainChart->Title->Caption="Energy";
+    MainChart->LeftAxis->Title->Caption="W,MeV";
 
-	for (int i=0;i<N;i++){
-		TOptResult Structure;
-		Structure=Optimizer.GetResult(i);
-		LineSeries->AddXY(Structure.x,Structure.Result.AverageEnergy);
-		AddSeries->AddXY(Structure.x,Structure.Result.MaximumEnergy);
-	}
+    for (int i=0;i<N;i++){
+        TOptResult Structure;
+        Structure=Optimizer.GetResult(i);
+        LineSeries->AddXY(Structure.x,Structure.Result.AverageEnergy);
+        AddSeries->AddXY(Structure.x,Structure.Result.MaximumEnergy);
+    }
 }
 //---------------------------------------------------------------------------
 void TOptForm::DrawCapture()
 {
-	ClearChart();
-	int N=Optimizer.ResultsPushed();
+    ClearChart();
+    int N=Optimizer.ResultsPushed();
 
-	MainChart->Title->Caption="Capture";
-	MainChart->LeftAxis->Title->Caption="k, %";
+    MainChart->Title->Caption="Capture";
+    MainChart->LeftAxis->Title->Caption="k, %";
 
-	for (int i=0;i<N;i++){
-		TOptResult Structure;
-		Structure=Optimizer.GetResult(i);
-		LineSeries->AddXY(Structure.x,Structure.Result.Captured);
-	}
+    for (int i=0;i<N;i++){
+        TOptResult Structure;
+        Structure=Optimizer.GetResult(i);
+        LineSeries->AddXY(Structure.x,Structure.Result.Captured);
+    }
 }
 //---------------------------------------------------------------------------
 void TOptForm::DrawSpectrum()
 {
-	ClearChart();
-	int N=Optimizer.ResultsPushed();
+    ClearChart();
+    int N=Optimizer.ResultsPushed();
 
-	MainChart->Title->Caption="Energy Spectrum";
-	MainChart->LeftAxis->Title->Caption="dW,%";
+    MainChart->Title->Caption="Energy Spectrum";
+    MainChart->LeftAxis->Title->Caption="dW,%";
 
-	for (int i=0;i<N;i++){
-		TOptResult Structure;
-		Structure=Optimizer.GetResult(i);
-		LineSeries->AddXY(Structure.x,Structure.Result.EnergySpectrum);
-	}
+    for (int i=0;i<N;i++){
+        TOptResult Structure;
+        Structure=Optimizer.GetResult(i);
+        LineSeries->AddXY(Structure.x,Structure.Result.EnergySpectrum);
+    }
 }
 //---------------------------------------------------------------------------
 void TOptForm::DrawPhase()
 {
-	ClearChart();
-	int N=Optimizer.ResultsPushed();
+    ClearChart();
+    int N=Optimizer.ResultsPushed();
 
-	MainChart->Title->Caption="Phase Length";
-	MainChart->LeftAxis->Title->Caption="Phi,deg";
+    MainChart->Title->Caption="Phase Length";
+    MainChart->LeftAxis->Title->Caption="Phi,deg";
 
-	for (int i=0;i<N;i++){
-		TOptResult Structure;
-		Structure=Optimizer.GetResult(i);
-		LineSeries->AddXY(Structure.x,Structure.Result.PhaseLength);
-	}
+    for (int i=0;i<N;i++){
+        TOptResult Structure;
+        Structure=Optimizer.GetResult(i);
+        LineSeries->AddXY(Structure.x,Structure.Result.PhaseLength);
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TOptForm::EnergyButtonClick(TObject *Sender)
 {
-	DrawEnergy();
+    DrawEnergy();
 }
 //---------------------------------------------------------------------------
 void __fastcall TOptForm::CaptureButtonClick(TObject *Sender)
 {
-	DrawCapture();
+    DrawCapture();
 }
 //---------------------------------------------------------------------------
 void __fastcall TOptForm::SpectrumButtonClick(TObject *Sender)
 {
-	DrawSpectrum();	
+    DrawSpectrum(); 
 }
 //---------------------------------------------------------------------------
 void __fastcall TOptForm::PhaseButtonClick(TObject *Sender)
 {
-	DrawPhase();
+    DrawPhase();
 }
 //---------------------------------------------------------------------------
 void __fastcall TOptForm::FormShow(TObject *Sender)
 {
-	DrawCapture();	
+    DrawCapture();  
 }
 //---------------------------------------------------------------------------

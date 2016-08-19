@@ -134,7 +134,7 @@ const double A43[Nab23][Nar43]=
 
  /*
 enum TChartType {CH_BETTA,CH_A,CH_ELP,CH_B,CH_ALPHA,CH_RA,CH_BZ,
-					CH_EMMITANCE,CH_PORTRAIT,CH_SECTION,CH_ENERGY,CH_PHASE,CH_ELLIPSE};
+                    CH_EMMITANCE,CH_PORTRAIT,CH_SECTION,CH_ENERGY,CH_PHASE,CH_ELLIPSE};
  */
 //---------------------------------------------------------------------------
 #endif
