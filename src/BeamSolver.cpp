@@ -1902,7 +1902,11 @@ void TBeamSolver::Solve()
     #endif
 }
 //---------------------------------------------------------------------------
+#ifndef RADIA
 TResult TBeamSolver::Output(AnsiString& FileName,TMemo *Memo)
+#else
+TResult TBeamSolver::Output(AnsiString& FileName)
+#endif
 {
     AnsiString Line,s;
     TStringList *OutputStrings;
@@ -2020,9 +2024,11 @@ TResult TBeamSolver::Output(AnsiString& FileName,TMemo *Memo)
     OutputStrings->Add(Line);
     OutputStrings->Add("==========================================");
 
+    #ifndef RADIA
     if (Memo!=NULL){
         Memo->Lines->AddStrings(OutputStrings);
     }
+    #endif
                        
     delete[] WSpectrum;
     delete[] FSpectrum;  

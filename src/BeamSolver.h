@@ -142,7 +142,11 @@ public:
     double GetKernel();
 
     void Solve();
+    #ifndef RADIA
     TResult Output(AnsiString& FileName,TMemo *Memo=NULL);
+    #else
+    TResult Output(AnsiString& FileName);
+    #endif
 };
 
 //---------------------------------------------------------------------------
