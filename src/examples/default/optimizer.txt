@@ -1,0 +1,2 @@
+#	Length, cm	Average Energy, MeV	Maximum Energy, MeV	Energy Spectrum, %	Input Current, mA	Beam Current, mA	Captured, %	Beam Radius, mm	Average Phase, deg	Phase Length, deg	Beam Power, MW	Load Power, MW	Alpha	Betta, cm/rad	Emittance, cm*rad	
+0	16.655137	0.524727	0.880585	64.873925	100.000000	81.000000	81.000000	2.183110	25.706521	41.244473	0.042503	5.064118	0.190594	3.334394	0.007434	

@@ -772,7 +772,7 @@ TError TBeamSolver::LoadData(int Nl)
 
     DataReady=false;
 
-	if (FileName=="")
+	if (strncmp(FileName,"",10)==0)
         return ERR_NOFILE;
     if (!FileExists(FileName))
         return ERR_OPENFILE;
@@ -821,7 +821,7 @@ TError TBeamSolver::MakeBuncher(TCell& iCell)
     DataReady=false;
     TError Error;
 
-    if (FileName=="")
+    if (strncmp(FileName,"",10)==0)
         return ERR_NOFILE;
     if (!FileExists(FileName))
         return ERR_OPENFILE;

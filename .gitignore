@@ -38,3 +38,12 @@ src/Win32/Debug/Hellweg.tds
 *.local
 *.local
 src/Hellweg.cbproj.local
+*.local
+src/Hellweg.stat
+*.~3~
+*.~4~
+src/Hellweg.stat
+src/Hellweg.cbproj.local
+*.local
+src/Hellweg.cbproj.local
+src/.gitignore~
