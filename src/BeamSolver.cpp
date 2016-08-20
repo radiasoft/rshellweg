@@ -3,6 +3,10 @@
 
 #pragma hdrstop
 
+#ifdef RADIA
+#include "radia_utils.h"
+#endif
+
 #include "BeamSolver.h"
 //---------------------------------------------------------------------------
 __fastcall TBeamSolver::TBeamSolver(AnsiString _Path)
@@ -482,8 +486,8 @@ void TBeamSolver::GetDimensions(TCell& Cell)
 TInputLine *TBeamSolver::ParseFile(int& N)
 {
     TInputLine *Lines;
-    char *FileName=InputFile.c_str();
-    fstream fs(FileName);
+    const char *FileName=InputFile.c_str();
+    std::fstream fs(FileName);
 
     AnsiString S;
     TInputParameter P;
@@ -498,7 +502,7 @@ TInputLine *TBeamSolver::ParseFile(int& N)
     }
 
     fs.clear();
-    fs.seekg(ios::beg);
+    fs.seekg(std::ios::beg);
 
     Lines=new TInputLine[N];
 
@@ -771,7 +775,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 //---------------------------------------------------------------------------
 TError TBeamSolver::LoadData(int Nl)
 {
-    char *FileName=InputFile.c_str();
+    const char *FileName=InputFile.c_str();
     LoadIniConstants();
     InputStrings->Clear();
     Nlim=Nl;
@@ -820,7 +824,7 @@ TError TBeamSolver::LoadData(int Nl)
 //---------------------------------------------------------------------------
 TError TBeamSolver::MakeBuncher(TCell& iCell)
 {
-    char *FileName=InputFile.c_str();
+    const char *FileName=InputFile.c_str();
     InputStrings->Clear();
     //LoadIniConstants();
 
@@ -1468,7 +1472,7 @@ int TBeamSolver::CreateBeam()
 int TBeamSolver::GetSolenoidPoints()
 {
     int N=-1;
-    fstream fs(Solenoid_File);
+    std::fstream fs(Solenoid_File);
     char s[128];
 
     while (!fs.eof()){
@@ -1483,7 +1487,7 @@ int TBeamSolver::GetSolenoidPoints()
 //---------------------------------------------------------------------------
 bool TBeamSolver::ReadSolenoid(int Nz,double *Z,double* B)
 {
-    fstream fs(Solenoid_File);
+    std::fstream fs(Solenoid_File);
     float z=0,Bz=0;
     char s[128];
     AnsiString S;
@@ -1698,7 +1702,9 @@ void TBeamSolver::CountLiving(int Si)
             fprintf(F,"\n");
         }
         fclose(F);   */
+        #ifndef RADIA
         ShowMessage("Beam Lost!");
+        #endif
         Stop=true;
         return;
     }

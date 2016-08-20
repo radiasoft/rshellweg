@@ -8,4 +8,4 @@ add_definitions(-DRADIA)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 
-add_library(libHellweg2D SHARED ../BeamSolver.cpp AnsiString.cpp)
+add_library(libHellweg2D SHARED ../BeamSolver.cpp AnsiString.cpp TStringList.cpp)

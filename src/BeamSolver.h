@@ -12,7 +12,7 @@
 #ifndef RADIA
 #include "SmartProgressBar.h"
 #else
-#include "AnsiString.hpp"
+#include "TStringList.hpp"
 #endif
 
 //---------------------------------------------------------------------------
@@ -77,7 +77,9 @@ public:
     __fastcall TBeamSolver();
     __fastcall ~TBeamSolver();
 
+    #ifndef RADIA
     void AssignSolverPanel(TObject *SolverPanel);
+    #endif
 
     void Abort();
     bool Stop;
