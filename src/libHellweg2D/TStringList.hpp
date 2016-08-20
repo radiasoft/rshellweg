@@ -19,6 +19,7 @@ class TStringList {
         void Clear();
         void Delete(unsigned int index);
         void SaveToFile(const char* filename);
+        void SaveToFile(const AnsiString &filename);
         void AddStrings(TStringList *sl);
         TStringList() : Count(0) {};
 };

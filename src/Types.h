@@ -173,9 +173,11 @@ struct TIntParameters
 };
 
 //---------------------------------------------------------------------------
+#ifndef RADIA
 inline int round(double x){
     return (x-floor(x))>(ceil(x)-x)?ceil(x):floor(x);
 }
+#endif
 //---------------------------------------------------------------------------
 inline double sqr(double x){
     return x*x;

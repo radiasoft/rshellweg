@@ -21,6 +21,8 @@ class AnsiString {
         AnsiString operator+(const char *other) const;
         AnsiString operator+(const AnsiString &other) const;
         friend AnsiString operator+(const char *c, const AnsiString &as);
+
+        AnsiString& operator+=(const AnsiString &other); 
 };
         
 

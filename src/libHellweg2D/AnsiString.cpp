@@ -1,5 +1,10 @@
 #include "AnsiString.hpp" 
-        
+       
+AnsiString& AnsiString::operator+=(const AnsiString &other) {
+    s += other.s;
+    return *this;
+}
+
 bool AnsiString::operator==(const char *other) const {
     return s == std::string(other);
 }

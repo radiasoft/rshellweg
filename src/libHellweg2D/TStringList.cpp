@@ -25,6 +25,10 @@ void TStringList::Delete(unsigned int index) {
     string_list.erase(string_list.begin()+index);
 }
 
+void TStringList::SaveToFile(const AnsiString &filename) {
+    SaveToFile(filename.c_str());
+}
+
 void TStringList::SaveToFile(const char *filename) {
     if (filename) {
         std::ofstream file;
