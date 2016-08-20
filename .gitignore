@@ -35,3 +35,6 @@ src/Win32/Debug/Hellweg.ilf
 *.map
 src/Win32/Debug/Hellweg.tds
 *.~1~
+*.local
+*.local
+src/Hellweg.cbproj.local

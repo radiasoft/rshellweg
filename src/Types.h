@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------
 
-#ifndef TypesH
-#define TypesH
+#ifndef Types_H
+#define Types_H
 
 #include <IniFiles.hpp>
 #include <SysUtils.hpp>
@@ -168,9 +168,10 @@ struct TIntParameters
 };
 
 //---------------------------------------------------------------------------
-inline int round(double x){
-    return (x-floor(x))>(ceil(x)-x)?ceil(x):floor(x);
-}
+// This conflicts with standard library implementation (DLB, 20160819)
+//inline int round(double x){
+//    return (x-floor(x))>(ceil(x)-x)?ceil(x):floor(x);
+//}
 //---------------------------------------------------------------------------
 inline double sqr(double x){
     return x*x;
@@ -268,7 +269,8 @@ double Pow(double x,int n){
 }
 //---------------------------------------------------------------------------
 int CountSteps(double delta,double epsilon){
-    int N=ceil(log2(delta/epsilon));
+	int N=ceil(log2(delta/epsilon));
+	return N;
 }
 //---------------------------------------------------------------------------
 double Ib0(double x){
@@ -360,4 +362,4 @@ int GetNegativeSeparatrix(double &gamma,double phi,double bw,double A, double H)
 };
 
 //---------------------------------------------------------------------------
-#endif
+#endif      // Types_H

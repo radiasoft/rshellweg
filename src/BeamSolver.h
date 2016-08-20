@@ -3,11 +3,12 @@
 #ifndef BeamSolverH
 #define BeamSolverH
 
-#include "Types.h"
+// #include "Types.h"       (DLB, 20150819;  creates link conflict)
+// #include "Spectrum.h"
+// #include "Spline.h"
+// #include "Matrix.h"
+
 #include "Beam.h"
-#include "Matrix.h"
-#include "Spline.h"
-#include "Spectrum.h"
 #include "SmartProgressBar.h"
 
 //---------------------------------------------------------------------------

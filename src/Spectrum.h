@@ -4,7 +4,7 @@
 #define SpectrumH
 
 #include "Spline.h"
-#include "Types.h"
+// #include "Types.h"
 
 //---------------------------------------------------------------------------
 class TSpectrum

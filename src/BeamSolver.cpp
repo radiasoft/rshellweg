@@ -190,8 +190,8 @@ void TBeamSolver::LoadIniConstants()
         stat=1e-6;
     if (stat>25)
         stat=25;
-    Nstat=round(100.0/stat);
-    AngErr=UserIni->ReadFloat("NUMERIC","Angle Error",AngErr);
+	int Nstat=round(100.0/stat);
+	AngErr=UserIni->ReadFloat("NUMERIC","Angle Error",AngErr);
     Smooth=UserIni->ReadFloat("NUMERIC","Smoothing",Smooth);
     Ngraph=UserIni->ReadInteger("OTHER","Chart Points",Nbars);
     Nbars=UserIni->ReadInteger("NUMERIC","Hystogram Bars",Ngraph);
@@ -540,7 +540,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
     ParsedStrings->Clear();
 
     for (int k=0;k<N;k++){
-        switch (Lines[k].P) {
+		switch (Lines[k].P) {
             case SOLENOID:{
                 if (Lines[k].N==3){
                     B0=Lines[k].S[0].ToDouble();
@@ -772,7 +772,7 @@ TError TBeamSolver::LoadData(int Nl)
 
     DataReady=false;
 
-    if (FileName=="")
+	if (FileName=="")
         return ERR_NOFILE;
     if (!FileExists(FileName))
         return ERR_OPENFILE;
