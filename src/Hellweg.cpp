@@ -4,13 +4,12 @@
 #pragma hdrstop
 #include <tchar.h>
 // ---------------------------------------------------------------------------
-USEFORM("MainUnit.cpp", MainForm);
-USEFORM("GeometryForm.cpp", GeomForm);
-USEFORM("ResultsForm.cpp", ResForm);
 USEFORM("OptimizerUnit.cpp", OptimizerForm);
+USEFORM("ResultsForm.cpp", ResForm);
 USEFORM("OptimizerResults.cpp", OptForm);
-
-// ---------------------------------------------------------------------------
+USEFORM("GeometryForm.cpp", GeomForm);
+USEFORM("MainUnit.cpp", MainForm);
+//---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int) {
 	try {
 		Application->Initialize();
