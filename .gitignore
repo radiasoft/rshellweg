@@ -47,3 +47,5 @@ src/Hellweg.cbproj.local
 *.local
 src/Hellweg.cbproj.local
 src/.gitignore~
+src/Hellweg.cbproj.local
+src/Hellweg.stat
