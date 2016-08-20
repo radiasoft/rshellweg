@@ -54,13 +54,13 @@ void TBeam::TwoRandomGauss(double& x1,double& x2)
     x2=sqrt(-2*ln(Ran1))*sin(2*pi*Ran2);
 }
 //---------------------------------------------------------------------------
-int TBeam::CountCSTParticles(char *F)
+int TBeam::CountCSTParticles(const char *F)
 {
     int N=-2;
   /*    AnsiString F;
     char *CST_File=F.c_str();   */
 
-    fstream fs(F/*CST_File*/);
+    std::fstream fs(F/*CST_File*/);
     char s[128];
 
     while (!fs.eof()){
@@ -119,7 +119,7 @@ bool TBeam::ReadCSTEmittance(TBeamType bType)
     else if (bType==CST_R)
         F=CST_FileR;
 
-    fstream fs(F.c_str());
+    std::fstream fs(F.c_str());
     fs.getline(s, sizeof(s)) ;
     fs.getline(s, sizeof(s)) ;
 
@@ -150,7 +150,7 @@ bool TBeam::ReadCSTEmittance(TBeamType bType)
 
     if (bType==CST_Y) {
         F=CST_FileY;
-        fstream fy(F.c_str());
+        std::fstream fy(F.c_str());
         float y=0,vy=0,th;
         char s[128];
         AnsiString S;
