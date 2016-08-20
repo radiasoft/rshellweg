@@ -3,10 +3,6 @@
 
 #pragma hdrstop
 
-#ifdef RADIA
-#include "radia_utils.h"
-#endif
-
 #include "BeamSolver.h"
 //---------------------------------------------------------------------------
 __fastcall TBeamSolver::TBeamSolver(AnsiString _Path)

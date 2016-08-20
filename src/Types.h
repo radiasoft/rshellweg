@@ -4,6 +4,7 @@
 #define TypesH
 
 #include <IniFiles.hpp>
+#include <SysUtils.hpp>
 
 #include <fstream>
 #include <stdio.h>
@@ -12,18 +13,17 @@
 #include <math.h>
 
 #ifndef RADIA
-#include <SysUtils.hpp>
 #include <system.hpp>
 #include <conio.h>
 #include <dir.h>
 #include <Vcl.Dialogs.hpp>
-#include "Math.hpp"
 #else
 #include <AnsiString.hpp>
 #endif
 
 #include "ConstUnit.h"
 
+#include "Math.hpp"
 
 //#include "Matrix.h"
 

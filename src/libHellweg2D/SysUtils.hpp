@@ -1,5 +1,5 @@
-#ifndef _radia_utils_h_
-#define _radia_utils_h_
+#ifndef _SysUtils_hpp_
+#define _SysUtils_hpp_
 
 #include <sys/stat.h>
 
