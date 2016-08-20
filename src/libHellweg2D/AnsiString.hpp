@@ -5,9 +5,11 @@
 
 class AnsiString {
     std::string s;
+
     public:
+        friend class TStringList;
         AnsiString(const char * c);
-        const char* c_str();
+        const char* c_str() const;
         AnsiString() : s("") {};
         AnsiString(std::string s) : s(s) {};
         double ToDouble();

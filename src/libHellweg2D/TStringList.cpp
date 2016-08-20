@@ -13,7 +13,7 @@ unsigned int TStringList::Add(std::string s) {
 } 
 
 unsigned int TStringList::Add(AnsiString as) {
-    return Add(as.string_list);
+    return Add(as.s);
 } 
 
 void TStringList::Clear() {

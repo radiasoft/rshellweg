@@ -29,7 +29,7 @@ AnsiString::AnsiString(const char *c) {
     s = std::string(c);
 }
 
-const char* AnsiString::c_str() {
+const char* AnsiString::c_str() const {
     return s.c_str();
 }
 

@@ -7,8 +7,6 @@
 #include "AnsiString.hpp"
 
 class TStringList {
-    friend class AnsiString;
-
     std::vector<std::string> string_list;
 
     public:
