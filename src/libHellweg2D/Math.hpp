@@ -3,7 +3,7 @@
 
 #include <cmath>
 
-double Power(double base, double exponent) {
+inline double Power(double base, double exponent) {
     return pow(base, exponent);
 }
 

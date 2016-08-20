@@ -3,7 +3,7 @@
 
 #include <sys/stat.h>
 
-bool FileExists(const char *filename) {
+static bool FileExists(const char *filename) {
     if (filename) {
         struct stat buffer;
         return (stat(filename, &buffer) == 0);

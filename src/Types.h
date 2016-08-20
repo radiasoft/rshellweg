@@ -257,7 +257,7 @@ inline double PulseToAngle(double bx,double bz){
         return sign(bx)*pi/2;
 }
 //---------------------------------------------------------------------------
-int Fact(int n){
+inline int Fact(int n){
     int F=1;
     for (int i=1;i<=n;i++)
         F*=i;
@@ -265,7 +265,7 @@ int Fact(int n){
     return F;
 }
 //---------------------------------------------------------------------------
-double Pow(double x,int n){
+inline double Pow(double x,int n){
     double F=1;
 
     for (int i=1;i<=n;i++)
@@ -274,11 +274,11 @@ double Pow(double x,int n){
     return F;
 }
 //---------------------------------------------------------------------------
-int CountSteps(double delta,double epsilon){
+inline int CountSteps(double delta,double epsilon){
     int N=ceil(log2(delta/epsilon));
 }
 //---------------------------------------------------------------------------
-double Ib0(double x){
+inline double Ib0(double x){
     double f=0;
 
     for (int k=0;k<=NumBessel;k++)
@@ -287,7 +287,7 @@ double Ib0(double x){
     return f;
 }
 //---------------------------------------------------------------------------
-double Ib1(double x){
+inline double Ib1(double x){
     double f=0;
 
     for (int k=0;k<=NumBessel;k++)
@@ -296,7 +296,7 @@ double Ib1(double x){
     return f;
 }
 //---------------------------------------------------------------------------
-double FormFactor(double p){
+inline double FormFactor(double p){
     double F1[21]={1.000,0.926,0.861,0.803,0.750,0.704,0.661,0.623,0.588,0.556,
                     0.527,0.500,0.476,0.453,0.432,0.413,0.394,0.378,0.362,0.347,0.333};
     double F2[21]={0.000,0.007,0.020,0.037,0.056,0.075,0.095,0.115,0.135,0.155,
@@ -319,14 +319,14 @@ double FormFactor(double p){
     return M;
 }
 //---------------------------------------------------------------------------
-double GetH(double gamma,double phi,double bw,double A)
+inline double GetH(double gamma,double phi,double bw,double A)
 {
     double H=0;
     H=gamma/bw-sqrt(sqr(gamma)-1)-A*sin(DegToRad(phi))/(2*pi);
     return H;
 }
 //---------------------------------------------------------------------------
-int GetSeparatrix(double &gamma,double phi,double bw,double A, double H,bool Neg=false)
+inline int GetSeparatrix(double &gamma,double phi,double bw,double A, double H,bool Neg=false)
 {
     double Ah=0, b=0, c=0, D=0;
     int Nroots=0;
@@ -353,12 +353,12 @@ int GetSeparatrix(double &gamma,double phi,double bw,double A, double H,bool Neg
     return Nroots;
 }
 //---------------------------------------------------------------------------
-int GetPositiveSeparatrix(double &gamma,double phi,double bw,double A, double H)
+inline int GetPositiveSeparatrix(double &gamma,double phi,double bw,double A, double H)
 {
     return GetSeparatrix(gamma,phi,bw,A,H);
 }
 //---------------------------------------------------------------------------
-int GetNegativeSeparatrix(double &gamma,double phi,double bw,double A, double H)
+inline int GetNegativeSeparatrix(double &gamma,double phi,double bw,double A, double H)
 {
     return GetSeparatrix(gamma,phi,bw,A,H,1);
 }
