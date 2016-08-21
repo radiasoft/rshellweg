@@ -1,4 +1,4 @@
-#include <cstdio>
+#include <cstring>
 
 #include "AnsiString.hpp" 
        

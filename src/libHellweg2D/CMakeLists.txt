@@ -13,3 +13,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 add_library(libHellweg2D SHARED ../BeamSolver.cpp ../Spline.cpp ../Matrix.cpp ../Beam.cpp ../Spectrum.cpp ../ConstUnit.cpp
     AnsiString.cpp TStringList.cpp IniFiles.cpp)
+
+set_target_properties(libHellweg2D PROPERTIES 
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED YES
+)
+

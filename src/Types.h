@@ -19,6 +19,7 @@
 #include <Vcl.Dialogs.hpp>
 #else
 #include <AnsiString.hpp>
+#define __fastcall 
 #endif
 
 #include "ConstUnit.h"
