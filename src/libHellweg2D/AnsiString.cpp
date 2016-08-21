@@ -1,3 +1,5 @@
+#include <cstdio>
+
 #include "AnsiString.hpp" 
        
 AnsiString& AnsiString::operator+=(const AnsiString &other) {
@@ -41,12 +43,35 @@ int AnsiString::ToInt() {
     return std::stoi(s);
 }
 
-AnsiString AnsiString::FormatDouble(const char *format, double d) {
-    // TODO: proper formatting implementation
-    return AnsiString();
-}
+const char* FormatMap[][2] = {
+    {"#0", "%0.0<D-k>f"},
+    {"#0.0", "%0.1f"},
+    {"#0.00", "%0.2f"},
+    {"#0.000", "%0.3f"},
+    {"#0.0000", "%0.4f"},
+    {"#0.00000", "%0.5f"},
+    {"#0.000000", "%0.6f"},
+    {"#0.0000000", "%0.7f"},
+    {NULL, NULL}
+};
 
 AnsiString AnsiString::FormatFloat(const char *format, float f) {
-    // TODO: proper formatting implementation
-    return AnsiString();
+    char buf[32]= { 0 };
+    unsigned int i = 0;
+    const char *_format = NULL;
+
+    do {
+        if (std::strcmp(format, FormatMap[i][0]) == 0) {
+            _format = FormatMap[i][1];
+            break;
+        }     
+    } while (FormatMap[i++][0]);
+
+    if (!_format) {
+        _format = "%f";
+    }
+
+    std::snprintf(buf, 32, _format);
+     
+    return AnsiString(buf);
 }

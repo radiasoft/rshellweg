@@ -14,7 +14,6 @@ class AnsiString {
         AnsiString(std::string s) : s(s) {};
         double ToDouble();
         int ToInt();
-        static AnsiString FormatDouble(const char *format, double d);
         static AnsiString FormatFloat(const char *format, float f);
         
         bool operator==(const char *other) const;
