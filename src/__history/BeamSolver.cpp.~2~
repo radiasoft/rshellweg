@@ -30,10 +30,8 @@ __fastcall TBeamSolver::~TBeamSolver()
         delete[] K[i];
     delete[] K;
 
-    #ifndef RADIA
     if (SmartProgress!=NULL)
         delete SmartProgress;
-    #endif
 
     delete InputStrings;
     delete ParsedStrings;
@@ -82,9 +80,7 @@ void TBeamSolver::Initialize()
     InputStrings=new TStringList;
     ParsedStrings=new TStringList;
 
-    #ifndef RADIA
     SmartProgress=NULL;
-    #endif
 }
 //---------------------------------------------------------------------------
 void TBeamSolver::SaveToFile(AnsiString& Fname)
@@ -156,12 +152,10 @@ bool TBeamSolver::LoadFromFile(AnsiString& Fname)
     return Success;
 }
 //---------------------------------------------------------------------------
-#ifndef RADIA
 void TBeamSolver::AssignSolverPanel(TObject *SolverPanel)
 {
     SmartProgress=new TSmartProgress(static_cast <TWinControl *>(SolverPanel));
 }
-#endif
 //---------------------------------------------------------------------------
 void TBeamSolver::LoadIniConstants()
 {
@@ -482,8 +476,8 @@ void TBeamSolver::GetDimensions(TCell& Cell)
 TInputLine *TBeamSolver::ParseFile(int& N)
 {
     TInputLine *Lines;
-    const char *FileName=InputFile.c_str();
-    std::fstream fs(FileName);
+    char *FileName=InputFile.c_str();
+    fstream fs(FileName);
 
     AnsiString S;
     TInputParameter P;
@@ -498,7 +492,7 @@ TInputLine *TBeamSolver::ParseFile(int& N)
     }
 
     fs.clear();
-    fs.seekg(std::ios::beg);
+    fs.seekg(ios::beg);
 
     Lines=new TInputLine[N];
 
@@ -771,19 +765,17 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 //---------------------------------------------------------------------------
 TError TBeamSolver::LoadData(int Nl)
 {
-    const char *FileName=InputFile.c_str();
+    char *FileName=InputFile.c_str();
     LoadIniConstants();
     InputStrings->Clear();
     Nlim=Nl;
 
     DataReady=false;
 
-    if (strncmp(FileName, "", 1) == 0) {
+	if (FileName=="")
         return ERR_NOFILE;
-    }
-    if (!FileExists(FileName)) {
+    if (!FileExists(FileName))
         return ERR_OPENFILE;
-    }
 
     delete[] Cells;
 
@@ -822,19 +814,17 @@ TError TBeamSolver::LoadData(int Nl)
 //---------------------------------------------------------------------------
 TError TBeamSolver::MakeBuncher(TCell& iCell)
 {
-    const char *FileName=InputFile.c_str();
+    char *FileName=InputFile.c_str();
     InputStrings->Clear();
     //LoadIniConstants();
 
     DataReady=false;
     TError Error;
 
-    if (strncmp(FileName, "", 1) == 0) {
+    if (FileName=="")
         return ERR_NOFILE;
-    } 
-    if (!FileExists(FileName)) {
+    if (!FileExists(FileName))
         return ERR_OPENFILE;
-    }
 
     delete[] Cells;
 
@@ -1472,7 +1462,7 @@ int TBeamSolver::CreateBeam()
 int TBeamSolver::GetSolenoidPoints()
 {
     int N=-1;
-    std::fstream fs(Solenoid_File);
+    fstream fs(Solenoid_File);
     char s[128];
 
     while (!fs.eof()){
@@ -1487,7 +1477,7 @@ int TBeamSolver::GetSolenoidPoints()
 //---------------------------------------------------------------------------
 bool TBeamSolver::ReadSolenoid(int Nz,double *Z,double* B)
 {
-    std::fstream fs(Solenoid_File);
+    fstream fs(Solenoid_File);
     float z=0,Bz=0;
     char s[128];
     AnsiString S;
@@ -1702,9 +1692,7 @@ void TBeamSolver::CountLiving(int Si)
             fprintf(F,"\n");
         }
         fclose(F);   */
-        #ifndef RADIA
         ShowMessage("Beam Lost!");
-        #endif
         Stop=true;
         return;
     }
@@ -1836,13 +1824,11 @@ void TBeamSolver::Step(int Si)
 //---------------------------------------------------------------------------
 void TBeamSolver::Solve()
 {
-    #ifndef RADIA
     if (SmartProgress==NULL){
         ShowMessage("System Message: ProgressBar not assigned! Code needs to be corrected");
         return;
     }
     SmartProgress->Reset(Npoints-1/*Np*/);
-    #endif
 
   //    logFile=fopen("beam.log","w");
  /* for (int i=0;i<Np;i++){
@@ -1881,16 +1867,12 @@ void TBeamSolver::Solve()
             Beam[i+1]->Particle[j].z=Structure[i+1].ksi*Structure[i+1].lmb;
             Beam[i+1]->Particle[j].phi-=Structure[i+1].dF;
         }
-        #ifndef RADIA
         SmartProgress->operator ++();
         Application->ProcessMessages();
-        #endif
         if (Stop){
             Stop=false;
-            #ifndef RADIA
             ShowMessage("Solve Process Aborted!");
             SmartProgress->Reset();
-            #endif
             return;
         }
         for (int i=0;i<Ncoef;i++)
@@ -1900,17 +1882,11 @@ void TBeamSolver::Solve()
 
    //   
 
-    #ifndef RADIA
     SmartProgress->SetPercent(100);
     SmartProgress->SetTime(0);
-    #endif
 }
 //---------------------------------------------------------------------------
-#ifndef RADIA
 TResult TBeamSolver::Output(AnsiString& FileName,TMemo *Memo)
-#else
-TResult TBeamSolver::Output(AnsiString& FileName)
-#endif
 {
     AnsiString Line,s;
     TStringList *OutputStrings;
@@ -2028,11 +2004,9 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     OutputStrings->Add(Line);
     OutputStrings->Add("==========================================");
 
-    #ifndef RADIA
     if (Memo!=NULL){
         Memo->Lines->AddStrings(OutputStrings);
     }
-    #endif
                        
     delete[] WSpectrum;
     delete[] FSpectrum;  

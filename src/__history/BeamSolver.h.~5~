@@ -6,18 +6,10 @@
 // #include "Types.h"       (DLB, 20150819;  creates link conflict)
 // #include "Spectrum.h"
 // #include "Spline.h"
-// #include "Matrix.h"
+// #include "Beam.h"
 
-#include "Beam.h"
 #include "Matrix.h"
-#include "Spline.h"
-#include "Spectrum.h"
-
-#ifndef RADIA
 #include "SmartProgressBar.h"
-#else
-#include "TStringList.hpp"
-#endif
 
 //---------------------------------------------------------------------------
 class TBeamSolver
@@ -47,9 +39,7 @@ private:
     TIntegration **K;
     TIntParameters *Par;
     
-    #ifndef RADIA 
     TSmartProgress *SmartProgress;
-    #endif
     //INITIALIZATION
     void Initialize();
     void LoadIniConstants();
@@ -81,9 +71,7 @@ public:
     __fastcall TBeamSolver();
     __fastcall ~TBeamSolver();
 
-    #ifndef RADIA
     void AssignSolverPanel(TObject *SolverPanel);
-    #endif
 
     void Abort();
     bool Stop;
@@ -146,11 +134,7 @@ public:
     double GetKernel();
 
     void Solve();
-    #ifndef RADIA
     TResult Output(AnsiString& FileName,TMemo *Memo=NULL);
-    #else
-    TResult Output(AnsiString& FileName);
-    #endif
 };
 
 //---------------------------------------------------------------------------

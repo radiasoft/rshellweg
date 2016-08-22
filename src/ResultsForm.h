@@ -22,27 +22,27 @@
 
 #include "BeamSolver.h"
 
-const Npar=17;
-const pZ=0;
-const pWav=1;
-const pWm=2;
-const pdW=3;
-const pI=4;
-const pkc=5;
-const pr=6;
-const pFav=7;
-const pdF=8;
-const pF=9;
-const pRa=10;
-const pE=11;
-const pPb=12;
-const pvph=13;
-const peps=14;
-const palpha=15;
-const pbetta=16;
+const int Npar=17;
+const int pZ=0;
+const int pWav=1;
+const int pWm=2;
+const int pdW=3;
+const int pI=4;
+const int pkc=5;
+const int pr=6;
+const int pFav=7;
+const int pdF=8;
+const int pF=9;
+const int pRa=10;
+const int pE=11;
+const int pPb=12;
+const int pvph=13;
+const int peps=14;
+const int palpha=15;
+const int pbetta=16;
 
-const colName=0;
-const colValue=1;
+const int colName=0;
+const int colValue=1;
 //---------------------------------------------------------------------------
 class TResForm : public TForm
 {

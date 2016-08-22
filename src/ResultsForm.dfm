@@ -2,7 +2,7 @@ object ResForm: TResForm
   Left = 0
   Top = 0
   Caption = 'Results'
-  ClientHeight = 876
+  ClientHeight = 817
   ClientWidth = 1257
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -21,13 +21,14 @@ object ResForm: TResForm
     Left = 0
     Top = 0
     Width = 1015
-    Height = 758
+    Height = 699
     Margins.Left = 4
     Margins.Top = 4
     Margins.Right = 4
     Margins.Bottom = 4
     Align = alClient
     TabOrder = 0
+    ExplicitHeight = 758
     object PackChart: TChart
       Left = 1
       Top = 1
@@ -447,7 +448,7 @@ object ResForm: TResForm
   end
   object BottomPanel: TPanel
     Left = 0
-    Top = 758
+    Top = 699
     Width = 1257
     Height = 118
     Margins.Left = 4
@@ -456,6 +457,7 @@ object ResForm: TResForm
     Margins.Bottom = 4
     Align = alBottom
     TabOrder = 1
+    ExplicitTop = 758
     DesignSize = (
       1257
       118)
@@ -813,13 +815,14 @@ object ResForm: TResForm
     Left = 1015
     Top = 0
     Width = 242
-    Height = 758
+    Height = 699
     Margins.Left = 4
     Margins.Top = 4
     Margins.Right = 4
     Margins.Bottom = 4
     Align = alRight
     TabOrder = 2
+    ExplicitHeight = 758
     object GroupBox1: TGroupBox
       Left = 1
       Top = 620
@@ -917,6 +920,28 @@ object ResForm: TResForm
         FixedRows = 0
         TabOrder = 0
         OnDrawCell = TableDrawCell
+        ColWidths = (
+          64
+          64)
+        RowHeights = (
+          24
+          24
+          24
+          24
+          24
+          24
+          24
+          24
+          24
+          24
+          24
+          24
+          24
+          24
+          24
+          24
+          24
+          24)
       end
     end
   end

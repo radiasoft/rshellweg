@@ -144,7 +144,7 @@ void __fastcall TMainForm::SelectFileButtonClick(TObject *Sender)
 void __fastcall TMainForm::FormCanResize(TObject *Sender, int &NewWidth,
       int &NewHeight, bool &Resize)
 {
-    Resize=false;   
+    Resize=true;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::SolveButtonClick(TObject *Sender)

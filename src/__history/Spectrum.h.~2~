@@ -3,8 +3,8 @@
 #ifndef SpectrumH
 #define SpectrumH
 
-#include "Spline.h"
-// #include "Types.h"
+// #include "Spline.h"
+#include "Types.h"
 
 //---------------------------------------------------------------------------
 class TSpectrum
