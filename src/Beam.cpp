@@ -44,8 +44,8 @@ void TBeam::TwoRandomGauss(double& x1,double& x2)
     double Ran1=0;
     double Ran2=0;
 
-    Ran1=((double)rand() / (double)(RAND_MAX + 1));
-    Ran2=((double)rand() / (double)(RAND_MAX + 1));
+    Ran1=((double)rand() / ((double)RAND_MAX + 1));
+    Ran2=((double)rand() / ((double)RAND_MAX + 1));
 
     if (Ran1<1e-5)
         Ran1=1e-5;
@@ -309,7 +309,7 @@ void TBeam::MakeEquiprobableDistribution(double Xav, double dX,TBeamParameter Pa
     double b=Xav+dX;
 
     for (int i=0;i<Np;i++){
-        Ran=((double)rand() / (double)(RAND_MAX + 1));
+        Ran=((double)rand() / ((double)RAND_MAX + 1));
         Xi[i]=a+(b-a)*Ran;
     }
     SetParameters(Xi,Par);
@@ -323,8 +323,8 @@ void TBeam::MakeGaussDistribution(double Xav,double sX,TBeamParameter Par)
     Xi= new double[Np];
 
     for (int i=0;i<Np;i++){
-        Ran1=((double)rand() / (double)(RAND_MAX + 1));
-        Ran2=((double)rand() / (double)(RAND_MAX + 1));
+        Ran1=((double)rand() / ((double)RAND_MAX + 1));
+        Ran2=((double)rand() / ((double)RAND_MAX + 1));
         xx=sqrt(-2*ln(Ran1))*cos(2*pi*Ran2);
         Xi[i]=Xav+xx*sX/h;
     }
