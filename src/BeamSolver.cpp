@@ -778,10 +778,12 @@ TError TBeamSolver::LoadData(int Nl)
 
     DataReady=false;
 
-    if (FileName=="")
+    if (std::strncmp(FileName, "", 1) == 0) {
         return ERR_NOFILE;
-    if (!FileExists(FileName))
+    }
+    if (!FileExists(FileName)) {
         return ERR_OPENFILE;
+    }
 
     delete[] Cells;
 
@@ -827,10 +829,12 @@ TError TBeamSolver::MakeBuncher(TCell& iCell)
     DataReady=false;
     TError Error;
 
-    if (FileName=="")
+    if (std::strncmp(FileName, "", 1) == 0) {
         return ERR_NOFILE;
-    if (!FileExists(FileName))
+    } 
+    if (!FileExists(FileName)) {
         return ERR_OPENFILE;
+    }
 
     delete[] Cells;
 
