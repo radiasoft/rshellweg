@@ -276,7 +276,7 @@ inline double Pow(double x,int n){
 }
 //---------------------------------------------------------------------------
 inline int CountSteps(double delta,double epsilon){
-    int N=ceil(log2(delta/epsilon));
+    return ceil(log2(delta/epsilon));
 }
 //---------------------------------------------------------------------------
 inline double Ib0(double x){
