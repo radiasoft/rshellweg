@@ -1937,7 +1937,7 @@ TResult TBeamSolver::Output(AnsiString& FileName,TMemo *Memo)
 
     double v=Structure[j].betta;
     double E=sqrt(2*Structure[j].Rp);
-    double Pb=1e-6*sqr(Structure[j].A*We0/E);
+    double Pb=E!=0?1e-6*sqr(Structure[j].A*We0/E):0;
 
     /*double Pw=P0;
     for(int i=1;i<Npoints;i++)
