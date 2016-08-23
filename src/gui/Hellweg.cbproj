@@ -66,7 +66,7 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
-        <IncludePath>$(BDSINCLUDE)\windows\vcl;$(IncludePath)</IncludePath>
+        <IncludePath>$(BDSINCLUDE)\windows\vcl;..\physics;$(IncludePath)</IncludePath>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
@@ -75,7 +75,7 @@
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
-        <IncludePath>$(BDSINCLUDE)\windows\vcl;$(IncludePath)</IncludePath>
+        <IncludePath>$(BDSINCLUDE)\windows\vcl;..\physics;$(IncludePath)</IncludePath>
         <PackageImports>adortl;bindcomp;bindcompdbx;bindcompfmx;bindcompvcl;bindengine;CloudService;CustomIPTransport;dbexpress;dbrtl;dbxcds;DbxClientDriver;DbxCommonDriver;DBXInterBaseDriver;DBXMySQLDriver;DBXSqliteDriver;dsnap;dsnapcon;dsnapxml;emsclient;emsclientfiredac;FireDAC;FireDACADSDriver;FireDACASADriver;FireDACCommon;FireDACCommonDriver;FireDACIBDriver;FireDACMSAccDriver;FireDACMySQLDriver;FireDACODBCDriver;FireDACPgDriver;FireDACSqliteDriver;fmx;fmxase;fmxdae;fmxFireDAC;fmxobj;FMXTee;FmxTeeUI;ibxpress;IndyCore;IndyIPClient;IndyIPCommon;IndyIPServer;IndyProtocols;IndySystem;inet;inetdb;inetdbxpress;Intraweb;MetropolisUILiveTile;RESTBackendComponents;RESTComponents;rtl;soapmidas;soaprtl;soapserver;Tee;TeeDB;TeeUI;tethering;vcl;vclactnband;vcldb;vcldsnap;vclFireDAC;vclib;vclie;vclimg;VCLRESTComponents;vclribbon;VclSmp;vcltouch;vclx;xmlrtl;$(PackageImports)</PackageImports>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
@@ -120,16 +120,16 @@
         <LinkPackageImports>rtl.bpi;vcl.bpi;Tee.bpi;vclimg.bpi;bcbsmp.bpi;vclx.bpi;VclSmp.bpi</LinkPackageImports>
     </PropertyGroup>
     <ItemGroup>
-        <CppCompile Include="Beam.cpp">
-            <DependentOn>Beam.h</DependentOn>
+        <CppCompile Include="..\physics\Beam.cpp">
+            <DependentOn>..\physics\Beam.h</DependentOn>
             <BuildOrder>6</BuildOrder>
         </CppCompile>
-        <CppCompile Include="BeamSolver.cpp">
-            <DependentOn>BeamSolver.h</DependentOn>
+        <CppCompile Include="..\physics\BeamSolver.cpp">
+            <DependentOn>..\physics\BeamSolver.h</DependentOn>
             <BuildOrder>5</BuildOrder>
         </CppCompile>
-        <CppCompile Include="ConstUnit.cpp">
-            <DependentOn>ConstUnit.h</DependentOn>
+        <CppCompile Include="..\physics\ConstUnit.cpp">
+            <DependentOn>..\physics\ConstUnit.h</DependentOn>
             <BuildOrder>4</BuildOrder>
         </CppCompile>
         <CppCompile Include="GeometryForm.cpp">
@@ -147,8 +147,8 @@
             <DependentOn>MainUnit.h</DependentOn>
             <BuildOrder>1</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Matrix.cpp">
-            <DependentOn>Matrix.h</DependentOn>
+        <CppCompile Include="..\physics\Matrix.cpp">
+            <DependentOn>..\physics\Matrix.h</DependentOn>
             <BuildOrder>12</BuildOrder>
         </CppCompile>
         <CppCompile Include="Optimizer.cpp">
@@ -177,16 +177,16 @@
             <DependentOn>SmartProgressBar.h</DependentOn>
             <BuildOrder>13</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Spectrum.cpp">
-            <DependentOn>Spectrum.h</DependentOn>
+        <CppCompile Include="..\physics\Spectrum.cpp">
+            <DependentOn>..\physics\Spectrum.h</DependentOn>
             <BuildOrder>10</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Spline.cpp">
-            <DependentOn>Spline.h</DependentOn>
+        <CppCompile Include="..\physics\Spline.cpp">
+            <DependentOn>..\physics\Spline.h</DependentOn>
             <BuildOrder>11</BuildOrder>
         </CppCompile>
-        <CppCompile Include="Types.cpp">
-            <DependentOn>Types.h</DependentOn>
+        <CppCompile Include="..\physics\Types.cpp">
+            <DependentOn>..\physics\Types.h</DependentOn>
             <BuildOrder>14</BuildOrder>
         </CppCompile>
         <FormResources Include="OptimizerUnit.dfm"/>
