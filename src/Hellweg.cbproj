@@ -104,11 +104,11 @@
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <VerInfo_Build>4</VerInfo_Build>
+        <VerInfo_Build>7</VerInfo_Build>
         <UsePackages>false</UsePackages>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
         <VerInfo_MinorVer>2</VerInfo_MinorVer>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=2.2.0.4;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=2.2.0.7;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <LinkPackageStatics>rtl.lib;vcl.lib;Tee.lib;vclimg.lib;bcbsmp.lib;vclx.lib;VclSmp.lib</LinkPackageStatics>
         <VerInfo_MajorVer>2</VerInfo_MajorVer>
     </PropertyGroup>
@@ -122,21 +122,21 @@
     <ItemGroup>
         <CppCompile Include="Beam.cpp">
             <DependentOn>Beam.h</DependentOn>
-            <BuildOrder>6</BuildOrder>
+            <BuildOrder>1</BuildOrder>
         </CppCompile>
         <CppCompile Include="BeamSolver.cpp">
             <DependentOn>BeamSolver.h</DependentOn>
-            <BuildOrder>5</BuildOrder>
+            <BuildOrder>2</BuildOrder>
         </CppCompile>
         <CppCompile Include="ConstUnit.cpp">
             <DependentOn>ConstUnit.h</DependentOn>
-            <BuildOrder>4</BuildOrder>
+            <BuildOrder>3</BuildOrder>
         </CppCompile>
         <CppCompile Include="GeometryForm.cpp">
             <Form>GeomForm</Form>
             <FormType>dfm</FormType>
             <DependentOn>GeometryForm.h</DependentOn>
-            <BuildOrder>2</BuildOrder>
+            <BuildOrder>4</BuildOrder>
         </CppCompile>
         <CppCompile Include="Hellweg.cpp">
             <BuildOrder>0</BuildOrder>
@@ -145,21 +145,21 @@
             <Form>MainForm</Form>
             <FormType>dfm</FormType>
             <DependentOn>MainUnit.h</DependentOn>
-            <BuildOrder>1</BuildOrder>
+            <BuildOrder>5</BuildOrder>
         </CppCompile>
         <CppCompile Include="Matrix.cpp">
             <DependentOn>Matrix.h</DependentOn>
-            <BuildOrder>12</BuildOrder>
+            <BuildOrder>6</BuildOrder>
         </CppCompile>
         <CppCompile Include="Optimizer.cpp">
             <DependentOn>Optimizer.h</DependentOn>
-            <BuildOrder>14</BuildOrder>
+            <BuildOrder>7</BuildOrder>
         </CppCompile>
         <CppCompile Include="OptimizerResults.cpp">
             <Form>OptForm</Form>
             <FormType>dfm</FormType>
             <DependentOn>OptimizerResults.h</DependentOn>
-            <BuildOrder>15</BuildOrder>
+            <BuildOrder>8</BuildOrder>
         </CppCompile>
         <CppCompile Include="OptimizerUnit.cpp">
             <Form>OptimizerForm</Form>
@@ -171,29 +171,29 @@
             <Form>ResForm</Form>
             <FormType>dfm</FormType>
             <DependentOn>ResultsForm.h</DependentOn>
-            <BuildOrder>8</BuildOrder>
+            <BuildOrder>10</BuildOrder>
         </CppCompile>
         <CppCompile Include="SmartProgressBar.cpp">
             <DependentOn>SmartProgressBar.h</DependentOn>
-            <BuildOrder>13</BuildOrder>
+            <BuildOrder>11</BuildOrder>
         </CppCompile>
         <CppCompile Include="Spectrum.cpp">
             <DependentOn>Spectrum.h</DependentOn>
-            <BuildOrder>10</BuildOrder>
+            <BuildOrder>12</BuildOrder>
         </CppCompile>
         <CppCompile Include="Spline.cpp">
             <DependentOn>Spline.h</DependentOn>
-            <BuildOrder>11</BuildOrder>
+            <BuildOrder>13</BuildOrder>
         </CppCompile>
         <CppCompile Include="Types.cpp">
             <DependentOn>Types.h</DependentOn>
             <BuildOrder>14</BuildOrder>
         </CppCompile>
-        <FormResources Include="OptimizerUnit.dfm"/>
-        <FormResources Include="ResultsForm.dfm"/>
-        <FormResources Include="OptimizerResults.dfm"/>
         <FormResources Include="GeometryForm.dfm"/>
         <FormResources Include="MainUnit.dfm"/>
+        <FormResources Include="OptimizerResults.dfm"/>
+        <FormResources Include="OptimizerUnit.dfm"/>
+        <FormResources Include="ResultsForm.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -294,6 +294,12 @@
                 <DeployFile LocalName=".\Win32\Debug\Hellweg.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>Hellweg.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName=".\Win32\Debug\Hellweg.tds" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win32">
+                        <RemoteName>Hellweg.tds</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
