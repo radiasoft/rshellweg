@@ -74,8 +74,9 @@ void TBeamSolver::Initialize()
 
     Np_beam=1;
     Beam=new TBeam*[Npoints];
-    for (int i=0;i<Npoints;i++)
+    for (int i=0;i<Npoints;i++) {
         Beam[i]=new TBeam(1);
+    }
 
     Structure=new TStructure[Npoints];
 
@@ -1086,7 +1087,6 @@ int TBeamSolver::CreateGeometry()
     E_base = new double[Ncells]; E_int=new double[Npoints];
     Al_base = new double[Ncells]; Al_int=new double[Npoints];
 
-    memset(Structure, 0, sizeof(Structure));
     delete[] Structure;
 
     double z=0,zm=0,D=0,x=0;
@@ -1395,10 +1395,8 @@ int TBeamSolver::CreateBeam()
     //Npoints=Ncells*Nmesh;
 
     for (int i=0;i<Np_beam;i++){
-        memset(Beam[i], 0, sizeof(Beam[i]));
         delete Beam[i];
     }
-    memset(Beam, 0, sizeof(Beam));
     delete[] Beam;
 
     if (BeamType!=RANDOM){
@@ -1863,7 +1861,6 @@ void TBeamSolver::Solve()
  // fclose(logFile);
     
     for (int i=0;i<Ncoef;i++){
-        memset(K[i], 0, sizeof(K[i]));
         delete[] K[i];
         K[i]=new TIntegration[Np];
     }
@@ -1905,7 +1902,7 @@ void TBeamSolver::Solve()
             return;
         }
         for (int i=0;i<Ncoef;i++)
-            memset(K[i], 0, sizeof(K[i]));
+            memset(K[i], 0, sizeof(TIntegration));
         //}
     }
 
