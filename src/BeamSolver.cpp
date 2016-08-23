@@ -546,7 +546,11 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
     ParsedStrings->Clear();
 
     for (int k=0;k<N;k++){
-		switch (Lines[k].P) {
+	switch (Lines[k].P) {
+            case UNDEFINED: {
+                throw std::logic_error("Unhandled TInputParameter UNDEFINED in TBeamSolver::ParseLines");             
+            }
+
             case SOLENOID:{
                 if (Lines[k].N==3){
                     B0=Lines[k].S[0].ToDouble();
@@ -564,6 +568,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                     return ERR_SOLENOID;
                 break;
             }
+
             case CELL:{
                 if(OnlyParameters)
                     break;
@@ -602,6 +607,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 
                 break;
             }
+
             case CELLS:{
                 if(OnlyParameters)
                     break;
@@ -660,6 +666,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 
                 break;
             }
+
             case BEAM:{
                 if (Lines[k].N!=6){
                     return ERR_BEAM;
@@ -675,6 +682,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                 ParsedStrings->Add(F);
                 break;
             }
+
             case CURRENT:{
                 if (Lines[k].N!=5 && Lines[k].N!=2){
                     return ERR_CURRENT;
@@ -703,6 +711,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                 ParsedStrings->Add(F);
                 break;
             }
+
             case OPTIONS:{
                 F="OPTIONS ";
                 for (int j=0;j<Lines[k].N;j++){
@@ -717,6 +726,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                 ParsedStrings->Add(F);
                 break;
             }
+
             case DRIFT:{
                 if(OnlyParameters)
                     break;
@@ -742,6 +752,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                     OnlyParameters=true;
                 break;
             }
+
             case COUPLER:{
                 if (Lines[k].N==2){
                     P0=Lines[k].S[0].ToDouble();

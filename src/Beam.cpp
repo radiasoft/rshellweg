@@ -24,7 +24,6 @@ __fastcall TBeam::TBeam(int N)
 //---------------------------------------------------------------------------
 __fastcall TBeam::~TBeam()
 {
-    memset(Particle, 0, sizeof(Particle));
     delete[] Particle;
 }
 //---------------------------------------------------------------------------
@@ -98,10 +97,14 @@ int TBeam::CountCSTParticles(TBeamType bType)
             Np2=Np1;
             break;
         }
+        case RANDOM: {
+            throw std::logic_error("Unhandled TBeamType RANDOM in TBeam::CountCSTParticles");   
+        }
     }
 
-    if (Np1=Np2)
+    if (Np1 == Np2) {
         N=Np1;
+    }
 
     return N;
 }
