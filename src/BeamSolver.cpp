@@ -167,7 +167,11 @@ void TBeamSolver::LoadIniConstants()
     MaxCells=UserIni->ReadInteger("OTHER","Maximum Cells",MaxCells);
     Nmesh=UserIni->ReadInteger("NUMERIC","Number of Mesh Points",Nmesh);
     Kernel=UserIni->ReadFloat("Beam","Percent Of Particles in Kernel",Kernel);
-    Kernel/=100;
+    if (Kernel>0)
+	Kernel/=100
+    else
+	Kernel=0.9;
+
     
     t=UserIni->ReadInteger("NUMERIC","Spline Interpolation",t);
     switch (t) {
