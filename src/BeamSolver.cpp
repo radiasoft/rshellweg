@@ -168,9 +168,9 @@ void TBeamSolver::LoadIniConstants()
     Nmesh=UserIni->ReadInteger("NUMERIC","Number of Mesh Points",Nmesh);
     Kernel=UserIni->ReadFloat("Beam","Percent Of Particles in Kernel",Kernel);
     if (Kernel>0)
-	Kernel/=100
-    else
-	Kernel=0.9;
+    	Kernel/=100;
+    	else
+    	Kernel=0.9;
 
     
     t=UserIni->ReadInteger("NUMERIC","Spline Interpolation",t);
