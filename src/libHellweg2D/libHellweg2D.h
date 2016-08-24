@@ -13,7 +13,7 @@ enum lib_hellweg_err {
     SOLVE_STEP_ERR
 };
 
-lib_hellweg_err lib_hellweg_run_beam_solver(const char* input_filename, const char* output_filename);
+enum lib_hellweg_err lib_hellweg_run_beam_solver(const char* input_filename, const char* output_filename);
 
 #ifdef __cplusplus
 }

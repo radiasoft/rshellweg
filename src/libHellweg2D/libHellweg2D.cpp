@@ -2,7 +2,7 @@
 #include "BeamSolver.h"
 #include "libHellweg2D.h"
 
-lib_hellweg_err lib_hellweg_run_beam_solver(const char* input_filename, const char* output_filename) {
+enum lib_hellweg_err lib_hellweg_run_beam_solver(const char* input_filename, const char* output_filename) {
     if (input_filename && output_filename) {
         TBeamSolver Solver = TBeamSolver();
 
