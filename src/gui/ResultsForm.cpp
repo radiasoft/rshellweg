@@ -319,7 +319,7 @@ void TResForm::DrawPower()
     for (int j=0;j<Npts;j++){
         double z=100*Solver->Structure[j].ksi*Solver->Structure[j].lmb;
         double E=sqrt(2*Solver->Structure[j].Rp);
-        double P=1e-6*sqr(Solver->Structure[j].A*We0/E);
+        double P=E!=0?1e-6*sqr(Solver->Structure[j].A*We0/E):0;
         double W=Solver->Beam[j]->GetAverageEnergy();
         double I=Solver->Beam[j]->Ib;
         LineSeries->AddXY(z,P);
