@@ -10,10 +10,13 @@ enum lib_hellweg_err {
     OUTPUT_FILE_ERR,
     GEOMETRY_STEP_ERR,
     BEAM_STEP_ERR,
-    SOLVE_STEP_ERR
+    SOLVE_STEP_ERR,
+    SOLVER_INIT_ERR,
+    INI_FILE_ERR,
+    NO_ERR
 };
 
-enum lib_hellweg_err lib_hellweg_run_beam_solver(const char* input_filename, const char* output_filename);
+enum lib_hellweg_err lib_hellweg_run_beam_solver(const char*, const char*, const char*);
 
 #ifdef __cplusplus
 }

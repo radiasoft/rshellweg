@@ -122,7 +122,7 @@ void __fastcall TMainForm::FormCreate(TObject *Sender)
     AnsiString Path;
     Path=Application->ExeName;
     Path=ExtractFileDir(Path);
-    Solver=new TBeamSolver(Path);
+    Solver=new TBeamSolver(Path+"\\hellweg.ini");
     Solver->AssignSolverPanel(SolverGroup);
 
     InputFileName="INPUT.txt";

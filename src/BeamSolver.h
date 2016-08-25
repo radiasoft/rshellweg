@@ -25,7 +25,7 @@ class TBeamSolver
 private:
     //FLAGS
     bool DataReady;
-    AnsiString Path;
+    AnsiString UserIniPath;
     //INITIAL PARAMETERS
     double F0,P0,I0,lmb;
     double B0,Lmag,Zmag;  //Lmag - length, Zmag -position

@@ -5,9 +5,9 @@
 
 #include "BeamSolver.h"
 //---------------------------------------------------------------------------
-__fastcall TBeamSolver::TBeamSolver(AnsiString _Path)
+__fastcall TBeamSolver::TBeamSolver(AnsiString UserIniPath)
 {
-    Path=_Path;
+    this->UserIniPath = UserIniPath;
     Initialize();
 }
 //---------------------------------------------------------------------------
@@ -170,7 +170,7 @@ void TBeamSolver::LoadIniConstants()
     int t;
     double stat;
 
-    UserIni=new TIniFile(Path+"\\hellweg.ini");
+    UserIni=new TIniFile(UserIniPath);
     MaxCells=UserIni->ReadInteger("OTHER","Maximum Cells",MaxCells);
     Nmesh=UserIni->ReadInteger("NUMERIC","Number of Mesh Points",Nmesh);
     Kernel=UserIni->ReadFloat("Beam","Percent Of Particles in Kernel",Kernel);
