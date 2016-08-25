@@ -158,7 +158,7 @@ void __fastcall TMainForm::SolveButtonClick(TObject *Sender)
         ShowMessage("Error occured while reading input file! Impossible to start solver.");
         return;
     }
-    static int cnt=0;
+//    static int cnt=0;
 
     //if(cnt<1){
     try{
