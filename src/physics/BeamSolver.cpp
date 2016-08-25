@@ -174,7 +174,11 @@ void TBeamSolver::LoadIniConstants()
     MaxCells=UserIni->ReadInteger("OTHER","Maximum Cells",MaxCells);
     Nmesh=UserIni->ReadInteger("NUMERIC","Number of Mesh Points",Nmesh);
     Kernel=UserIni->ReadFloat("Beam","Percent Of Particles in Kernel",Kernel);
-    Kernel/=100;
+    if (Kernel>0)
+    	Kernel/=100;
+    	else
+    	Kernel=0.9;
+
     
     t=UserIni->ReadInteger("NUMERIC","Spline Interpolation",t);
     switch (t) {
@@ -1969,7 +1973,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 
     double v=Structure[j].betta;
     double E=sqrt(2*Structure[j].Rp);
-    double Pb=1e-6*sqr(Structure[j].A*We0/E);
+    double Pb=E!=0?1e-6*sqr(Structure[j].A*We0/E):0;
 
     /*double Pw=P0;
     for(int i=1;i<Npoints;i++)
