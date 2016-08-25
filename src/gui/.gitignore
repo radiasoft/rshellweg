@@ -33,9 +33,9 @@ Win32/
 Win64/
 __history/
 __recovery/
-Hellweg.cbproj.local
-Hellweg.stat
-Hellweg.res
+*.cbproj.local
+*.stat
+*.res
 *.#00
 *.map
 *.~1~

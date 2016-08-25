@@ -49,3 +49,7 @@ src/Hellweg.cbproj.local
 src/.gitignore~
 src/Hellweg.cbproj.local
 src/Hellweg.stat
+src/gui/Hellweg.res
+*.stat
+src/gui/Hellweg.stat
+*.res
