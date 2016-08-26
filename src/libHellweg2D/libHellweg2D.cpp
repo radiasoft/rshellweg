@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <cstring>
+#include <typeinfo>
 
 #include "AnsiString.hpp"
 #include "BeamSolver.h"
@@ -17,6 +18,12 @@ void set_error(LIB_HELLWEG_ERR_INFO *err_info, lib_hellweg_err_type type, const 
     }
 }
 
+void set_error(LIB_HELLWEG_ERR_INFO *err_info, const std::exception& e) {
+    if (err_info) {
+        std::strncpy(err_info->exc, typeid(e).name(), 1024);
+        set_error(err_info, CPP_EXCEPT, e.what());
+    }
+}
 
 bool lib_hellweg_run_beam_solver(
         const char *ini_filename,
@@ -38,15 +45,16 @@ bool lib_hellweg_run_beam_solver(
                         Solver.InputFile = input_filename;
                          
                         if (Solver.LoadData() != ERR_NO) {
-                            success = false;
-                            set_error(err_info, INPUT_ERROR, "LoadData() failed");
-                            break;
+                            throw std::runtime_error("LoadData() failed");
                         }
 
-                        Solver.CreateGeometry();
+                        if (Solver.CreateGeometry() != ERR_NO) {
+                            throw std::runtime_error("CreateGeometry() failed");
+                        }
 
-                        Solver.CreateBeam();
-
+                        if (Solver.CreateBeam() != ERR_NO) {
+                            throw std::runtime_error("CreateBeam() failed");
+                        }
                         Solver.Solve();
 
                         Solver.Output(o);
@@ -64,23 +72,14 @@ bool lib_hellweg_run_beam_solver(
                 set_error(err_info, INPUT_ERROR, "Missing ini_filename");
             }
         } while(false);
-    } catch (...) {
-        std::exception_ptr eptr = std::current_exception();
-
+    } catch(const std::exception& e) {
         success = false;
-
-        if (eptr) {
-            try {
-                std::rethrow_exception(eptr); 
-            } catch(const std::exception& e) {
-                set_error(err_info, CPP_EXCEPT, e.what());
-            } catch (...) {
-                set_error(err_info, CPP_EXCEPT, "Unknown exception class.");
-            }
-        }
+        set_error(err_info, e); 
+    } catch (...) {
+        success = false;
+        set_error(err_info, CPP_EXCEPT_UNKNOWN, "Unknown exception class.");
     }
 
     return success;
-
 }
 
