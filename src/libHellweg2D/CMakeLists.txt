@@ -42,3 +42,6 @@ install(TARGETS Hellweg2D
 install(FILES libHellweg2D.h
         DESTINATION include)
 
+enable_testing()
+add_subdirectory (test)
+add_test (NAME Hellweg2D COMMAND Hellweg2DTest)
