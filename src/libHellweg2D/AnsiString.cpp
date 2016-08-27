@@ -1,14 +1,34 @@
 #include <cstring>
 
 #include "AnsiString.hpp" 
+
+std::ostream& operator<<(std::ostream &strm, const AnsiString &a) {
+  return strm << "AnsiString(" << a.s << ")";
+}
        
 AnsiString& AnsiString::operator+=(const AnsiString &other) {
     s += other.s;
     return *this;
 }
 
+bool operator==(const char* c, const AnsiString &as) {
+    return AnsiString(c) == as;
+}
+
+bool AnsiString::operator==(const AnsiString &other) const {
+    return s == other.s;
+}
+
 bool AnsiString::operator==(const char *other) const {
     return s == std::string(other);
+}
+
+bool operator!=(const char* c, const AnsiString &as) {
+    return AnsiString(c) != as;
+}
+
+bool AnsiString::operator!=(const AnsiString &other) const {
+    return s != other.s;
 }
 
 bool AnsiString::operator!=(const char *other) const {
@@ -20,11 +40,11 @@ AnsiString AnsiString::operator+(const AnsiString &other) const {
 }
         
 AnsiString AnsiString::operator+(const char *other) const {
-    return AnsiString();
+    return *this + AnsiString(other);
 }
 
 AnsiString operator+(const char *c, const AnsiString &as) {
-    return AnsiString();
+    return AnsiString(c) + as;
 }
 
 AnsiString::AnsiString(const char *c) {
