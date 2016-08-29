@@ -511,6 +511,7 @@ bool TMatrix::IsDiagonal()
 //---------------------------------------------------------------------------
 void TMatrix::Ones()
 {
+    Zeros();
     for(int i=0;i<K;i++)
         A[i][i]=1;
 }
