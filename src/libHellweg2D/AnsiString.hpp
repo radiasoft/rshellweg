@@ -9,6 +9,7 @@ class AnsiString {
 
     public:
         friend class TStringList;
+        friend class TIniFile;
         friend std::ostream& operator<<(std::ostream &strm, const AnsiString &a);
         
         AnsiString() : s("") {};

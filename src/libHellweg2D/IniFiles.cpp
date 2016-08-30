@@ -7,12 +7,23 @@ TIniFile::TIniFile(AnsiString filepath) {
 }
 
 long TIniFile::ReadInteger(const AnsiString section, const AnsiString ident, long d) {
-    const char* locator = (section + "." + ident).c_str();
-    return tree.get<long>(locator);
+    return tree.get(getLocator(section, ident), d);
 }
 
 double TIniFile::ReadFloat(const AnsiString section, const AnsiString ident, double d) {
-    const char* locator = (section + "." + ident).c_str();
-    return tree.get<double>(locator);
+    return tree.get(getLocator(section, ident), d);
 }
 
+AnsiString TIniFile::ReadString(const AnsiString section, const AnsiString ident, AnsiString d) {
+    return AnsiString(tree.get(getLocator(section, ident), d.s));
+}
+
+std::string TIniFile::getLocator(const AnsiString &section, const AnsiString &ident) {
+    return section.s + "." + ident.s;
+}
+
+
+void TIniFile::fromString(std::string &s) {
+    std::istringstream is(s);
+    pt::ini_parser::read_ini(is, tree);
+}
