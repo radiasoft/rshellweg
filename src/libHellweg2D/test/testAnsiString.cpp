@@ -17,6 +17,15 @@ TEST_CASE("AnsiString: instantiation") {
         
         CSTR_EQUAL(as.c_str(), ts);
     }
+
+    SECTION("c string assignment") {
+        const char ts[] = "Test String";
+        AnsiString as;
+
+        as = ts;
+        
+        CSTR_EQUAL(as.c_str(), ts);
+    }
 }
 
 TEST_CASE("AnsiString: test equality operators") {
