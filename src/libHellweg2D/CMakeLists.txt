@@ -7,8 +7,6 @@ set(LIB_HW_VERSION_MINOR 1)
 set(LIB_HW_VERSION_PATCH 0)
 set(LIB_HW_VERSION_STRING ${LIB_HW_VERSION_MAJOR}.${LIB_HW_VERSION_MINOR}.${LIB_HW_VERSION_PATCH})
 
-set(CMAKE_BUILD_TYPE Release)
-
 set(PHYS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../physics)
 set(PHYS_SRC ${PHYS_DIR}/BeamSolver.cpp ${PHYS_DIR}/Spline.cpp ${PHYS_DIR}/Matrix.cpp 
              ${PHYS_DIR}/Beam.cpp ${PHYS_DIR}/Spectrum.cpp ${PHYS_DIR}/ConstUnit.cpp)
