@@ -68,7 +68,7 @@ src/Hellweg.cbproj.local
 src/.gitignore~
 src/Hellweg.cbproj.local
 src/Hellweg.stat
-*.local
-src/Hellweg.cbproj.local
+src/gui/Hellweg.res
 *.stat
-src/Hellweg.stat
+src/gui/Hellweg.stat
+*.res
