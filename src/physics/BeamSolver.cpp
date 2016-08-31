@@ -1394,7 +1394,6 @@ int TBeamSolver::CreateBeam()
 {
     double sx=0,sy=0,r=0;
     double b0=0,db=0;
-    bool CST_success=0;
 
     //Npoints=Ncells*Nmesh;
 
@@ -1461,7 +1460,9 @@ int TBeamSolver::CreateBeam()
         Beam[0]->MakeGaussEmittance(AlphaCS,BettaCS,EmittanceCS);
     }
     else {
-        CST_success=Beam[0]->ReadCSTEmittance(BeamType);
+        if (!Beam[0]->ReadCSTEmittance(BeamType)) {
+            return ERR_CURRENT;
+        }
     }
 
     if (BeamType!=CST_Y) {
@@ -1474,11 +1475,6 @@ int TBeamSolver::CreateBeam()
             Beam[i]->Particle[j].x0=Beam[0]->Particle[j].x;
         }
     }
-
-    if (!CST_success) {
-        return ERR_CURRENT;
-    }
-
     
  /* for (int i=0;i<Np;i++){
         Beam[0]->Particle[i].x=0;//-0.001+0.002*i/(Np-1);
