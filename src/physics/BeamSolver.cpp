@@ -1405,8 +1405,9 @@ int TBeamSolver::CreateBeam()
 
     if (BeamType!=RANDOM){
         Np=Beam[0]->CountCSTParticles(BeamType);
-        if(Np<0)
+        if(Np<0) {
             return ERR_CURRENT;
+        }
     }
 
     Beam=new TBeam*[Npoints];
@@ -1438,35 +1439,45 @@ int TBeamSolver::CreateBeam()
 
    /*   b0=MeVToVelocity(W0);
     db=MeVToVelocity(dW);   */
-    if (W_Eq)
+    if (W_Eq) {
         Beam[0]->MakeEquiprobableDistribution(W0,dW,BETTA_PAR);
-    else
+    }
+    else {
         Beam[0]->MakeGaussDistribution(W0,dW,BETTA_PAR);
+    }
 
-    for (int i=0;i<Np;i++)
+    for (int i=0;i<Np;i++) {
         Beam[0]->Particle[i].betta=MeVToVelocity(Beam[0]->Particle[i].betta);
+    }
 
-    if (Phi_Eq)
+    if (Phi_Eq) {
         Beam[0]->MakeEquiprobableDistribution(HellwegTypes::DegToRad(Phi0)-Structure[0].dF,HellwegTypes::DegToRad(dPhi),PHI_PAR);
-    else
+    }
+    else {
         Beam[0]->MakeGaussDistribution(HellwegTypes::DegToRad(Phi0)-Structure[0].dF,HellwegTypes::DegToRad(dPhi),PHI_PAR);
+    }
 
-    if (BeamType==RANDOM)
+    if (BeamType==RANDOM) {
         Beam[0]->MakeGaussEmittance(AlphaCS,BettaCS,EmittanceCS);
-    else
+    }
+    else {
         CST_success=Beam[0]->ReadCSTEmittance(BeamType);
+    }
 
-    if (BeamType!=CST_Y)
+    if (BeamType!=CST_Y) {
         Beam[0]->MakeEquiprobableDistribution(pi,pi,TH_PAR);
+    }
     Beam[0]->MakeEquiprobableDistribution(0,0,BTH_PAR);
 
     for (int i=0;i<Npoints;i++){
-        for (int j=0;j<Np;j++)
+        for (int j=0;j<Np;j++) {
             Beam[i]->Particle[j].x0=Beam[0]->Particle[j].x;
+        }
     }
 
-    if (!CST_success)
+    if (!CST_success) {
         return ERR_CURRENT;
+    }
 
     
  /* for (int i=0;i<Np;i++){
