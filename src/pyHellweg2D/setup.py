@@ -1,11 +1,9 @@
 from setuptools import setup, find_packages
-from setuptools.command.install import install
 from distutils import util
 from distutils.command.build import build
 from subprocess import call
 
 import os
-import shutil
 from glob import glob
 
 try:
@@ -17,9 +15,9 @@ except ImportError:
 
 
 if 'macosx' in util.get_platform():
-    DYLIB = 'dylib'
+    DYLIB = 'libHellweg2D*.dylib'
 else:
-    DYLIB = 'so'
+    DYLIB = 'libHellweg2D.so*'
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 BUILD_DIR = os.path.join(BASE_DIR, 'build')
@@ -28,7 +26,14 @@ LIB_BUILD_DIR = os.path.join(BUILD_DIR, 'libHellweg2D.{}'.format(util.get_platfo
 
 FFI_BUILDER = pyHellweg2D_builder.get_ffibuilder([LIB_DIR], [LIB_BUILD_DIR])
 
+def get_libhellweg_paths():
+    l = glob(os.path.join(LIB_BUILD_DIR, DYLIB))
+    print(l)
+    return l
+
+
 class PyHellweg2DBuild(build):
+    libHellweg2D = []
     def exec_call(self, *a, **kw):
         exec_msg = kw.pop('exec_msg', '')
         l = lambda: call(*a, **kw)
@@ -43,14 +48,9 @@ class PyHellweg2DBuild(build):
         self.exec_call(['make'], cwd=LIB_BUILD_DIR, 
                 exec_msg='Building libHellweg2D')
 
-    def copy_libHellweg2D(self):
-        for filepath in glob(os.path.join(LIB_BUILD_DIR, 'libHellweg2D*.{0}'.format(DYLIB))):
-            self.copy_file(filepath, self.build_lib)
-
     def run(self):
         self.build_libHellweg2D()
         build.run(self)
-        self.copy_libHellweg2D()
 
 setup(
     name='hellweg2d',
@@ -62,7 +62,10 @@ setup(
     cmdclass={
         'build': PyHellweg2DBuild,
     },
-    entry_points = {
+    entry_points={
         'console_scripts': ['hellweg2d.py=hellweg2d.cmd:main']
-    }
+    },
+    data_files=[
+        ('', get_libhellweg_paths())
+    ]
 )
