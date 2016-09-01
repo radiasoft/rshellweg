@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from setuptools.command.install import install
 from distutils import util
 from distutils.command.build import build
@@ -16,10 +16,15 @@ except ImportError:
     import pyHellweg2D_builder
 
 
+if 'macosx' in util.get_platform():
+    DYLIB = 'dylib'
+else:
+    DYLIB = 'so'
+
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 BUILD_DIR = os.path.join(BASE_DIR, 'build')
 LIB_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'libHellweg2D'))
-LIB_BUILD_DIR = os.path.join(BUILD_DIR, 'libHellweg2D-{}'.format(util.get_platform()))
+LIB_BUILD_DIR = os.path.join(BUILD_DIR, 'libHellweg2D.{}'.format(util.get_platform()))
 
 FFI_BUILDER = pyHellweg2D_builder.get_ffibuilder([LIB_DIR], [LIB_BUILD_DIR])
 
@@ -35,33 +40,29 @@ class PyHellweg2DBuild(build):
         self.exec_call(['cmake', LIB_DIR], cwd=LIB_BUILD_DIR, 
                 exec_msg='Configuring libHellweg2D')
         
-        self.exec_call(['make', '-j2'], cwd=LIB_BUILD_DIR, 
+        self.exec_call(['make'], cwd=LIB_BUILD_DIR, 
                 exec_msg='Building libHellweg2D')
 
     def copy_libHellweg2D(self):
-        build_path = os.path.abspath(self.build_temp)
-        for filepath in glob(os.path.join(LIB_BUILD_DIR, '*.dylib')):
-            shutil.copy(filepath, build_path)
-            filename = os.path.basename(filepath)
-            print('copy {0}->{1}'.format(filepath, os.path.join(build_path, filename)))
-
+        for filepath in glob(os.path.join(LIB_BUILD_DIR, 'libHellweg2D*.{0}'.format(DYLIB))):
+            self.copy_file(filepath, self.build_lib)
 
     def run(self):
         self.build_libHellweg2D()
         build.run(self)
-
-class PyHellweg2DInstall(install):
-    pass
-
-
-
+        self.copy_libHellweg2D()
 
 setup(
-    name='pyhellweg',
+    name='hellweg2d',
     version='0.0.1',
     ext_modules=[FFI_BUILDER.distutils_extension()],
+    packages=find_packages(exclude=['tests']),
+    install_requires=['sh'],
+    setup_requires=['cffi'],
     cmdclass={
         'build': PyHellweg2DBuild,
-        'install': PyHellweg2DInstall
+    },
+    entry_points = {
+        'console_scripts': ['hellweg2d.py=hellweg2d.cmd:main']
     }
 )

@@ -16,6 +16,6 @@ Vagrant.configure("2") do |config|
    end
 
   config.vm.provision "shell", inline: <<-SHELL
-    dnf install -y clang gcc-c++ cmake make boost-devel tmux htop git
+    dnf install -y clang gcc-c++ cmake make boost-devel tmux htop git python-devel libffi-devel redhat-rpm-config python3-devel
   SHELL
 end
