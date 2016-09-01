@@ -8,3 +8,6 @@ def main():
     output_filename = sys.argv[3]
     
     pyhellweg.run_beam_solver(ini_filename, input_filename, output_filename)
+
+if __name__ == '__main__':
+    main()

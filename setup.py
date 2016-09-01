@@ -7,9 +7,8 @@ import sysconfig
 from glob import glob
 from setuptools import setup, Extension
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-LIB_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'libHellweg2D'))
-PHYS_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'physics'))
+LIB_DIR = os.path.join('src', 'libHellweg2D')
+PHYS_DIR = os.path.join('src', 'physics')
 
 def get_src_files(dir, ext):
     return glob(os.path.join(dir, '*.{}'.format(ext)))
