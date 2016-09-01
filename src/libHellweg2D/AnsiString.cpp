@@ -91,7 +91,10 @@ AnsiString AnsiString::FormatFloat(const char *format, float f) {
         _format = "%f";
     }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-security"
     std::snprintf(buf, 32, _format);
+#pragma GCC diagnostic pop
      
     return AnsiString(buf);
 }

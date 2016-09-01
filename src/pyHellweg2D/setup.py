@@ -1,71 +1,41 @@
-from setuptools import setup, find_packages
-from distutils import util
-from distutils.command.build import build
-from subprocess import call
+# -*- coding: utf-8 -*-
+"""Build and install hellweg2d command line"""
+from __future__ import division, absolute_import, print_function
 
 import os
+import sysconfig
 from glob import glob
-
-try:
-    import pyHellweg2D_builder
-except ImportError:
-    import pip 
-    pip.main(['install', 'cffi'])
-    import pyHellweg2D_builder
-
-
-if 'macosx' in util.get_platform():
-    DYLIB = 'libHellweg2D*.dylib'
-else:
-    DYLIB = 'libHellweg2D.so*'
+from setuptools import setup, Extension
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-BUILD_DIR = os.path.join(BASE_DIR, 'build')
 LIB_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'libHellweg2D'))
-LIB_BUILD_DIR = os.path.join(BUILD_DIR, 'libHellweg2D.{}'.format(util.get_platform()))
+PHYS_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'physics'))
 
-FFI_BUILDER = pyHellweg2D_builder.get_ffibuilder([LIB_DIR], [LIB_BUILD_DIR])
+def get_src_files(dir, ext):
+    return glob(os.path.join(dir, '*.{}'.format(ext)))
 
-def get_libhellweg_paths():
-    l = glob(os.path.join(LIB_BUILD_DIR, DYLIB))
-    print(l)
-    return l
+def get_compile_args():
+    try:
+        CC = os.environ['CC']
+    except KeyError:
+        CC = sysconfig.get_config_var('CC')
 
-
-class PyHellweg2DBuild(build):
-    libHellweg2D = []
-    def exec_call(self, *a, **kw):
-        exec_msg = kw.pop('exec_msg', '')
-        l = lambda: call(*a, **kw)
-        self.execute(l, [], exec_msg)
-
-    def build_libHellweg2D(self):
-        self.mkpath(LIB_BUILD_DIR)
-
-        self.exec_call(['cmake', LIB_DIR], cwd=LIB_BUILD_DIR, 
-                exec_msg='Configuring libHellweg2D')
-        
-        self.exec_call(['make'], cwd=LIB_BUILD_DIR, 
-                exec_msg='Building libHellweg2D')
-
-    def run(self):
-        self.build_libHellweg2D()
-        build.run(self)
+    if 'gcc' in CC:
+        return ['-std=c++11']
 
 setup(
     name='hellweg2d',
     version='0.0.1',
-    ext_modules=[FFI_BUILDER.distutils_extension()],
-    packages=find_packages(exclude=['tests']),
+    packages=['hellweg2d'],
     install_requires=['sh'],
-    setup_requires=['cffi'],
-    cmdclass={
-        'build': PyHellweg2DBuild,
-    },
     entry_points={
-        'console_scripts': ['hellweg2d.py=hellweg2d.cmd:main']
+        'console_scripts': ['hellweg2d.py=hellweg2d:main']
     },
-    data_files=[
-        ('', get_libhellweg_paths())
+    ext_modules=[
+        Extension( name='pyhellweg', define_macros=[('RADIA', 1)],
+            include_dirs=[LIB_DIR, PHYS_DIR, '/opt/local/include'],
+            sources=get_src_files(PHYS_DIR, 'cpp') + get_src_files(LIB_DIR, 'cpp') + ['pyhellweg.c'],
+            extra_compile_args=get_compile_args(),
+        )    
     ]
 )
