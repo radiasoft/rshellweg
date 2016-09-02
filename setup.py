@@ -28,7 +28,7 @@ setup(
     packages=['hellweg2d'],
     install_requires=['sh'],
     entry_points={
-        'console_scripts': ['hellweg2d.py=hellweg2d:main']
+        'console_scripts': ['run_hellweg2d.py=hellweg2d.cmd:main']
     },
     ext_modules=[
         Extension( name='pyhellweg', define_macros=[('RADIA', 1)],
