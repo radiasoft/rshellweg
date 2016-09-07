@@ -3,7 +3,7 @@
 #ifndef ConstUnitH
 #define ConstUnitH
 
-#ifndef RADIA
+#ifndef RSLINAC
 #include <Graphics.hpp>
 #endif
 
@@ -35,7 +35,7 @@ const int SeparatrixNumber=20;
 const double SpecLevel=0.5;
 
 //COLORS
-#ifndef RADIA
+#ifndef RSLINAC
 const TColor Line1_col_a=clRed;
 const TColor Line1_col_b=clMaroon;
 const TColor Line2_col_a=clBlue;

@@ -30,7 +30,7 @@ __fastcall TBeamSolver::~TBeamSolver()
         delete[] K[i];
     delete[] K;
 
-    #ifndef RADIA
+    #ifndef RSLINAC
     if (SmartProgress!=NULL)
         delete SmartProgress;
     #endif
@@ -83,7 +83,7 @@ void TBeamSolver::Initialize()
     InputStrings=new TStringList;
     ParsedStrings=new TStringList;
 
-    #ifndef RADIA
+    #ifndef RSLINAC
     SmartProgress=NULL;
     #endif
 }
@@ -157,7 +157,7 @@ bool TBeamSolver::LoadFromFile(AnsiString& Fname)
     return Success;
 }
 //---------------------------------------------------------------------------
-#ifndef RADIA
+#ifndef RSLINAC
 void TBeamSolver::AssignSolverPanel(TObject *SolverPanel)
 {
     SmartProgress=new TSmartProgress(static_cast <TWinControl *>(SolverPanel));
@@ -1722,7 +1722,7 @@ void TBeamSolver::CountLiving(int Si)
             fprintf(F,"\n");
         }
         fclose(F);   */
-        #ifndef RADIA
+        #ifndef RSLINAC
         ShowMessage("Beam Lost!");
         #endif
         Stop=true;
@@ -1856,7 +1856,7 @@ void TBeamSolver::Step(int Si)
 //---------------------------------------------------------------------------
 void TBeamSolver::Solve()
 {
-    #ifndef RADIA
+    #ifndef RSLINAC
     if (SmartProgress==NULL){
         ShowMessage("System Message: ProgressBar not assigned! Code needs to be corrected");
         return;
@@ -1900,13 +1900,13 @@ void TBeamSolver::Solve()
             Beam[i+1]->Particle[j].z=Structure[i+1].ksi*Structure[i+1].lmb;
             Beam[i+1]->Particle[j].phi-=Structure[i+1].dF;
         }
-        #ifndef RADIA
+        #ifndef RSLINAC
         SmartProgress->operator ++();
         Application->ProcessMessages();
         #endif
         if (Stop){
             Stop=false;
-            #ifndef RADIA
+            #ifndef RSLINAC
             ShowMessage("Solve Process Aborted!");
             SmartProgress->Reset();
             #endif
@@ -1919,13 +1919,13 @@ void TBeamSolver::Solve()
 
    //   
 
-    #ifndef RADIA
+    #ifndef RSLINAC
     SmartProgress->SetPercent(100);
     SmartProgress->SetTime(0);
     #endif
 }
 //---------------------------------------------------------------------------
-#ifndef RADIA
+#ifndef RSLINAC
 TResult TBeamSolver::Output(AnsiString& FileName,TMemo *Memo)
 #else
 TResult TBeamSolver::Output(AnsiString& FileName)
@@ -2047,7 +2047,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     OutputStrings->Add(Line);
     OutputStrings->Add("==========================================");
 
-    #ifndef RADIA
+    #ifndef RSLINAC
     if (Memo!=NULL){
         Memo->Lines->AddStrings(OutputStrings);
     }

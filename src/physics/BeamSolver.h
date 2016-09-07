@@ -13,7 +13,7 @@
 #include "Spline.h"
 #include "Spectrum.h"
 
-#ifndef RADIA
+#ifndef RSLINAC
 #include "SmartProgressBar.h"
 #else
 #include "TStringList.hpp"
@@ -47,7 +47,7 @@ private:
     TIntegration **K;
     TIntParameters *Par;
     
-    #ifndef RADIA 
+    #ifndef RSLINAC 
     TSmartProgress *SmartProgress;
     #endif
     //INITIALIZATION
@@ -81,7 +81,7 @@ public:
     __fastcall TBeamSolver();
     __fastcall ~TBeamSolver();
 
-    #ifndef RADIA
+    #ifndef RSLINAC
     void AssignSolverPanel(TObject *SolverPanel);
     #endif
 
@@ -146,7 +146,7 @@ public:
     double GetKernel();
 
     void Solve();
-    #ifndef RADIA
+    #ifndef RSLINAC
     TResult Output(AnsiString& FileName,TMemo *Memo=NULL);
     #else
     TResult Output(AnsiString& FileName);

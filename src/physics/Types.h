@@ -12,7 +12,7 @@
 #include <time.h>
 #include <math.h>
 
-#ifndef RADIA
+#ifndef RSLINAC
 #include <system.hpp>
 #include <conio.h>
 #include <dir.h>
@@ -174,7 +174,7 @@ struct TIntParameters
 };
 
 //---------------------------------------------------------------------------
-#ifndef RADIA
+#ifndef RSLINAC
 inline int round(double x){
 	return (x-floor(x))>(ceil(x)-x)?ceil(x):floor(x);
 }

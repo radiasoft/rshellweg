@@ -1,7 +1,7 @@
-import sh
+import subprocess as sp
 
-cpp_filt = sh.Command('c++filt')
-unmangle_cpp_class = cpp_filt.bake('-t')
+def unmangle_cpp_class(mangled_str):
+    return sp.check_output(['c++filt', '-t', mangled_str]).strip()
 
 cdef extern from "libHellweg2D.h":
     ctypedef enum lib_hellweg_err_type:
