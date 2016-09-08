@@ -212,6 +212,8 @@ void TBeam::MakeGaussEmittance(double alpha, double betta, double eps)
     double Mx=0; //x0
     double My=0; //x'0
 
+    FILE *F;
+	F=fopen("particleInit.log","w");
     for (int i=0;i<Np;i++){
         TwoRandomGauss(Ran1,Ran2);
         xx=Mx+Ran1*sx;
@@ -224,7 +226,12 @@ void TBeam::MakeGaussEmittance(double alpha, double betta, double eps)
         double px=xx*sin(phi)+yy*cos(phi);     //x'=bx/bz; Emittance is defined in space x-x'
         Particle[i].Bx=px*Particle[i].betta;  //bx=x'*bz
        //   Particle[i].Bx/=lmb;
-    }
+	    if (i <= 100) {
+ 		   fprintf(F,"%d: lmb=%g, x(m)=%g, Bx=%g, betta=%g, z(m)=%g\n",
+		           i,lmb,Particle[i].x,Particle[i].Bx,Particle[i].betta,Particle[i].z);
+		}
+   }
+   fclose(F);
 
 }
 //---------------------------------------------------------------------------
