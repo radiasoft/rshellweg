@@ -265,6 +265,8 @@ void TResForm::DrawRadius()
     PackChart->BottomAxis->Title->Caption="z,cm";
     PackChart->LeftAxis->Title->Caption="r,mm";
 
+    FILE *F;
+	F=fopen("track.log","w");
     for (int i=0;i<Np;i++){
         PackSeries->AddNullXY(0,0);
         for (int j=0;j<Npts;j++){
@@ -273,9 +275,18 @@ void TResForm::DrawRadius()
 
             double z=100*Solver->Beam[j]->Particle[i].z;
             double r=1e3*Solver->Beam[j]->Particle[i].x*Solver->Structure[j].lmb;
+//			if (j == 0) {
+//		       fprintf(F,"%d: lmb=%g, r(mm)=%g, z(cm)=%g\n",i,Solver->Structure[j].lmb,r,z);
+			if (i == 0) {
+			   if (j == 0) {
+		          fprintf(F,"      Particle %d:\n",i);
+			   }
+		       fprintf(F,"%d: r(mm)=%g, z(cm)=%g\n",j,r,z);
+			}
             PackSeries->AddXY(z,r);
         }
     }
+	fclose(F);
 }
 //---------------------------------------------------------------------------
 void TResForm::DrawField()
