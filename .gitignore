@@ -166,3 +166,5 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+.agignore

@@ -1,9 +1,16 @@
-import rslinac
-from argh import arg
+# -*- coding: utf-8 -*-
+"""
+"""
+import pyhellweg
+import sys
 
-@arg('ini', help='path configuration file in INI format')
-@arg('input', help='path to file with input data')
-@arg('output', help='path to file to write output data')
+
 def run(ini, input, output):
-    """runs the beam solver"""
-    rslinac.run_beam_solver(ini, input, output)
+    """runs the HellWeg2D Beam Solver"""
+
+    if sys.version_info >= (3, 0):
+        ini = ini.encode()
+        input = input.encode()
+        output = output.encode()
+
+    pyhellweg.run_beam_solver(ini, input, output)

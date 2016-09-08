@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-u"""rslinac setup script
+"""rslinac setup script
 
 :copyright: Copyright (c) 2016 RadiaSoft LLC.  All Rights Reserved.
 :license: http://www.apache.org/licenses/LICENSE-2.0.html
 """
 import os
 import sysconfig
+
 from glob import glob
 from setuptools import Extension
 
@@ -17,14 +18,17 @@ except ImportError:
     from pykern import pksetup
 
 LIB_DIR = os.path.join('src', 'libHellweg2D')
+
 PHYS_DIR = os.path.join('src', 'physics')
 
+
 def get_src_files(directory, extension):
-    u"""get list of files in `directory` with `extension`"""
+    """get list of files in `directory` with `extension`"""
     return glob(os.path.join(directory, '*.{}'.format(extension)))
 
+
 def get_compile_args():
-    u"""returns compiler arguments based on the environment"""
+    """returns compiler arguments based on the environment"""
     try:
         # Has the compiler been overrident with environment variables?
         compiler = os.environ['CC']
@@ -35,6 +39,7 @@ def get_compile_args():
     # libHellweg2D uses c++11 features
     if 'gcc' in compiler:
         return ['-std=c++11']
+
 
 pksetup.setup(
     name='rslinac',
