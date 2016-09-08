@@ -28,7 +28,7 @@ class PyHellwegCppException(PyHellWegError):
 
 
 def run_beam_solver(ini_path, input_path, output_path):
-    cdef LIB_HELLWEG_ERR_INFO err_info = { 0 }
+    cdef LIB_HELLWEG_ERR_INFO err_info 
 
     if not lib_hellweg_run_beam_solver(ini_path, input_path, output_path, &err_info):
         if err_info.type == CPP_EXCEPT:
