@@ -168,3 +168,5 @@ ENV/
 .ropeproject
 
 .agignore
+PARSED.TXT
+MANIFEST.in
