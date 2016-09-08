@@ -14,9 +14,9 @@ def run(ini, input, output):
     Read the input files, execute the beam solver and write the output to the provided destination.
 
     Args:
-        ini (:obj:`str): path to configuration settings in INI format.
-        input (:obj:`str): path to input data.
-        output (:obj:`str): path to write output data.
+        ini (:obj:`str`): path to configuration settings in INI format.
+        input (:obj:`str`): path to input data.
+        output (:obj:`str`): path to write output data.
 
     Raises:
         IOError: if `ini` or `input` cannot be open.
