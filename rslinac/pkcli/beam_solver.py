@@ -14,7 +14,14 @@ import sys
 import rslinac.pyhellweg
 
 def _normalize_path_arg(path, **kw):
-    """Normalizes the path, to bytes or str depending on the Python version"""
+    """Normalizes the path, to bytes or str depending on the Python version
+    
+    Args:
+        path (object): path to normalize
+        **kwargs: Supports `py.path.local.check_`
+
+    .. _py.path.local.check_: http://py.readthedocs.io/en/latest/path.html#py._path.svnwc.SvnWCCommandPath.check
+    """
 
     idx = lambda x: tuple(sorted(x.items()))
 
