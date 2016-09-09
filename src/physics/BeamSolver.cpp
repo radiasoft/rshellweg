@@ -380,10 +380,26 @@ void TBeamSolver::GetDimensions(TCell& Cell)
     int Mode=Cell.Mode;
 
     switch (Mode) {
-        case 90:    Nbp=Nb12; Nep=Ne12;Nar=Nb23; Nab=Ne23; break;
-        case 120:   Nbp=Nb23; Nep=Ne23;Nar=Nb23; Nab=Ne23; break;
-        case 240:   Nbp=Nb43; Nep=Ne43;Nar=Nb23; Nab=Ne43; break;
-        default: return;
+        case 90:    
+            Nbp=Nb12; 
+            Nep=Ne12;
+            Nar=Nb23; 
+            Nab=Ne23; 
+            break;
+        case 120:   
+            Nbp=Nb23; 
+            Nep=Ne23;
+            Nar=Nb23; 
+            Nab=Ne23; 
+            break;
+        case 240:   
+            Nbp=Nb43; 
+            Nep=Ne43;
+            Nar=Nb23; 
+            Nab=Ne43; 
+            break;
+        default: 
+            return;
     }
 
     double *Xo,*Yo,*Xi,*Yi;
@@ -401,10 +417,20 @@ void TBeamSolver::GetDimensions(TCell& Cell)
     for (int i=0;i<Nbp;i++){
         for (int j=0;j<Nep;j++){
             switch (Mode) {
-                case 90:    Xo[j]=E12[Nbp-i-1][j]; Yo[j]=R12[Nbp-i-1][j]; break;
-                case 120:   Xo[j]=E23[Nbp-i-1][j]; Yo[j]=R23[Nbp-i-1][j]; break;
-                case 240:   Xo[j]=E43[Nbp-i-1][j]; Yo[j]=R43[Nbp-i-1][j]; break;
-                default: return;
+                case 90:    
+                    Xo[j]=E12[Nbp-i-1][j]; 
+                    Yo[j]=R12[Nbp-i-1][j]; 
+                    break;
+                case 120:   
+                    Xo[j]=E23[Nbp-i-1][j]; 
+                    Yo[j]=R23[Nbp-i-1][j]; 
+                    break;
+                case 240:   
+                    Xo[j]=E43[Nbp-i-1][j]; 
+                    Yo[j]=R43[Nbp-i-1][j]; 
+                    break;
+                default: 
+                    return;
             }
         }
         TSpline Spline;
@@ -413,10 +439,17 @@ void TBeamSolver::GetDimensions(TCell& Cell)
         Yi[i]=Spline.Interpolate(Cell.ELP);
        //   Xi[i]=mode90?B12[i]:B23[i];
         switch (Mode) {
-            case 90:    Xi[i]=B12[i];break;
-            case 120:   Xi[i]=B23[i];break;
-            case 240:   Xi[i]=B43[i];break;
-            default: return;
+            case 90:    
+                Xi[i]=B12[i];
+                break;
+            case 120:   
+                Xi[i]=B23[i];
+                break;
+            case 240:   
+                Xi[i]=B43[i];
+                break;
+            default: 
+                return;
         }
     }
 
@@ -438,10 +471,20 @@ void TBeamSolver::GetDimensions(TCell& Cell)
     for (int i=0;i<Nab;i++){
         for (int j=0;j<Nar;j++){
             switch (Mode) {
-                case 90:    Xo[j]=AR[j]; Yo[j]=A12[i][j]; break;
-                case 120:   Xo[j]=AR[j]; Yo[j]=A23[i][j]; break;
-                case 240:   Xo[j]=AR43[j]; Yo[j]=A43[i][j]; break;
-                default: return;
+                case 90:    
+                    Xo[j]=AR[j]; 
+                    Yo[j]=A12[i][j]; 
+                    break;
+                case 120:   
+                    Xo[j]=AR[j]; 
+                    Yo[j]=A23[i][j]; 
+                    break;
+                case 240:   
+                    Xo[j]=AR43[j]; 
+                    Yo[j]=A43[i][j]; 
+                    break;
+                default: 
+                    return;
             }
 
             /*Xo[j]=AR[j];
@@ -453,10 +496,17 @@ void TBeamSolver::GetDimensions(TCell& Cell)
         Yi[i]=Spline.Interpolate(Cell.AkL);
         //Xi[i]=AB[i];
         switch (Mode) {
-            case 90:    Xi[i]=AB[i];break;
-            case 120:   Xi[i]=AB[i];break;
-            case 240:   Xi[i]=AB[i];break;
-            default: return;
+            case 90:    
+                Xi[i]=AB[i];
+                break;
+            case 120:   
+                Xi[i]=AB[i];
+                break;
+            case 240:   
+                Xi[i]=AB[i];
+                break;
+            default: 
+                return;
         }
     }
 
