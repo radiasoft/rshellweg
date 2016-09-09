@@ -388,19 +388,19 @@ void TBeamSolver::GetDimensions(TCell& Cell)
         case 90:    
             Nbp=Nb12; 
             Nep=Ne12;
-            Nar=Nb23; 
+            Nar=Nar23; 
             Nab=Nab23; 
             break;
         case 120:   
             Nbp=Nb23; 
             Nep=Ne23;
-            Nar=Nb23; 
+            Nar=Nar23; 
             Nab=Nab23; 
             break;
         case 240:   
             Nbp=Nb43; 
             Nep=Ne43;
-            Nar=Nb23; 
+            Nar=Nar43; 
             Nab=Nab23; 
             break;
         default: 
