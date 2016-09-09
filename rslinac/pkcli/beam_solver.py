@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """rslinac beam solver
 """
-from pyhellweg import PyHellwegCppException
+from rslinac.pyhellweg import PyHellwegCppException
 
 import os
-import pyhellweg
+import rslinac.pyhellweg
 import sys
 
 
@@ -39,4 +39,4 @@ def run(ini, input, output):
         input = input.encode()
         output = output.encode()
 
-    pyhellweg.run_beam_solver(ini, input, output)
+    rslinac.pyhellweg.run_beam_solver(ini, input, output)
