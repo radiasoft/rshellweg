@@ -5,12 +5,32 @@ u"""Run the beam solver library
 :license: http://www.apache.org/licenses/LICENSE-2.0.html
 """
 from __future__ import absolute_import, division, print_function
+from pykern import pkcli
 from rslinac.pyhellweg import PyHellwegCppException
 import os
+import py.path
 import six
 import sys
 import rslinac.pyhellweg
 
+def _normalize_path_arg(path, **kw):
+    """Normalizes the path, to bytes or str depending on the Python version"""
+
+    idx = lambda x: tuple(sorted(x.items()))
+
+    a = py.path.local(path)
+    if not a.check(**kw):
+        msg = {
+            idx({'file': True, 'exists': True}): 'Error, file "{}" does not exist',
+            idx({'exists': False}): 'Error, file "{}" exists',
+        }.get(idx(kw), 'Error with file "{}"')
+
+        pkcli.command_error(msg, path)
+
+    a = str(path)
+    if isinstance(a, six.text_type):
+        a = a.encode()
+    return a
 
 def run(ini_file, input_file, output_file):
     # TODO(elventear) Provide links that document the input formats
@@ -26,20 +46,8 @@ def run(ini_file, input_file, output_file):
         output_file (object): path to write the result
 
     Raises:
-        IOError: if `ini` or `input` cannot be opened
-        ValueError: if `output` file already exists
         PyHellwegCppException: if an error occurrs within the Beam Solver
     """
-    # Test if input files are accessible
-    args = []
-    for a in ini_file, input_file, output_file:
-        # Normalize if py.path.local
-        a = str(a)
-        if isinstance(a, six.text_type):
-            a = a.encode()
-        args.append(a)
-    with open(args[0], 'r'), open(args[1], 'r'):
-        pass
-    if os.path.exists(args[2]):
-        raise ValueError('{}: output path exists'.format(args[2]))
-    rslinac.pyhellweg.run_beam_solver(*args)
+    rslinac.pyhellweg.run_beam_solver(_normalize_path_arg(ini_file, file=True, exists=True), 
+                                      _normalize_path_arg(input_file, file=True, exists=True), 
+                                      _normalize_path_arg(output_file, exists=False))

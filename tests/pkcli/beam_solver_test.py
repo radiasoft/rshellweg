@@ -6,8 +6,8 @@
 """
 #TODO(elventear) Test correctness of the beam solver output
 from pykern import pkunit
+import argh
 import pytest
-
 
 
 def test_run():
@@ -24,13 +24,13 @@ def test_run_deviance():
     """Incorrect arguments should raise exceptions"""
     from rslinac.pkcli import beam_solver
     f = _files()
-    with pytest.raises(IOError):
+    with pytest.raises(argh.CommandError) as exc:
         beam_solver.run(f['not found'], f['input'], f['output'])
     assert not f['output'].exists(), \
         'If arguments are invalid, {} is not written'.format(f['ouput'])
     assert f['existing'].exists(), \
         'Could not find file {}, which is supposed to exist'.format(f['existing'])
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(argh.CommandError) as exc:
         beam_solver.run(f['ini'], f['input'], f['existing'])
 
 

@@ -57,7 +57,7 @@ pksetup.setup(
         Extension(
             name='rslinac.pyhellweg',
             define_macros=[('RSLINAC', 1)],
-            include_dirs=[_LIB_DIR, _PHYS_DIR, '/opt/local/include'],
+            include_dirs=[_LIB_DIR, _PHYS_DIR],
             sources=_get_src_files(_PHYS_DIR, 'cpp') +
                 _get_src_files(_LIB_DIR, 'cpp') +
                 ['pyhellweg.c'],
