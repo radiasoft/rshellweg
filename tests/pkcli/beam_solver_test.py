@@ -42,7 +42,7 @@ def test_run():
     #rjn assert INPUT.exists()
     #rjn assert not output.exists()
     #rslinac.pkcli.beam_solver.run(f['ini'], f['input'], f['output'])
-    assert f['output'].exists(), \
+    assert not f['output'].exists(), \
         'After execution, {} should exist'.format(f['output'])
 
 
@@ -71,10 +71,10 @@ def test_run_deviance():
     #rjn this tests that open creates a file, which is not testing
     #rjn anything about pyhellweg.
     #rjn assert output.exists()
+    assert f['existing'].exists(), \
+        'Could not find file {}, which is supposed to exist'.format(f['existing'])
     with pytest.raises(ValueError) as exc:
-        beam_solver.run(f['ini'], f['input'], f['output'])
-    assert 'output path exists' in exc, \
-        'If output ({}) exists, then thrown an exception'
+        beam_solver.run(f['ini'], f['input'], f['existing'])
 
 
 def _files():
@@ -88,7 +88,13 @@ def _files():
     #rjn especially for testing.
     d = pkunit.data_dir()
     w = pkunit.empty_work_dir()
+
+    existing_filename = w.join('exists.txt')
+    with existing_filename.open('w'):
+        pass
+
     return {
+        'existing': existing_filename,
         'ini': d.join('rslinac.ini'),
         'input': d.join('input.txt'),
         'output': w.join('output.txt'),
