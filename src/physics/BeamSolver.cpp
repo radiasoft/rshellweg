@@ -340,8 +340,8 @@ bool TBeamSolver::IsKeyWord(AnsiString& S)
         S=="DRIFT" ||
         S=="CELL" ||
         S=="CELLS" ||
-        S=="OPTIONS" || 
-		S=="COMMENT";
+        S=="OPTIONS"; 
+//		S=="COMMENT";
 }
 //---------------------------------------------------------------------------
 TInputParameter TBeamSolver::Parse(AnsiString& S)
@@ -349,6 +349,9 @@ TInputParameter TBeamSolver::Parse(AnsiString& S)
     TInputParameter P;
     FILE *logFile;
 	
+/*    logFile=fopen("BeamSolver.log","a");
+    fprintf(logFile,"Parse: S=%s\n",S);
+    fclose(logFile); */
     if (S=="POWER")
         P=COUPLER;
     else if (S=="SOLENOID")
@@ -491,7 +494,7 @@ TInputLine *TBeamSolver::ParseFile(int& N)
     AnsiString S;
     TInputParameter P;
     char s[128];
-    int i=-1,j=0,jMax=0;
+    int i=-1,j=0;
 
     FILE *logFile;
     while (!fs.eof()){
@@ -499,6 +502,9 @@ TInputLine *TBeamSolver::ParseFile(int& N)
         S=AnsiString(s);
         if(IsKeyWord(S))
             N++;
+/*        logFile=fopen("BeamSolver.log","a");
+        fprintf(logFile,"ParseFile: N=%i, S=%s\n",N,S);
+        fclose(logFile); */
     }
 
     fs.clear();
@@ -509,23 +515,27 @@ TInputLine *TBeamSolver::ParseFile(int& N)
         while (!fs.eof()){
             fs>>s;
             S=AnsiString(s);
- /*           logFile=fopen("BeamSolver.log","a");
-            fprintf(logFile,"ParseFile: S=%s\n",S);
+/*            logFile=fopen("BeamSolver.log","a");
+            fprintf(logFile,"ParseFile: s=%s, S=%s\n",s,S);
             fclose(logFile); */
             if (S=="END")
                 break;
             if(IsKeyWord(S)){
                 i++;
                 P=Parse(S);
+/*                logFile=fopen("BeamSolver.log","a");
+                fprintf(logFile,"ParseFile: P=%s\n",P);
+                fclose(logFile); */
+				if(S=="COMMENT"){
+/*                    logFile=fopen("BeamSolver.log","a");
+                    fprintf(logFile,"ParseFile: Comment Line\n");
+                    fclose(logFile); */
+ 				}
                 Lines[i].P=P;
                 Lines[i].N=0;
                 j=0;
-				jMax=MaxParameters;
-				if (S=="COMMENT"){
-				    jMax=20;
-				}
             } else {
-                if (j==jMax){
+                if (j==MaxParameters){
                     i++;
                     Lines[i].P=UNDEFINED;
                     j=0;
@@ -558,9 +568,9 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 
     FILE *logFile;
     for (int k=0;k<N;k++){
-/*        logFile=fopen("BeamSolver.log","a");
-        fprintf(logFile,"ParseLines: Line %i: Lines[k].N=%i\n",k,Lines[k].N);
-        fclose(logFile); */
+        logFile=fopen("BeamSolver.log","a");
+        fprintf(logFile,"ParseLines: Line %i \n",k);
+        fclose(logFile); 
 		switch (Lines[k].P) {
             case SOLENOID:{
                 if (Lines[k].N==3){
@@ -758,13 +768,6 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                 break;
             }
             case COMMENT:{
-			    F="COMMENT ";
-                if (Lines[k].N!=0){
-                    for (int j=0;j<Lines[k].N;j++){
-				        F=F+Lines[k].S[j]+" ";
-					}
-				} 
-                ParsedStrings->Add(F);
 			    break;
 			}
             case COUPLER:{
