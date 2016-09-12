@@ -348,7 +348,7 @@ bool TBeamSolver::IsKeyWord(AnsiString& S)
         S=="CELL" ||
         S=="CELLS" ||
         S=="OPTIONS"; 
-	  //	S=="COMMENT";
+		S=="COMMENT";
 }
 //---------------------------------------------------------------------------
 TInputParameter TBeamSolver::Parse(AnsiString& S)
@@ -359,8 +359,8 @@ TInputParameter TBeamSolver::Parse(AnsiString& S)
 /*    logFile=fopen("BeamSolver.log","a");
     fprintf(logFile,"Parse: S=%s\n",S);
     fclose(logFile); */
-	if (S=="POWER")
-		P=COUPLER;
+    if (S=="POWER")
+        P=COUPLER;
     else if (S=="SOLENOID")
         P=SOLENOID;
     else if (S=="BEAM")
@@ -375,9 +375,9 @@ TInputParameter TBeamSolver::Parse(AnsiString& S)
         P=CELLS;
     else if (S=="OPTIONS")
         P=OPTIONS;
-    else if (S[1]=='!')
-		P=COMMENT;
-	return  P;
+    else if (S=="COMMENT")
+        P=COMMENT;
+    return  P;
 }
 //---------------------------------------------------------------------------
 void TBeamSolver::GetDimensions(TCell& Cell)
