@@ -24,7 +24,6 @@ __fastcall TBeam::TBeam(int N)
 //---------------------------------------------------------------------------
 __fastcall TBeam::~TBeam()
 {
-    memset(Particle, 0, sizeof(Particle));
     delete[] Particle;
 }
 //---------------------------------------------------------------------------
@@ -44,8 +43,8 @@ void TBeam::TwoRandomGauss(double& x1,double& x2)
     double Ran1=0;
     double Ran2=0;
 
-    Ran1=((double)rand() / (double)(RAND_MAX + 1));
-    Ran2=((double)rand() / (double)(RAND_MAX + 1));
+    Ran1=((double)rand() / ((double)RAND_MAX + 1));
+    Ran2=((double)rand() / ((double)RAND_MAX + 1));
 
     if (Ran1<1e-5)
         Ran1=1e-5;
@@ -54,13 +53,13 @@ void TBeam::TwoRandomGauss(double& x1,double& x2)
     x2=sqrt(-2*ln(Ran1))*sin(2*pi*Ran2);
 }
 //---------------------------------------------------------------------------
-int TBeam::CountCSTParticles(char *F)
+int TBeam::CountCSTParticles(const char *F)
 {
     int N=-2;
   /*    AnsiString F;
     char *CST_File=F.c_str();   */
 
-    fstream fs(F/*CST_File*/);
+    std::fstream fs(F/*CST_File*/);
     char s[128];
 
     while (!fs.eof()){
@@ -98,10 +97,14 @@ int TBeam::CountCSTParticles(TBeamType bType)
             Np2=Np1;
             break;
         }
+        case RANDOM: {
+            throw std::logic_error("Unhandled TBeamType RANDOM in TBeam::CountCSTParticles");   
+        }
     }
 
-    if (Np1=Np2)
+    if (Np1 == Np2) {
         N=Np1;
+    }
 
     return N;
 }
@@ -119,7 +122,7 @@ bool TBeam::ReadCSTEmittance(TBeamType bType)
     else if (bType==CST_R)
         F=CST_FileR;
 
-    fstream fs(F.c_str());
+    std::fstream fs(F.c_str());
     fs.getline(s, sizeof(s)) ;
     fs.getline(s, sizeof(s)) ;
 
@@ -150,7 +153,7 @@ bool TBeam::ReadCSTEmittance(TBeamType bType)
 
     if (bType==CST_Y) {
         F=CST_FileY;
-        fstream fy(F.c_str());
+        std::fstream fy(F.c_str());
         float y=0,vy=0,th;
         char s[128];
         AnsiString S;
@@ -316,7 +319,7 @@ void TBeam::MakeEquiprobableDistribution(double Xav, double dX,TBeamParameter Pa
     double b=Xav+dX;
 
     for (int i=0;i<Np;i++){
-        Ran=((double)rand() / (double)(RAND_MAX + 1));
+        Ran=((double)rand() / ((double)RAND_MAX + 1));
         Xi[i]=a+(b-a)*Ran;
     }
     SetParameters(Xi,Par);
@@ -330,8 +333,8 @@ void TBeam::MakeGaussDistribution(double Xav,double sX,TBeamParameter Par)
     Xi= new double[Np];
 
     for (int i=0;i<Np;i++){
-        Ran1=((double)rand() / (double)(RAND_MAX + 1));
-        Ran2=((double)rand() / (double)(RAND_MAX + 1));
+        Ran1=((double)rand() / ((double)RAND_MAX + 1));
+        Ran2=((double)rand() / ((double)RAND_MAX + 1));
         xx=sqrt(-2*ln(Ran1))*cos(2*pi*Ran2);
         Xi[i]=Xav+xx*sX/h;
     }

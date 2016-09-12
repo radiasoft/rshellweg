@@ -5,9 +5,9 @@
 
 #include "BeamSolver.h"
 //---------------------------------------------------------------------------
-__fastcall TBeamSolver::TBeamSolver(AnsiString _Path)
+__fastcall TBeamSolver::TBeamSolver(AnsiString UserIniPath)
 {
-    Path=_Path;
+    this->UserIniPath = UserIniPath;
     Initialize();
 }
 //---------------------------------------------------------------------------
@@ -30,8 +30,10 @@ __fastcall TBeamSolver::~TBeamSolver()
         delete[] K[i];
     delete[] K;
 
+    #ifndef RSLINAC
     if (SmartProgress!=NULL)
         delete SmartProgress;
+    #endif
 
     delete InputStrings;
     delete ParsedStrings;
@@ -72,15 +74,18 @@ void TBeamSolver::Initialize()
 
     Np_beam=1;
     Beam=new TBeam*[Npoints];
-    for (int i=0;i<Npoints;i++)
+    for (int i=0;i<Npoints;i++) {
         Beam[i]=new TBeam(1);
+    }
 
     Structure=new TStructure[Npoints];
 
     InputStrings=new TStringList;
     ParsedStrings=new TStringList;
 
+    #ifndef RSLINAC
     SmartProgress=NULL;
+    #endif
 }
 //---------------------------------------------------------------------------
 void TBeamSolver::SaveToFile(AnsiString& Fname)
@@ -152,10 +157,12 @@ bool TBeamSolver::LoadFromFile(AnsiString& Fname)
     return Success;
 }
 //---------------------------------------------------------------------------
+#ifndef RSLINAC
 void TBeamSolver::AssignSolverPanel(TObject *SolverPanel)
 {
     SmartProgress=new TSmartProgress(static_cast <TWinControl *>(SolverPanel));
 }
+#endif
 //---------------------------------------------------------------------------
 void TBeamSolver::LoadIniConstants()
 {
@@ -163,7 +170,7 @@ void TBeamSolver::LoadIniConstants()
     int t;
     double stat;
 
-    UserIni=new TIniFile(Path+"\\hellweg.ini");
+    UserIni=new TIniFile(UserIniPath);
     MaxCells=UserIni->ReadInteger("OTHER","Maximum Cells",MaxCells);
     Nmesh=UserIni->ReadInteger("NUMERIC","Number of Mesh Points",Nmesh);
     Kernel=UserIni->ReadFloat("Beam","Percent Of Particles in Kernel",Kernel);
@@ -381,10 +388,26 @@ void TBeamSolver::GetDimensions(TCell& Cell)
     int Mode=Cell.Mode;
 
     switch (Mode) {
-        case 90:    Nbp=Nb12; Nep=Ne12;Nar=Nb23; Nab=Ne23; break;
-        case 120:   Nbp=Nb23; Nep=Ne23;Nar=Nb23; Nab=Ne23; break;
-        case 240:   Nbp=Nb43; Nep=Ne43;Nar=Nb23; Nab=Ne43; break;
-        default: return;
+        case 90:    
+            Nbp=Nb12; 
+            Nep=Ne12;
+            Nar=Nar23; 
+            Nab=Nab23; 
+            break;
+        case 120:   
+            Nbp=Nb23; 
+            Nep=Ne23;
+            Nar=Nar23; 
+            Nab=Nab23; 
+            break;
+        case 240:   
+            Nbp=Nb43; 
+            Nep=Ne43;
+            Nar=Nar43; 
+            Nab=Nab23; 
+            break;
+        default: 
+            return;
     }
 
     double *Xo,*Yo,*Xi,*Yi;
@@ -402,10 +425,20 @@ void TBeamSolver::GetDimensions(TCell& Cell)
     for (int i=0;i<Nbp;i++){
         for (int j=0;j<Nep;j++){
             switch (Mode) {
-                case 90:    Xo[j]=E12[Nbp-i-1][j]; Yo[j]=R12[Nbp-i-1][j]; break;
-                case 120:   Xo[j]=E23[Nbp-i-1][j]; Yo[j]=R23[Nbp-i-1][j]; break;
-                case 240:   Xo[j]=E43[Nbp-i-1][j]; Yo[j]=R43[Nbp-i-1][j]; break;
-                default: return;
+                case 90:    
+                    Xo[j]=E12[Nbp-i-1][j]; 
+                    Yo[j]=R12[Nbp-i-1][j]; 
+                    break;
+                case 120:   
+                    Xo[j]=E23[Nbp-i-1][j]; 
+                    Yo[j]=R23[Nbp-i-1][j]; 
+                    break;
+                case 240:   
+                    Xo[j]=E43[Nbp-i-1][j]; 
+                    Yo[j]=R43[Nbp-i-1][j]; 
+                    break;
+                default: 
+                    return;
             }
         }
         TSpline Spline;
@@ -414,10 +447,17 @@ void TBeamSolver::GetDimensions(TCell& Cell)
         Yi[i]=Spline.Interpolate(Cell.ELP);
        //   Xi[i]=mode90?B12[i]:B23[i];
         switch (Mode) {
-            case 90:    Xi[i]=B12[i];break;
-            case 120:   Xi[i]=B23[i];break;
-            case 240:   Xi[i]=B43[i];break;
-            default: return;
+            case 90:    
+                Xi[i]=B12[i];
+                break;
+            case 120:   
+                Xi[i]=B23[i];
+                break;
+            case 240:   
+                Xi[i]=B43[i];
+                break;
+            default: 
+                return;
         }
     }
 
@@ -439,10 +479,20 @@ void TBeamSolver::GetDimensions(TCell& Cell)
     for (int i=0;i<Nab;i++){
         for (int j=0;j<Nar;j++){
             switch (Mode) {
-                case 90:    Xo[j]=AR[j]; Yo[j]=A12[i][j]; break;
-                case 120:   Xo[j]=AR[j]; Yo[j]=A23[i][j]; break;
-                case 240:   Xo[j]=AR43[j]; Yo[j]=A43[i][j]; break;
-                default: return;
+                case 90:    
+                    Xo[j]=AR[j]; 
+                    Yo[j]=A12[i][j]; 
+                    break;
+                case 120:   
+                    Xo[j]=AR[j]; 
+                    Yo[j]=A23[i][j]; 
+                    break;
+                case 240:   
+                    Xo[j]=AR43[j]; 
+                    Yo[j]=A43[i][j]; 
+                    break;
+                default: 
+                    return;
             }
 
             /*Xo[j]=AR[j];
@@ -454,10 +504,17 @@ void TBeamSolver::GetDimensions(TCell& Cell)
         Yi[i]=Spline.Interpolate(Cell.AkL);
         //Xi[i]=AB[i];
         switch (Mode) {
-            case 90:    Xi[i]=AB[i];break;
-            case 120:   Xi[i]=AB[i];break;
-            case 240:   Xi[i]=AB[i];break;
-            default: return;
+            case 90:    
+                Xi[i]=AB[i];
+                break;
+            case 120:   
+                Xi[i]=AB[i];
+                break;
+            case 240:   
+                Xi[i]=AB[i];
+                break;
+            default: 
+                return;
         }
     }
 
@@ -488,8 +545,8 @@ void TBeamSolver::GetDimensions(TCell& Cell)
 TInputLine *TBeamSolver::ParseFile(int& N)
 {
     TInputLine *Lines;
-    char *FileName=InputFile.c_str();
-    fstream fs(FileName);
+    const char *FileName=InputFile.c_str();
+    std::fstream fs(FileName);
 
     AnsiString S;
     TInputParameter P;
@@ -508,7 +565,7 @@ TInputLine *TBeamSolver::ParseFile(int& N)
     }
 
     fs.clear();
-    fs.seekg(ios::beg);
+    fs.seekg(std::ios::beg);
 
     Lines=new TInputLine[N];
 
@@ -571,7 +628,10 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
         logFile=fopen("BeamSolver.log","a");
         fprintf(logFile,"ParseLines: Line %i \n",k);
         fclose(logFile); 
-		switch (Lines[k].P) {
+	switch (Lines[k].P) {
+            case UNDEFINED: {
+                throw std::logic_error("Unhandled TInputParameter UNDEFINED in TBeamSolver::ParseLines");             
+            }
             case SOLENOID:{
                 if (Lines[k].N==3){
                     B0=Lines[k].S[0].ToDouble();
@@ -589,6 +649,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                     return ERR_SOLENOID;
                 break;
             }
+
             case CELL:{
                 if(OnlyParameters)
                     break;
@@ -627,6 +688,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 
                 break;
             }
+
             case CELLS:{
                 if(OnlyParameters)
                     break;
@@ -685,6 +747,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 
                 break;
             }
+
             case BEAM:{
                 if (Lines[k].N!=6){
                     return ERR_BEAM;
@@ -700,6 +763,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                 ParsedStrings->Add(F);
                 break;
             }
+
             case CURRENT:{
                 if (Lines[k].N!=5 && Lines[k].N!=2){
                     return ERR_CURRENT;
@@ -728,6 +792,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                 ParsedStrings->Add(F);
                 break;
             }
+
             case OPTIONS:{
                 F="OPTIONS ";
                 for (int j=0;j<Lines[k].N;j++){
@@ -742,6 +807,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                 ParsedStrings->Add(F);
                 break;
             }
+
             case DRIFT:{
                 if(OnlyParameters)
                     break;
@@ -769,7 +835,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
             }
             case COMMENT:{
 			    break;
-			}
+	    }
             case COUPLER:{
                 if (Lines[k].N==2){
                     P0=Lines[k].S[0].ToDouble();
@@ -799,17 +865,19 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 //---------------------------------------------------------------------------
 TError TBeamSolver::LoadData(int Nl)
 {
-    char *FileName=InputFile.c_str();
+    const char *FileName=InputFile.c_str();
     LoadIniConstants();
     InputStrings->Clear();
     Nlim=Nl;
 
     DataReady=false;
 
-	if (strncmp(FileName,"",10)==0)
+    if (strncmp(FileName, "", 1) == 0) {
         return ERR_NOFILE;
-    if (!FileExists(FileName))
+    }
+    if (!FileExists(FileName)) {
         return ERR_OPENFILE;
+    }
 
     delete[] Cells;
 
@@ -848,17 +916,19 @@ TError TBeamSolver::LoadData(int Nl)
 //---------------------------------------------------------------------------
 TError TBeamSolver::MakeBuncher(TCell& iCell)
 {
-    char *FileName=InputFile.c_str();
+    const char *FileName=InputFile.c_str();
     InputStrings->Clear();
     //LoadIniConstants();
 
     DataReady=false;
     TError Error;
 
-    if (strncmp(FileName,"",10)==0)
+    if (strncmp(FileName, "", 1) == 0) {
         return ERR_NOFILE;
-    if (!FileExists(FileName))
+    } 
+    if (!FileExists(FileName)) {
         return ERR_OPENFILE;
+    }
 
     delete[] Cells;
 
@@ -1099,7 +1169,6 @@ int TBeamSolver::CreateGeometry()
     E_base = new double[Ncells]; E_int=new double[Npoints];
     Al_base = new double[Ncells]; Al_int=new double[Npoints];
 
-    memset(Structure, 0, sizeof(Structure));
     delete[] Structure;
 
     double z=0,zm=0,D=0,x=0;
@@ -1403,21 +1472,19 @@ int TBeamSolver::CreateBeam()
 {
     double sx=0,sy=0,r=0;
     double b0=0,db=0;
-    bool CST_success=0;
 
     //Npoints=Ncells*Nmesh;
 
     for (int i=0;i<Np_beam;i++){
-        memset(Beam[i], 0, sizeof(Beam[i]));
         delete Beam[i];
     }
-    memset(Beam, 0, sizeof(Beam));
     delete[] Beam;
 
     if (BeamType!=RANDOM){
         Np=Beam[0]->CountCSTParticles(BeamType);
-        if(Np<0)
+        if(Np<0) {
             return ERR_CURRENT;
+        }
     }
 
     Beam=new TBeam*[Npoints];
@@ -1449,36 +1516,43 @@ int TBeamSolver::CreateBeam()
 
    /*   b0=MeVToVelocity(W0);
     db=MeVToVelocity(dW);   */
-    if (W_Eq)
+    if (W_Eq) {
         Beam[0]->MakeEquiprobableDistribution(W0,dW,BETTA_PAR);
-    else
+    }
+    else {
         Beam[0]->MakeGaussDistribution(W0,dW,BETTA_PAR);
+    }
 
-    for (int i=0;i<Np;i++)
+    for (int i=0;i<Np;i++) {
         Beam[0]->Particle[i].betta=MeVToVelocity(Beam[0]->Particle[i].betta);
+    }
 
-    if (Phi_Eq)
+    if (Phi_Eq) {
         Beam[0]->MakeEquiprobableDistribution(HellwegTypes::DegToRad(Phi0)-Structure[0].dF,HellwegTypes::DegToRad(dPhi),PHI_PAR);
-    else
+    }
+    else {
         Beam[0]->MakeGaussDistribution(HellwegTypes::DegToRad(Phi0)-Structure[0].dF,HellwegTypes::DegToRad(dPhi),PHI_PAR);
+    }
 
-    if (BeamType==RANDOM)
+    if (BeamType==RANDOM) {
         Beam[0]->MakeGaussEmittance(AlphaCS,BettaCS,EmittanceCS);
-    else
-        CST_success=Beam[0]->ReadCSTEmittance(BeamType);
+    }
+    else {
+        if (!Beam[0]->ReadCSTEmittance(BeamType)) {
+            return ERR_CURRENT;
+        }
+    }
 
-    if (BeamType!=CST_Y)
+    if (BeamType!=CST_Y) {
         Beam[0]->MakeEquiprobableDistribution(pi,pi,TH_PAR);
+    }
     Beam[0]->MakeEquiprobableDistribution(0,0,BTH_PAR);
 
     for (int i=0;i<Npoints;i++){
-        for (int j=0;j<Np;j++)
+        for (int j=0;j<Np;j++) {
             Beam[i]->Particle[j].x0=Beam[0]->Particle[j].x;
+        }
     }
-
-    if (!CST_success)
-        return ERR_CURRENT;
-
     
  /* for (int i=0;i<Np;i++){
         Beam[0]->Particle[i].x=0;//-0.001+0.002*i/(Np-1);
@@ -1496,7 +1570,7 @@ int TBeamSolver::CreateBeam()
 int TBeamSolver::GetSolenoidPoints()
 {
     int N=-1;
-    fstream fs(Solenoid_File);
+    std::fstream fs(Solenoid_File);
     char s[128];
 
     while (!fs.eof()){
@@ -1511,7 +1585,7 @@ int TBeamSolver::GetSolenoidPoints()
 //---------------------------------------------------------------------------
 bool TBeamSolver::ReadSolenoid(int Nz,double *Z,double* B)
 {
-    fstream fs(Solenoid_File);
+    std::fstream fs(Solenoid_File);
     float z=0,Bz=0;
     char s[128];
     AnsiString S;
@@ -1726,7 +1800,9 @@ void TBeamSolver::CountLiving(int Si)
             fprintf(F,"\n");
         }
         fclose(F);   */
+        #ifndef RSLINAC
         ShowMessage("Beam Lost!");
+        #endif
         Stop=true;
         return;
     }
@@ -1858,11 +1934,13 @@ void TBeamSolver::Step(int Si)
 //---------------------------------------------------------------------------
 void TBeamSolver::Solve()
 {
+    #ifndef RSLINAC
     if (SmartProgress==NULL){
         ShowMessage("System Message: ProgressBar not assigned! Code needs to be corrected");
         return;
     }
     SmartProgress->Reset(Npoints-1/*Np*/);
+    #endif
 
   //    logFile=fopen("beam.log","w");
  /* for (int i=0;i<Np;i++){
@@ -1872,7 +1950,6 @@ void TBeamSolver::Solve()
  // fclose(logFile);
     
     for (int i=0;i<Ncoef;i++){
-        memset(K[i], 0, sizeof(K[i]));
         delete[] K[i];
         K[i]=new TIntegration[Np];
     }
@@ -1901,26 +1978,36 @@ void TBeamSolver::Solve()
             Beam[i+1]->Particle[j].z=Structure[i+1].ksi*Structure[i+1].lmb;
             Beam[i+1]->Particle[j].phi-=Structure[i+1].dF;
         }
+        #ifndef RSLINAC
         SmartProgress->operator ++();
         Application->ProcessMessages();
+        #endif
         if (Stop){
             Stop=false;
+            #ifndef RSLINAC
             ShowMessage("Solve Process Aborted!");
             SmartProgress->Reset();
+            #endif
             return;
         }
         for (int i=0;i<Ncoef;i++)
-            memset(K[i], 0, sizeof(K[i]));
+            memset(K[i], 0, sizeof(TIntegration));
         //}
     }
 
    //   
 
+    #ifndef RSLINAC
     SmartProgress->SetPercent(100);
     SmartProgress->SetTime(0);
+    #endif
 }
 //---------------------------------------------------------------------------
+#ifndef RSLINAC
 TResult TBeamSolver::Output(AnsiString& FileName,TMemo *Memo)
+#else
+TResult TBeamSolver::Output(AnsiString& FileName)
+#endif
 {
     AnsiString Line,s;
     TStringList *OutputStrings;
@@ -2039,9 +2126,11 @@ TResult TBeamSolver::Output(AnsiString& FileName,TMemo *Memo)
     OutputStrings->Add(Line);
     OutputStrings->Add("==========================================");
 
+    #ifndef RSLINAC
     if (Memo!=NULL){
         Memo->Lines->AddStrings(OutputStrings);
     }
+    #endif
                        
     delete[] WSpectrum;
     delete[] FSpectrum;  

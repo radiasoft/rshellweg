@@ -3,7 +3,9 @@
 #ifndef ConstUnitH
 #define ConstUnitH
 
+#ifndef RSLINAC
 #include <Graphics.hpp>
+#endif
 
 //PHYSICAL
 const double c=2.99792458e8;
@@ -33,18 +35,20 @@ const int SeparatrixNumber=20;
 const double SpecLevel=0.5;
 
 //COLORS
+#ifndef RSLINAC
 const TColor Line1_col_a=clRed;
 const TColor Line1_col_b=clMaroon;
 const TColor Line2_col_a=clBlue;
 const TColor Line2_col_b=clNavy;
 const TColor Particle_col=clRed;
 const TColor Envelope_col=clBlue;
+#endif
 
 //FILES
-const char *CST_FileX="cst_x.txt";
-const char *CST_FileY="cst_y.txt";
-const char *CST_FileR="cst_r.txt";
-const char *Solenoid_File="BFIELD.txt";
+const char CST_FileX[]="cst_x.txt";
+const char CST_FileY[]="cst_y.txt";
+const char CST_FileR[]="cst_r.txt";
+const char Solenoid_File[]="BFIELD.txt";
 
 //TABLES
 const int Nb12=5;

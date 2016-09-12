@@ -16,7 +16,7 @@ private:
     void TwoRandomGauss(double& x1,double& x2);
     void SetParameters(double *X,TBeamParameter Par);
     TSpectrumBar *GetSpectrum(bool Smooth,double *X,double& Xav,double& dX,bool width=false);
-    int CountCSTParticles(char *F);
+    int CountCSTParticles(const char *F);
 
     FILE *logFile;
 

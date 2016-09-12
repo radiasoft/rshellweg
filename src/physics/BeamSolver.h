@@ -9,7 +9,15 @@
 // #include "Matrix.h"
 
 #include "Beam.h"
+#include "Matrix.h"
+#include "Spline.h"
+#include "Spectrum.h"
+
+#ifndef RSLINAC
 #include "SmartProgressBar.h"
+#else
+#include "TStringList.hpp"
+#endif
 
 //---------------------------------------------------------------------------
 class TBeamSolver
@@ -17,7 +25,7 @@ class TBeamSolver
 private:
     //FLAGS
     bool DataReady;
-    AnsiString Path;
+    AnsiString UserIniPath;
     //INITIAL PARAMETERS
     double F0,P0,I0,lmb;
     double B0,Lmag,Zmag;  //Lmag - length, Zmag -position
@@ -39,7 +47,9 @@ private:
     TIntegration **K;
     TIntParameters *Par;
     
+    #ifndef RSLINAC 
     TSmartProgress *SmartProgress;
+    #endif
     //INITIALIZATION
     void Initialize();
     void LoadIniConstants();
@@ -71,7 +81,9 @@ public:
     __fastcall TBeamSolver();
     __fastcall ~TBeamSolver();
 
+    #ifndef RSLINAC
     void AssignSolverPanel(TObject *SolverPanel);
+    #endif
 
     void Abort();
     bool Stop;
@@ -134,7 +146,11 @@ public:
     double GetKernel();
 
     void Solve();
+    #ifndef RSLINAC
     TResult Output(AnsiString& FileName,TMemo *Memo=NULL);
+    #else
+    TResult Output(AnsiString& FileName);
+    #endif
 };
 
 //---------------------------------------------------------------------------

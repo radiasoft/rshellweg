@@ -4,21 +4,21 @@
 #pragma hdrstop
 #include <tchar.h>
 // ---------------------------------------------------------------------------
-USEFORM("OptimizerUnit.cpp", OptimizerForm);
-USEFORM("ResultsForm.cpp", ResForm);
-USEFORM("OptimizerResults.cpp", OptForm);
 USEFORM("GeometryForm.cpp", GeomForm);
 USEFORM("MainUnit.cpp", MainForm);
+USEFORM("OptimizerResults.cpp", OptForm);
+USEFORM("OptimizerUnit.cpp", OptimizerForm);
+USEFORM("ResultsForm.cpp", ResForm);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int) {
 	try {
 		Application->Initialize();
 		Application->MainFormOnTaskBar = true;
-		Application->CreateForm(__classid(TMainForm), &MainForm);
 		Application->CreateForm(__classid(TGeomForm), &GeomForm);
-		Application->CreateForm(__classid(TResForm), &ResForm);
-		Application->CreateForm(__classid(TOptimizerForm), &OptimizerForm);
+		Application->CreateForm(__classid(TMainForm), &MainForm);
 		Application->CreateForm(__classid(TOptForm), &OptForm);
+		Application->CreateForm(__classid(TOptimizerForm), &OptimizerForm);
+		Application->CreateForm(__classid(TResForm), &ResForm);
 		Application->Run();
 	}
 	catch (Exception &exception) {

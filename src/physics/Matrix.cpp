@@ -277,7 +277,7 @@ void TMatrix::Decomposite_LU()
         p=j;
         i=j+1;
         while (i<M){
-            if (abs(X[i][j])>abs(X[p][j]))
+            if (std::abs(X[i][j])>std::abs(X[p][j]))
                 p=i;
             i++;
         }
@@ -502,7 +502,7 @@ bool TMatrix::IsDiagonal()
                     x+=A[i][j];
             }
         }
-        res=(abs(x)<1e-10)?true:false;
+        res=(std::abs(x)<1e-10)?true:false;
     }else
         res=false;
 
