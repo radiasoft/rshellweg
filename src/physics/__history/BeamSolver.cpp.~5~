@@ -618,7 +618,7 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 {
     TInputLine *Lines;
     const char *FileName=InputFile.c_str();
-    std::ifstream fs(FileName);
+    std::fstream fs(FileName);
 
 	AnsiString S,L;
 	TInputParameter P;
@@ -697,9 +697,9 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 
     FILE *logFile;
     for (int k=0;k<N;k++){
-	 /*   logFile=fopen("BeamSolver.log","a");
+        logFile=fopen("BeamSolver.log","a");
         fprintf(logFile,"ParseLines: Line %i \n",k);
-		fclose(logFile);     */
+        fclose(logFile); 
 	switch (Lines[k].P) {
             case UNDEFINED: {
                 throw std::logic_error("Unhandled TInputParameter UNDEFINED in TBeamSolver::ParseLines");             
@@ -711,7 +711,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                     Zmag=Lines[k].S[2].ToDouble();
                     F="SOLENOID "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2];
                     ParsedStrings->Add(F);
-				}else if (Lines[k].N==1) {
+                }else if (Lines[k].N==1) {
                     if (Lines[k].S[0]=="BFILE"){
                         FSolenoid=true;
                         F="SOLENOID BFILE";
@@ -845,7 +845,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                 if (Lines[k].N==5 ){
                     Np=Lines[k].S[1].ToInt();
                     AlphaCS=Lines[k].S[2].ToDouble();
-					BettaCS=Lines[k].S[3].ToDouble();
+                    BettaCS=Lines[k].S[3].ToDouble();
                     EmittanceCS=Lines[k].S[4].ToDouble();
                     F+=Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4];
                 } else if (Lines[k].N==2){
@@ -858,7 +858,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                     else
                         return ERR_CURRENT;
                     if (BeamType!=RANDOM)
-						F="CURRENT "+Lines[k].S[0]+" "+Lines[k].S[1];
+                        F="CURRENT "+Lines[k].S[0]+Lines[k].S[1];
                 }
                 //F="CURRENT "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4];
                 ParsedStrings->Add(F);
@@ -905,8 +905,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                     OnlyParameters=true;
                 break;
             }
-			case COMMENT:{
-				ParsedStrings->Add(Lines[k].S[0]);
+            case COMMENT:{
 			    break;
 	    }
             case COUPLER:{
@@ -941,7 +940,7 @@ TError TBeamSolver::LoadData(int Nl)
     const char *FileName=InputFile.c_str();
     LoadIniConstants();
     InputStrings->Clear();
-	Nlim=Nl; //# of cells limit. Consider removing
+    Nlim=Nl;
 
     DataReady=false;
 
@@ -964,17 +963,17 @@ TError TBeamSolver::LoadData(int Nl)
 
     Ncells=0;
     for (int k=0;k<N;k++){
-		if (Lines[k].P==CELL || Lines[k].P==DRIFT)
+        if (Lines[k].P==CELL)
             Ncells++;
         else if (Lines[k].P==CELLS)
-			Ncells+=Lines[k].S[0].ToInt();
-	}
+            Ncells+=Lines[k].S[0].ToInt();
+        else if (Lines[k].P==DRIFT)
+            Ncells++;
 
-	if (Nlim>-1 && Ncells>=Nlim){  //# of cells limit. Consider removing
-		Ncells=Nlim;
-		ShowMessage("The number of elements exceeds the user-defined limit. Check the hellweg.ini file");
-	}
-	Cells = new TCell[Ncells];
+    }
+    if (Nlim>-1 && Ncells>=Nlim)
+        Ncells=Nlim;
+    Cells = new TCell[Ncells];
 
     Parsed=ParseLines(Lines,N);
     ParsedStrings->Add("END");

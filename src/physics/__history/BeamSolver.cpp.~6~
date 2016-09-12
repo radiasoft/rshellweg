@@ -618,7 +618,7 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 {
     TInputLine *Lines;
     const char *FileName=InputFile.c_str();
-    std::ifstream fs(FileName);
+    std::fstream fs(FileName);
 
 	AnsiString S,L;
 	TInputParameter P;
@@ -941,7 +941,7 @@ TError TBeamSolver::LoadData(int Nl)
     const char *FileName=InputFile.c_str();
     LoadIniConstants();
     InputStrings->Clear();
-	Nlim=Nl; //# of cells limit. Consider removing
+    Nlim=Nl;
 
     DataReady=false;
 
@@ -964,17 +964,17 @@ TError TBeamSolver::LoadData(int Nl)
 
     Ncells=0;
     for (int k=0;k<N;k++){
-		if (Lines[k].P==CELL || Lines[k].P==DRIFT)
+        if (Lines[k].P==CELL)
             Ncells++;
         else if (Lines[k].P==CELLS)
-			Ncells+=Lines[k].S[0].ToInt();
-	}
+            Ncells+=Lines[k].S[0].ToInt();
+        else if (Lines[k].P==DRIFT)
+            Ncells++;
 
-	if (Nlim>-1 && Ncells>=Nlim){  //# of cells limit. Consider removing
-		Ncells=Nlim;
-		ShowMessage("The number of elements exceeds the user-defined limit. Check the hellweg.ini file");
-	}
-	Cells = new TCell[Ncells];
+    }
+    if (Nlim>-1 && Ncells>=Nlim)
+        Ncells=Nlim;
+    Cells = new TCell[Ncells];
 
     Parsed=ParseLines(Lines,N);
     ParsedStrings->Add("END");

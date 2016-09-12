@@ -6,6 +6,8 @@
 #ifndef RSLINAC
 #include <Graphics.hpp>
 #endif
+//SYSTEM
+const int MAX_CHAR=128;
 
 //PHYSICAL
 const double c=2.99792458e8;

@@ -53,7 +53,12 @@ private:
     //INITIALIZATION
     void Initialize();
     void LoadIniConstants();
-    int ChangeCells(int N);
+	int ChangeCells(int N);
+
+	AnsiString GetLine(ifstream &f);
+	AnsiString GetWord(ifstream &f);
+	AnsiString ReadWord(AnsiString& L,int N=1);
+	int NumWords(AnsiString& L);
 
     TInputLine *ParseFile(int& N);
     TError ParseLines(TInputLine *Lines,int N,bool OnlyParameters=false);

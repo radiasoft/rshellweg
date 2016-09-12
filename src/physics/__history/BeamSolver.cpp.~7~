@@ -618,7 +618,7 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 {
     TInputLine *Lines;
     const char *FileName=InputFile.c_str();
-    std::ifstream fs(FileName);
+    std::fstream fs(FileName);
 
 	AnsiString S,L;
 	TInputParameter P;
