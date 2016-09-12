@@ -33,9 +33,6 @@ Win32/
 Win64/
 __history/
 __recovery/
-*.cbproj.local
-*.stat
-*.res
 *.#00
 *.map
 *.~1~
