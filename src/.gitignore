@@ -31,9 +31,6 @@
 # Embarcadero files and directories
 Win32/
 Win64/
-Hellweg.cbproj.local
-Hellweg.stat
-Hellweg.res
 *.#00
 *.map
 *.~1~
