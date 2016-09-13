@@ -55,9 +55,9 @@ void TBeamSolver::Initialize()
     Npoints=1;
 
     Np=1;
-	Nlim=-1;
+    Nlim=-1;
 
-	Magnetized=false;
+    Magnetized=false;
 
     LoadIniConstants();
 
@@ -542,18 +542,6 @@ void TBeamSolver::GetDimensions(TCell& Cell)
 
 }
 //---------------------------------------------------------------------------
-bool TBeamSolver::CheckFile(AnsiString &F)   //Checks if the file exists
-{
-	bool Exists=false;
-	std::ifstream f(F.c_str());
-
-	Exists=f.good();
-
-	f.close();
-
-	return Exists;
-}
-//---------------------------------------------------------------------------
 AnsiString TBeamSolver::GetWord(ifstream &f)   //Reads the next word from fstream
 {
    AnsiString S;
@@ -628,17 +616,11 @@ AnsiString TBeamSolver::ReadWord(AnsiString &L,int N)   //Parses the Nth word fr
 //---------------------------------------------------------------------------
 TInputLine *TBeamSolver::ParseFile(int& N)
 {
-	const char *FileName=InputFile.c_str();
+    TInputLine *Lines;
+    const char *FileName=InputFile.c_str();
+    std::ifstream fs(FileName);
+
 	AnsiString S,L;
-
-	if (!CheckFile(InputFile)){
-		S="ERROR: The input file "+InputFile+" was not found";
-		ShowMessage(S);
-        return NULL;
-	}
-
-	TInputLine *Lines;
-	std::ifstream fs(FileName);
 	TInputParameter P;
     int i=-1,j=0;
 
@@ -694,7 +676,7 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 	}
 
 
-	fs.close();
+    fs.close();
     return Lines;
 }
 //---------------------------------------------------------------------------
@@ -707,12 +689,10 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
     Reverse=false;
     Magnetized=false;
     BeamType=RANDOM;
-	FSolenoid=false;
-	SolenoidFile=Solenoid_File;
-	BeamFile=CST_FileX;
+    FSolenoid=false;
 
     bool NewCell=true;
-	AnsiString F,S,s;
+    AnsiString F,s;
     ParsedStrings->Clear();
 
     FILE *logFile;
@@ -732,22 +712,13 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                     F="SOLENOID "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2];
                     ParsedStrings->Add(F);
 				}else if (Lines[k].N==1) {
-					if (Lines[k].S[0]=="BFILE")
-						F="SOLENOID BFILE";
-					else {
-						SolenoidFile=Lines[k].S[0];
-						F="SOLENOID "+SolenoidFile;
-					}
-					if (CheckFile(SolenoidFile)){
-						FSolenoid=true;
-						ParsedStrings->Add(F);
-					}else{
-						S="ERROR: The file "+SolenoidFile+" is missing!";
-						ShowMessage(S);
-						return ERR_SOLENOID;
-					}
-				}else
-					return ERR_SOLENOID;
+                    if (Lines[k].S[0]=="BFILE"){
+                        FSolenoid=true;
+                        F="SOLENOID BFILE";
+                        ParsedStrings->Add(F);
+                    }
+                }else
+                    return ERR_SOLENOID;
                 break;
             }
 
@@ -866,35 +837,29 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
             }
 
             case CURRENT:{
-				if (Lines[k].N!=5 && Lines[k].N!=2){
+                if (Lines[k].N!=5 && Lines[k].N!=2){
                     return ERR_CURRENT;
                 }
                 I0=Lines[k].S[0].ToDouble();
                 F="CURRENT "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t";//+Lines[k].S[2]+"\t";
-				if (Lines[k].N==5 ){
+                if (Lines[k].N==5 ){
                     Np=Lines[k].S[1].ToInt();
                     AlphaCS=Lines[k].S[2].ToDouble();
 					BettaCS=Lines[k].S[3].ToDouble();
                     EmittanceCS=Lines[k].S[4].ToDouble();
                     F+=Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4];
-				} else if (Lines[k].N==2){
-					if (Lines[k].S[1]=="CST_X" || Lines[k].S[1]=="CST")
-						BeamFile=CST_FileX;
-					else
-						BeamFile=Lines[k].S[1];;
-
-					if (CheckFile(BeamFile))
-						BeamType=CST_X;
-					else{
-						S="ERROR: The file "+BeamFile+" is missing!";
-						ShowMessage(S);
-						return ERR_CURRENT;
-					}
-					BeamType=CST_X;
-				}
-				if (BeamType!=RANDOM)
-					F="CURRENT "+Lines[k].S[0]+" "+Lines[k].S[1];
-
+                } else if (Lines[k].N==2){
+                    if (Lines[k].S[1]=="CST_X" || Lines[k].S[1]=="CST")
+                        BeamType=CST_X;
+                    else if (Lines[k].S[1]=="CST_Y")
+                        BeamType=CST_Y;
+                   /*   else if (Lines[k].S[1]=="CST_R")
+                        BeamType=CST_R;   */
+                    else
+                        return ERR_CURRENT;
+                    if (BeamType!=RANDOM)
+						F="CURRENT "+Lines[k].S[0]+" "+Lines[k].S[1];
+                }
                 //F="CURRENT "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4];
                 ParsedStrings->Add(F);
                 break;

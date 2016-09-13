@@ -866,35 +866,29 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
             }
 
             case CURRENT:{
-				if (Lines[k].N!=5 && Lines[k].N!=2){
+                if (Lines[k].N!=5 && Lines[k].N!=2){
                     return ERR_CURRENT;
                 }
                 I0=Lines[k].S[0].ToDouble();
                 F="CURRENT "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t";//+Lines[k].S[2]+"\t";
-				if (Lines[k].N==5 ){
+                if (Lines[k].N==5 ){
                     Np=Lines[k].S[1].ToInt();
                     AlphaCS=Lines[k].S[2].ToDouble();
 					BettaCS=Lines[k].S[3].ToDouble();
                     EmittanceCS=Lines[k].S[4].ToDouble();
                     F+=Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4];
-				} else if (Lines[k].N==2){
-					if (Lines[k].S[1]=="CST_X" || Lines[k].S[1]=="CST")
-						BeamFile=CST_FileX;
-					else
-						BeamFile=Lines[k].S[1];;
-
-					if (CheckFile(BeamFile))
-						BeamType=CST_X;
-					else{
-						S="ERROR: The file "+BeamFile+" is missing!";
-						ShowMessage(S);
-						return ERR_CURRENT;
-					}
-					BeamType=CST_X;
-				}
-				if (BeamType!=RANDOM)
-					F="CURRENT "+Lines[k].S[0]+" "+Lines[k].S[1];
-
+                } else if (Lines[k].N==2){
+                    if (Lines[k].S[1]=="CST_X" || Lines[k].S[1]=="CST")
+                        BeamType=CST_X;
+                    else if (Lines[k].S[1]=="CST_Y")
+                        BeamType=CST_Y;
+                   /*   else if (Lines[k].S[1]=="CST_R")
+                        BeamType=CST_R;   */
+                    else
+                        return ERR_CURRENT;
+                    if (BeamType!=RANDOM)
+						F="CURRENT "+Lines[k].S[0]+" "+Lines[k].S[1];
+                }
                 //F="CURRENT "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4];
                 ParsedStrings->Add(F);
                 break;

@@ -11,6 +11,8 @@
 #include <string.h>
 #include <time.h>
 #include <math.h>
+#include <cmath>
+#include <cstdlib>
 
 #ifndef RSLINAC
 #include <system.hpp>

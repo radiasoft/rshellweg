@@ -25,7 +25,7 @@ class TBeamSolver
 private:
     //FLAGS
     bool DataReady;
-    AnsiString UserIniPath;
+    AnsiString UserIniPath,SolenoidFile,BeamFile;
     //INITIAL PARAMETERS
     double F0,P0,I0,lmb;
     double B0,Lmag,Zmag;  //Lmag - length, Zmag -position
@@ -59,10 +59,11 @@ private:
 	AnsiString GetWord(ifstream &f);
 	AnsiString ReadWord(AnsiString& L,int N=1);
 	int NumWords(AnsiString& L);
+	bool CheckFile(AnsiString& F);
 
     TInputLine *ParseFile(int& N);
     TError ParseLines(TInputLine *Lines,int N,bool OnlyParameters=false);
-    //INTERPOLATION
+	//INTERPOLATION
     double *LinearInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
     double *SplineInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
     double *SmoothInterpolation(double *x,double *X,double *Y,int Nbase,int Nint,double p0,double *W=NULL);

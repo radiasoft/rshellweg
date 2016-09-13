@@ -503,8 +503,8 @@ bool TMatrix::IsDiagonal()
                     x+=A[i][j];
             }
 		}
-		//res=(std::abs(x)<1e-10)?true:false;
 		res=(std::abs((__int64)x)<1e-10)?true:false;
+	   //	res=(abs(x)<1e-10)?true:false;
 	}else
         res=false;
 
