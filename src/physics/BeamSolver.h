@@ -19,6 +19,8 @@
 #include "TStringList.hpp"
 #endif
 
+using namespace std;
+
 //---------------------------------------------------------------------------
 class TBeamSolver
 {

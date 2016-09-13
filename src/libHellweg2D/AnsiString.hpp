@@ -30,7 +30,12 @@ class AnsiString {
         AnsiString operator+(const AnsiString &other) const;
         friend AnsiString operator+(const char *c, const AnsiString &as);
 
+        const char& operator[](size_t i) const;
+
         AnsiString& operator+=(const AnsiString &other); 
+        AnsiString& operator+=(const char &other); 
+
+        int Length() const;
 };
 
 std::ostream& operator<<(std::ostream &strm, const AnsiString &a);

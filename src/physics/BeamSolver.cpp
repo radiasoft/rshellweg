@@ -972,7 +972,9 @@ TError TBeamSolver::LoadData(int Nl)
 
 	if (Nlim>-1 && Ncells>=Nlim){  //# of cells limit. Consider removing
 		Ncells=Nlim;
+                #ifndef RSLINAC
 		ShowMessage("The number of elements exceeds the user-defined limit. Check the hellweg.ini file");
+                #endif
 	}
 	Cells = new TCell[Ncells];
 

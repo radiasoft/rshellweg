@@ -1,9 +1,22 @@
 #include <cstring>
 
 #include "AnsiString.hpp" 
+        
+int AnsiString::Length() const {
+    return s.length();
+}
+        
+const char& AnsiString::operator[](size_t i) const {
+    return this->s[i];
+}
 
 std::ostream& operator<<(std::ostream &strm, const AnsiString &a) {
   return strm << "AnsiString(" << a.s << ")";
+}
+
+AnsiString& AnsiString::operator+=(const char &other) {
+    s += other;
+    return *this;
 }
        
 AnsiString& AnsiString::operator+=(const AnsiString &other) {
