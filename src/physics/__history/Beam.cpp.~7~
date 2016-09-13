@@ -96,7 +96,7 @@ int TBeam::CountCSTParticles(AnsiString &F)
 	return N;
 }        */
 //---------------------------------------------------------------------------
-bool TBeam::ReadCSTEmittance(AnsiString &F, int Nmax)
+bool TBeam::ReadCSTEmittance(AnsiString &F, int Np)
 {
 	std::ifstream fs(F.c_str());
 	float x=0,vx=0;
@@ -117,7 +117,7 @@ bool TBeam::ReadCSTEmittance(AnsiString &F, int Nmax)
 			catch (...){
 				continue;          //Skip incorrect line
 			}
-			if (i==Nmax){     //if there is more data than expected
+			if (i==Np){
 				i++;
 				break;
 			}
@@ -129,7 +129,7 @@ bool TBeam::ReadCSTEmittance(AnsiString &F, int Nmax)
 
 	fs.close();
 
-	Success=(i==Nmax);
+	Success=(i==Np);
 	return Success;
 }
 //---------------------------------------------------------------------------

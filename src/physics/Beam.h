@@ -16,7 +16,7 @@ private:
     void TwoRandomGauss(double& x1,double& x2);
     void SetParameters(double *X,TBeamParameter Par);
     TSpectrumBar *GetSpectrum(bool Smooth,double *X,double& Xav,double& dX,bool width=false);
-    int CountCSTParticles(const char *F);
+
 
     FILE *logFile;
 
@@ -32,8 +32,9 @@ public:
     void SetKernel(double Ker);
     void SetBarsNumber(int N);
 
-    bool ReadCSTEmittance(TBeamType bType);
-    int CountCSTParticles(TBeamType bType);
+	bool ReadCSTEmittance(AnsiString &F, int Nmax);
+	int CountCSTParticles(AnsiString &F);
+	//int CountCSTParticles(TBeamType bType);
     void MakeGaussEmittance(double alpha, double betta, double eps);
     void MakeGaussDistribution(double Xav,double sX,TBeamParameter Par);
     void MakeEquiprobableDistribution(double Xav, double dX,TBeamParameter Par);

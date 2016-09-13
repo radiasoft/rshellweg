@@ -234,12 +234,12 @@ void __fastcall TMainForm::ViewGeometryButtonClick(TObject *Sender)
         ShowMessage("Error occured while creating geometry. Check the values in input file!");
         return;
     }
-    try{
+	try{
         Solver->CreateBeam();
     }  catch(...){
         ShowMessage("Error occured while creating beam. Check the values in input file!");
         return;
-    }
+	}
 
     GeomForm->MainSolver=Solver;
     GeomForm->Beam=false;

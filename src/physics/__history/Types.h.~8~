@@ -455,7 +455,7 @@ AnsiString ReadWord(AnsiString &L,int N)   //Parses the Nth word from the string
 	return S;
 }
 //---------------------------------------------------------------------------
-int NumPointsInFile(AnsiString &F,int NumRow)
+int TBeamSolver::NumPointsInFile(AnsiString &F,int NumRow)
 {
 	//Check number of valid lines in text file F.
 	//Line is valid if number of elements in a row == NumRow and they are numbers
@@ -468,7 +468,7 @@ int NumPointsInFile(AnsiString &F,int NumRow)
 		L=GetLine(fs);
 		if (NumWords(L)==NumRow){       //Check if only two numbers in the line
 			try {                  //Check if the data is really a number
-				for (int i = 0; i < NumRow; i++) {
+				for (i = 0; i < NumRow; i++) {
 					S=ReadWord(L,i+1);
 					x=S.ToDouble();
 				}

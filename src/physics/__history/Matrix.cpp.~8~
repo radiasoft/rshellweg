@@ -6,7 +6,6 @@
 #include "Matrix.h"
 
 using namespace HellwegMatrix;
-using namespace HellwegTypes;
 //---------------------------------------------------------------------------
 __fastcall TMatrix::TMatrix(int N0,int M0)
 {
@@ -278,8 +277,8 @@ void TMatrix::Decomposite_LU()
         p=j;
         i=j+1;
         while (i<M){
-			if (mod(X[i][j])>mod(X[p][j]))
-			//if (abs((__int64)X[i][j])>abs((__int64)X[p][j]))
+		   //	if (std::abs(X[i][j])>std::abs(X[p][j]))
+			if (abs((__int64)X[i][j])>abs((__int64)X[p][j]))
 				p=i;
 			i++;
 		}
@@ -504,8 +503,8 @@ bool TMatrix::IsDiagonal()
                     x+=A[i][j];
             }
 		}
-		res=(mod(x)<1e-10)?true:false;
-		//res=(std::abs((__int64)x)<1e-10)?true:false;
+		//res=(std::abs(x)<1e-10)?true:false;
+		res=(std::abs((__int64)x)<1e-10)?true:false;
 	}else
         res=false;
 

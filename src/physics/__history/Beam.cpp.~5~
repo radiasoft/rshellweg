@@ -58,7 +58,7 @@ int TBeam::CountCSTParticles(AnsiString &F)
 	return NumPointsInFile(F,2);
 }
 //---------------------------------------------------------------------------
-/*int TBeam::CountCSTParticles(TBeamType bType)
+int TBeam::CountCSTParticles(TBeamType bType)
 {
     //This function should not be used
 	int Np1=0, Np2=0, N=0;
@@ -94,43 +94,84 @@ int TBeam::CountCSTParticles(AnsiString &F)
     }
 
 	return N;
-}        */
+}
 //---------------------------------------------------------------------------
-bool TBeam::ReadCSTEmittance(AnsiString &F, int Nmax)
+bool TBeam::ReadCSTEmittance(TBeamType bType)
 {
-	std::ifstream fs(F.c_str());
-	float x=0,vx=0;
-	int i=0;
-	bool Success=false;
-	AnsiString S,L;
 
-	while (!fs.eof()){
-		L=GetLine(fs);
+    float x=0,vx=0;
+    char s[128];
+    bool Success=true;
+    AnsiString S,F;
 
-		if (NumWords(L)==2){       //Check if only two numbers in the line
-			try {                  //Check if the data is really a number
-				S=ReadWord(L,1);
-				x=S.ToDouble();
-				S=ReadWord(L,2);
-				vx=S.ToDouble();
-			}
-			catch (...){
-				continue;          //Skip incorrect line
-			}
-			if (i==Nmax){     //if there is more data than expected
-				i++;
-				break;
-			}
-			Particle[i].x=x/lmb;
-			Particle[i].Bx=vx/c;
-			i++;
-		}
-	}
+    if (bType==CST_X)
+        F=CST_FileX;
+    else if (bType==CST_R)
+        F=CST_FileR;
 
-	fs.close();
+    std::fstream fs(F.c_str());
+    fs.getline(s, sizeof(s)) ;
+    fs.getline(s, sizeof(s)) ;
 
-	Success=(i==Nmax);
-	return Success;
+    for (int i=0;i<Np;i++){
+        try {
+            fs>>s;
+            S=AnsiString(s);
+            x=S.ToDouble();
+            Particle[i].x=x/lmb;
+            if (bType==CST_Y)
+                Particle[i].Th=x;
+
+            fs>>s;
+            S=AnsiString(s);
+            vx=S.ToDouble();
+            if (bType==CST_X)
+                Particle[i].Bx=vx/c;
+            else{
+                float v2=sqr(vx/c)-sqr(Particle[i].betta);
+                Particle[i].Bx=sqrt(v2);
+            }
+        } catch (...){
+            Success=false;
+        }
+    }
+
+    fs.close();
+
+    if (bType==CST_Y) {
+        F=CST_FileY;
+        std::fstream fy(F.c_str());
+        float y=0,vy=0,th;
+        char s[128];
+        AnsiString S;
+
+        fy.getline(s, sizeof(s)) ;
+        fy.getline(s, sizeof(s)) ;
+        for (int i=0;i<Np;i++){
+            try {
+                fy>>s;
+                S=AnsiString(s);
+                y=S.ToDouble();
+                Particle[i].x=sqrt(sqr(Particle[i].x)+sqr(y/lmb));
+                th=Particle[i].Th/y;
+                Particle[i].Th=atan(th);
+
+                fy>>s;
+                S=AnsiString(s);
+
+                vy=S.ToDouble();
+                Particle[i].Bx=sqrt(sqr(Particle[i].Bx)+sqr(vy/c));
+
+            } catch (...){
+                Success=false;
+            }
+        }
+
+        fy.close();
+    }
+
+
+    return Success;
 }
 //---------------------------------------------------------------------------
 void TBeam::MakeGaussEmittance(double alpha, double betta, double eps)
