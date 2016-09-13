@@ -146,6 +146,7 @@ ENV/
 # Rope project settings
 .ropeproject
 
+.env
 .agignore
 PARSED.TXT
 MANIFEST.in
