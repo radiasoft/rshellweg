@@ -70,7 +70,7 @@ struct TParticle
 };
 struct TDump
 {
-   std::string File;//char *File;
+	char *File;
 };
 struct TCell
 {

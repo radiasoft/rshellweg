@@ -70,7 +70,7 @@ struct TParticle
 };
 struct TDump
 {
-   std::string File;//char *File;
+	std::string File;//char *File;
 };
 struct TCell
 {
@@ -105,7 +105,7 @@ struct TStructure
     bool drift;
 	int CellNumber;
 	bool Dump;
-	TDump DumpParameters;
+   //	TDump DumpParameters;
 };
 struct TResult
 {

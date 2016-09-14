@@ -70,7 +70,7 @@ void TBeamSolver::Initialize()
 
     Par=new TIntParameters[Ncoef];
 
-    Cells = new TCell[1];
+	Cells = new TCell[1];
 
     Np_beam=1;
     Beam=new TBeam*[Npoints];
@@ -346,7 +346,8 @@ bool TBeamSolver::IsKeyWord(AnsiString& S)
         S=="CURRENT" ||
         S=="DRIFT" ||
         S=="CELL" ||
-        S=="CELLS" ||
+		S=="CELLS" ||
+		S=="SAVE" ||
         S=="OPTIONS"; 
 	  //	S=="COMMENT";
 }
@@ -360,13 +361,13 @@ TInputParameter TBeamSolver::Parse(AnsiString& S)
     fprintf(logFile,"Parse: S=%s\n",S);
     fclose(logFile); */
 	if (S=="POWER")
-		P=COUPLER;
+		P=POWER;
     else if (S=="SOLENOID")
         P=SOLENOID;
     else if (S=="BEAM")
         P=BEAM;
     else if (S=="CURRENT")
-        P=CURRENT;
+		P=CURRENT;
     else if (S=="DRIFT")
         P=DRIFT;
     else if (S=="CELL")
@@ -374,7 +375,9 @@ TInputParameter TBeamSolver::Parse(AnsiString& S)
     else if (S=="CELLS")
         P=CELLS;
     else if (S=="OPTIONS")
-        P=OPTIONS;
+		P=OPTIONS;
+	else if (S=="SAVE")
+		P=DUMP;
     else if (S[1]=='!')
 		P=COMMENT;
 	return  P;
@@ -626,6 +629,12 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 	FSolenoid=false;
 	SolenoidFile=Solenoid_File;
 	BeamFile=CST_FileX;
+	TError Error=ERR_NO;
+
+	bool BeamDefined=false;
+	bool CurrentDefined=false;
+	bool CellDefined=false;
+	bool PowerDefined=false;
 
     bool NewCell=true;
 	AnsiString F,S,s;
@@ -639,7 +648,21 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 	switch (Lines[k].P) {
             case UNDEFINED: {
                 throw std::logic_error("Unhandled TInputParameter UNDEFINED in TBeamSolver::ParseLines");             
-            }
+			}
+			case OPTIONS:{
+				F="OPTIONS ";
+				for (int j=0;j<Lines[k].N;j++){
+					if (Lines[k].S[j]=="COULOMB")
+						Coulomb=true;
+					if (Lines[k].S[j]=="REVERSE")
+						Reverse=true;
+					if (Lines[k].S[j]=="MAGNETIZED")
+						Magnetized=true;
+					F=F+"\t"+Lines[k].S[j];
+				}
+				ParsedStrings->Add(F);
+				break;
+			}
             case SOLENOID:{
                 if (Lines[k].N==3){
                     B0=Lines[k].S[0].ToDouble();
@@ -665,120 +688,23 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				}else
 					return ERR_SOLENOID;
                 break;
-            }
+			}
 
-            case CELL:{
-                if(OnlyParameters)
-                    break;
-                if (Lines[k].N==3){
-                    Cells[Ni].Mode=Lines[k].S[0].ToDouble();
-                    Cells[Ni].betta=Lines[k].S[1].ToDouble();
-                    Cells[Ni].ELP=Lines[k].S[2].ToDouble();
-                    GetDimensions(Cells[Ni]);
-                    //Cells[Ni].AL32=table function;
-                    //Cells[Ni].AkL=table function;
-                } else if (Lines[k].N==5){
-                    Cells[Ni].Mode=Lines[k].S[0].ToDouble();
-                    Cells[Ni].betta=Lines[k].S[1].ToDouble();
-                    Cells[Ni].ELP=Lines[k].S[2].ToDouble();
-                    Cells[Ni].AL32=Lines[k].S[3].ToDouble();
-                    Cells[Ni].AkL=Lines[k].S[4].ToDouble();
-                }
-                else{
-                    return ERR_CELL;
-                }
-
-                F="CELL "+Lines[k].S[0]+"\t"+s.FormatFloat("#0.000",Cells[Ni].betta)+"\t"+s.FormatFloat("#0.000",Cells[Ni].ELP)+"\t"+s.FormatFloat("#0.000000",Cells[Ni].AL32)+"\t"+s.FormatFloat("#0.000000",Cells[Ni].AkL);
-                ParsedStrings->Add(F);
-
-                Cells[Ni].F0=F0*1e6;
-                Cells[Ni].P0=P0*1e6;
-                Cells[Ni].dF=arc(dF);
-                Cells[Ni].Drift=false;
-                Cells[Ni].First=NewCell;
-                NewCell=false;
-                dF=0;
-
-                Ni++;
-                if (Nlim>-1 &&Ni>=Nlim)
-                    OnlyParameters=true;
-
-                break;
-            }
-
-            case CELLS:{
-                if(OnlyParameters)
-                    break;
-                if (Lines[k].N==4){
-                    for (int j=0;j<Lines[k].S[0].ToInt();j++){
-                        Cells[Ni].Mode=Lines[k].S[1].ToDouble();
-                        Cells[Ni].betta=Lines[k].S[2].ToDouble();
-                        Cells[Ni].ELP=Lines[k].S[3].ToDouble(); \
-                        GetDimensions(Cells[Ni]);
-                        //Cells[Ni].AL32=table function;
-                        //Cells[Ni].AkL=table function;
-                        Cells[Ni].F0=F0*1e6;
-                        Cells[Ni].P0=P0*1e6;
-                        Cells[Ni].dF=arc(dF);
-                        Cells[Ni].Drift=false;
-                        Cells[Ni].First=NewCell;
-                        NewCell=false;
-                        dF=0;
-
-                        Ni++;
-                        if (Nlim>-1 &&Ni>=Nlim){
-                            OnlyParameters=true;
-                            break;
-                        }
-                    }
-                } else if (Lines[k].N==6){
-                    for (int j=0;j<Lines[k].S[0].ToInt();j++){
-                        Cells[Ni].Mode=Lines[k].S[1].ToDouble();
-                        Cells[Ni].betta=Lines[k].S[2].ToDouble();
-                        Cells[Ni].ELP=Lines[k].S[3].ToDouble();
-                        Cells[Ni].AL32=Lines[k].S[4].ToDouble();
-                        Cells[Ni].AkL=Lines[k].S[5].ToDouble();
-
-                        Cells[Ni].F0=F0*1e6;
-                        Cells[Ni].P0=P0*1e6;
-                        Cells[Ni].dF=arc(dF);
-                        Cells[Ni].Drift=false;
-                        Cells[Ni].First=NewCell;
-                        NewCell=false;
-                        dF=0;
-
-                        Ni++;
-                        if (Nlim>-1 &&Ni>=Nlim){
-                            OnlyParameters=true;
-                            break;
-                        }
-                    }
-                }
-                else{
-                    return ERR_CELLS;
-                }
-                if (Ni>0){
-                    F="CELLS "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+s.FormatFloat("#0.000",Cells[Ni-1].betta)+"\t"+s.FormatFloat("#0.000",Cells[Ni-1].ELP)+"\t"+s.FormatFloat("#0.000000",Cells[Ni-1].AL32)+"\t"+s.FormatFloat("#0.000000",Cells[Ni-1].AkL);
-                    ParsedStrings->Add(F);
-                }
-
-                break;
-            }
-
-            case BEAM:{
+			case BEAM:{
                 if (Lines[k].N!=6){
-                    return ERR_BEAM;
-                }
-                Phi0=Lines[k].S[0].ToDouble();
-                dPhi=Lines[k].S[1].ToDouble();
-                Phi_Eq=(Lines[k].S[2]!="NORM");
-                W0=Lines[k].S[3].ToDouble();
+					return ERR_BEAM;
+				}
+				Phi0=Lines[k].S[0].ToDouble();
+				dPhi=Lines[k].S[1].ToDouble();
+				Phi_Eq=(Lines[k].S[2]!="NORM");
+				W0=Lines[k].S[3].ToDouble();
                 dW=Lines[k].S[4].ToDouble();
                 W_Eq=(Lines[k].S[5]!="NORM");
 
                 F="BEAM "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4]+"\t"+Lines[k].S[5];
-                ParsedStrings->Add(F);
-                break;
+				ParsedStrings->Add(F);
+				BeamDefined=true;
+				break;
             }
 
             case CURRENT:{
@@ -786,13 +712,13 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                     return ERR_CURRENT;
                 }
                 I0=Lines[k].S[0].ToDouble();
-                F="CURRENT "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t";//+Lines[k].S[2]+"\t";
+				F="CURRENT "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t";//+Lines[k].S[2]+"\t";
 				if (Lines[k].N==5 ){
-                    Np=Lines[k].S[1].ToInt();
-                    AlphaCS=Lines[k].S[2].ToDouble();
+					Np=Lines[k].S[1].ToInt();
+					AlphaCS=Lines[k].S[2].ToDouble();
 					BettaCS=Lines[k].S[3].ToDouble();
-                    EmittanceCS=Lines[k].S[4].ToDouble();
-                    F+=Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4];
+					EmittanceCS=Lines[k].S[4].ToDouble();
+					F+=Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4];
 				} else if (Lines[k].N==2){
 					if (Lines[k].S[1]=="CST_X" || Lines[k].S[1]=="CST")
 						BeamFile=CST_FileX;
@@ -811,80 +737,176 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				if (BeamType!=RANDOM)
 					F="CURRENT "+Lines[k].S[0]+" "+Lines[k].S[1];
 
-                //F="CURRENT "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4];
-                ParsedStrings->Add(F);
-                break;
-            }
+				//F="CURRENT "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4];
+				ParsedStrings->Add(F);
+				CurrentDefined=true;
+				break;
+			}
 
-            case OPTIONS:{
-                F="OPTIONS ";
-                for (int j=0;j<Lines[k].N;j++){
-                    if (Lines[k].S[j]=="COULOMB")
-                        Coulomb=true;
-                    if (Lines[k].S[j]=="REVERSE")
-                        Reverse=true;
-                    if (Lines[k].S[j]=="MAGNETIZED")
-                        Magnetized=true;
-                    F=F+"\t"+Lines[k].S[j];
-                }
-                ParsedStrings->Add(F);
-                break;
-            }
-
-            case DRIFT:{
+            case CELL:{
                 if(OnlyParameters)
                     break;
-                if (Lines[k].N!=2){
-                    return ERR_DRIFT;
+				if (Lines[k].N==3 || Lines[k].N==5){
+					Cells[Ni].Mode=Lines[k].S[0].ToDouble();
+                    Cells[Ni].betta=Lines[k].S[1].ToDouble();
+                    Cells[Ni].ELP=Lines[k].S[2].ToDouble();
+					
+					if (Lines[k].N==3){ 
+						GetDimensions(Cells[Ni]);
+					} else if (Lines[k].N==5){
+						Cells[Ni].AL32=Lines[k].S[3].ToDouble();
+						Cells[Ni].AkL=Lines[k].S[4].ToDouble();
+					}
+				} else{
+                    return ERR_CELL;
                 }
-                Cells[Ni].Drift=true;
-                Cells[Ni].betta=Lines[k].S[0].ToDouble()/100;//D, cm
-                Cells[Ni].AkL=Lines[k].S[1].ToDouble()/100;//Ra, cm
-                Cells[Ni].ELP=0;
-                Cells[Ni].AL32=0;
-                Cells[Ni].First=true;
-                Cells[Ni].F0=c;
-                Cells[Ni].dF=arc(dF);
-                dF=0;
-                NewCell=true;
 
-                F="DRIFT "+Lines[k].S[0]+"\t"+Lines[k].S[1];
+                F="CELL "+Lines[k].S[0]+"\t"+s.FormatFloat("#0.000",Cells[Ni].betta)+"\t"+s.FormatFloat("#0.000",Cells[Ni].ELP)+"\t"+s.FormatFloat("#0.000000",Cells[Ni].AL32)+"\t"+s.FormatFloat("#0.000000",Cells[Ni].AkL);
                 ParsedStrings->Add(F);
 
-                Ni++;
-                if (Nlim>-1 && Ni>=Nlim)
-                    OnlyParameters=true;
+                Cells[Ni].F0=F0*1e6;
+                Cells[Ni].P0=P0*1e6;
+                Cells[Ni].dF=arc(dF);
+			   //	Cells[Ni].Drift=false;
+				Cells[Ni].First=NewCell;
+				if (NewCell && !PowerDefined) {
+					ShowMessage("ERROR: The RF power source must be defined before each RF section. Put POWER line in correct format into the input file before the end of each RF section. Note that DRIFT element terminates the defined RF power!");
+					Error=ERR_FORMAT;
+				}
+				NewCell=false;
+				dF=0;
+
+				Ni++;
+				if (Nlim>-1 &&Ni>=Nlim)
+					OnlyParameters=true;
+
+				CellDefined=true;		
                 break;
             }
+
+            case CELLS:{
+                if(OnlyParameters)
+                    break;
+				if (Lines[k].N==4 || Lines[k].N==6){
+					for (int j=0;j<Lines[k].S[0].ToInt();j++){
+                        Cells[Ni].Mode=Lines[k].S[1].ToDouble();
+                        Cells[Ni].betta=Lines[k].S[2].ToDouble();
+						Cells[Ni].ELP=Lines[k].S[3].ToDouble(); 
+						if (Lines[k].N==4)
+							GetDimensions(Cells[Ni]);
+						else if (Lines[k].N==6){
+							Cells[Ni].AL32=Lines[k].S[4].ToDouble();
+							Cells[Ni].AkL=Lines[k].S[5].ToDouble();
+						}
+                        Cells[Ni].F0=F0*1e6;
+                        Cells[Ni].P0=P0*1e6;
+                        Cells[Ni].dF=arc(dF);
+					 //   Cells[Ni].Drift=false;
+						Cells[Ni].First=NewCell;
+						if (NewCell && !PowerDefined) {
+							ShowMessage("ERROR: The RF power source must be defined before each RF section. Put POWER line in correct format into the input file before the end of each RF section. Note that DRIFT element terminates the defined RF power!");
+							Error=ERR_FORMAT;    
+						}
+						NewCell=false;
+						dF=0;
+
+                        Ni++;
+                        if (Nlim>-1 &&Ni>=Nlim){
+                            OnlyParameters=true;
+							break;
+                        }
+                    }
+				} else{
+					return ERR_CELLS;
+				}
+				if (Ni>0){
+					F="CELLS "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+s.FormatFloat("#0.000",Cells[Ni-1].betta)+"\t"+s.FormatFloat("#0.000",Cells[Ni-1].ELP)+"\t"+s.FormatFloat("#0.000000",Cells[Ni-1].AL32)+"\t"+s.FormatFloat("#0.000000",Cells[Ni-1].AkL);
+					ParsedStrings->Add(F);
+				}
+
+				CellDefined=true;
+                break;
+            }
+            case DRIFT:{
+				if(OnlyParameters)
+					break;
+				if (Lines[k].N!=2){
+					return ERR_DRIFT;
+				}
+				Cells[Ni].Drift=true;
+				Cells[Ni].betta=Lines[k].S[0].ToDouble()/100;//D, cm
+				Cells[Ni].AkL=Lines[k].S[1].ToDouble()/100;//Ra, cm
+				Cells[Ni].ELP=0;
+				Cells[Ni].AL32=0;
+				Cells[Ni].First=true;
+				Cells[Ni].F0=c;
+				Cells[Ni].dF=arc(dF);
+				dF=0;
+				NewCell=true;
+				PowerDefined=false;
+
+				F="DRIFT "+Lines[k].S[0]+"\t"+Lines[k].S[1];
+				ParsedStrings->Add(F);
+
+				Ni++;
+				if (Nlim>-1 && Ni>=Nlim)
+					OnlyParameters=true;
+				break;
+			}
+			case POWER:{
+				if (Lines[k].N>=2 && Lines[k].N<=3){
+					P0=Lines[k].S[0].ToDouble();
+					F0=Lines[k].S[1].ToDouble();
+					if(Lines[k].N==3)
+						dF=Lines[k].S[2].ToDouble();
+					NewCell=true;
+				}else{
+					return ERR_COUPLER;
+				}
+
+				F="POWER "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+s.FormatFloat("#0.00",dF);
+				ParsedStrings->Add(F);
+
+				PowerDefined=true;
+				break;
+			}
+			case DUMP:{
+				if (Lines[k].N==1){
+					Cells[Ni].Dump=true;
+					Cells[Ni].DumpParameters.File=Lines[k].S[0].c_str();
+					F="SAVE "+Lines[k].S[0];
+					ParsedStrings->Add(F);      
+				} else {    // else skip the line
+					ShowMessage("WARNING: The format of SAVE line is wrong and will be ignored.");
+				} 
+				break;
+			}
 			case COMMENT:{
 				ParsedStrings->Add(Lines[k].S[0]);
-			    break;
-	    }
-            case COUPLER:{
-                if (Lines[k].N==2){
-                    P0=Lines[k].S[0].ToDouble();
-                    F0=Lines[k].S[1].ToDouble();
-                    NewCell=true;
-                }
-                else if(Lines[k].N==3){
-                    P0=Lines[k].S[0].ToDouble();
-                    F0=Lines[k].S[1].ToDouble();
-                    dF=Lines[k].S[2].ToDouble();
-                    NewCell=true;
-                }
-                else{
-                    return ERR_COUPLER;
-                }
+				break;
+			}
 
-                F="POWER "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+s.FormatFloat("#0.00",dF);
-                ParsedStrings->Add(F);
+		}
+	}
 
-                break;
-            }
-        }
-    }
+	if (!BeamDefined) {
+		ShowMessage("ERROR: The beam energy and phase distributions are not defined. Put BEAM line in correct format into the input file");
+		Error=ERR_FORMAT;
+	}
+	if (!CurrentDefined) {
+		ShowMessage("ERROR: The beam current and transverse distribution are not defined. Put CURRENT line in correct format into the input file");
+		Error=ERR_FORMAT;
+	}
+	if (Ni<1) {
+		ShowMessage("ERROR: The accelerating structure is not defined. Put at least one element (CELL, DRIFT) line in correct format into the input file");
+		Error=ERR_FORMAT;
+	}
+   /*	if (CellDefined && !PowerDefined) {
+		ShowMessage("ERROR: The RF power source must be defined before each RF section. Put POWER line in correct format into the input file before the end of each RF section");
+		Error=ERR_FORMAT;
+	}       */
 
-    return ERR_NO;
+    return Error;
 }
 //---------------------------------------------------------------------------
 TError TBeamSolver::LoadData(int Nl)
@@ -913,8 +935,8 @@ TError TBeamSolver::LoadData(int Nl)
     Lines=ParseFile(N);
     //InputStrings->LoadFromFile(InputFile);
 
-    Ncells=0;
-    for (int k=0;k<N;k++){
+	Ncells=0; 
+	for (int k=0;k<N;k++){
 		if (Lines[k].P==CELL || Lines[k].P==DRIFT)
             Ncells++;
         else if (Lines[k].P==CELLS)
@@ -925,9 +947,14 @@ TError TBeamSolver::LoadData(int Nl)
 		Ncells=Nlim;
 		ShowMessage("The number of elements exceeds the user-defined limit. Check the hellweg.ini file");
 	}
-	Cells = new TCell[Ncells];
+	Cells = new TCell[Ncells+1];  //+1 - end point
+	for (int k=0;k<Ncells+1;k++){
+		Cells[k].Dump=false;
+		Cells[k].Drift=false;   
+		Cells[k].First=false; 
+	}
 
-    Parsed=ParseLines(Lines,N);
+	Parsed=ParseLines(Lines,N);
     ParsedStrings->Add("END");
     InputStrings->AddStrings(ParsedStrings);
     
@@ -1179,15 +1206,15 @@ int TBeamSolver::CreateGeometry()
 
     bool Solenoid_success=false;
 
-    int Njmp=0;
+	int Njmp=0,k0=0;
 
     for(int i=0;i<Ncells;i++){
         if (Cells[i].First)
             Njmp++;
     }
 
-    Npoints=Ncells*Nmesh+Njmp;
-    TSplineType Spl;
+	Npoints=Ncells*Nmesh+Njmp;//add+1 for the last point; 
+	TSplineType Spl;
 
     X_base = new double[Ncells]; X_int=new double[Npoints];
     B_base = new double[Ncells]; B_int=new double[Npoints];
@@ -1201,7 +1228,7 @@ int TBeamSolver::CreateGeometry()
     Structure=new TStructure[Npoints];
 
     int k=0;
-    for (int i=0;i<Ncells;i++){
+	for (int i=0;i<Ncells;i++){
         int Extra=0;
 
         if (i==Ncells-1)
@@ -1245,12 +1272,12 @@ int TBeamSolver::CreateGeometry()
         }
         x+=D/2;
         X_base[i]=x/lmb;
-        x+=D/2;
+		x+=D/2;
         B_base[i]=Cells[i].betta;
         E_base[i]=Cells[i].ELP;
         Al_base[i]=Cells[i].AL32;
         zm=D/Nmesh;
-        int k0=k;
+		k0=k;
         Structure[k].dF=Cells[i].dF;
         for (int j=0;j<Nmesh+Extra;j++){
             X_int[k]=z/lmb;
@@ -1259,24 +1286,34 @@ int TBeamSolver::CreateGeometry()
             Structure[k].P=Cells[i].P0;
             Structure[k].dF=0;
             Structure[k].drift=Cells[i].Drift;
-            if (Cells[i].Drift)
+			if (Cells[i].Drift)
                 Structure[k].Ra=Cells[i].AkL/lmb;
             else
                 Structure[k].Ra=Cells[i].AkL;//*lmb;
             Structure[k].jump=false;
-            Structure[k].CellNumber=i;
-            z+=zm;
+			Structure[k].CellNumber=i;
+			Structure[k].Dump=false;
+			z+=zm;
             k++;
         }
-        if (Cells[i].First)
-            Structure[k0].jump=true;
-    }
+		if (Cells[i].First)
+			Structure[k0].jump=true;
+		if (Cells[i].Dump){ 
+			Structure[k0].Dump=true;
+			Structure[k0].DumpParameters=Cells[i].DumpParameters;
+		  //	strcpy(Structure[k0].DumpParameters.File, Cells[i].DumpParameters.File);
+		} 
+	}
+	if (Cells[Ncells].Dump){
+		Structure[k0+Nmesh].Dump=true;
+		Structure[k0+Nmesh].DumpParameters=Cells[Ncells].DumpParameters;
+	}
 
 	//   int Njmp=0;
 //  Structure[0].jump=true;
 
     double *Xo=NULL, *Bo=NULL, *Eo=NULL, *Ao=NULL;
-    double *Xi=NULL, *Bi=NULL, *Ei=NULL, *Ai=NULL;
+	double *Xi=NULL, *Bi=NULL, *Ei=NULL, *Ai=NULL;
     int Ncls=0;
     int Npts=0;
 
@@ -1779,7 +1816,7 @@ void TBeamSolver::Integrate(int Si, int Sj)
     double phi=0,r=0;
     double Aqz=0,Aqr=0;
 
-    Par[Sj].Aqz=new double[Np];
+	Par[Sj].Aqz=new double[Np];
     Par[Sj].Aqr=new double[Np];
 
     for (int i=0;i<Np;i++){
@@ -1977,28 +2014,72 @@ void TBeamSolver::Solve()
     K[0][0].A=Structure[0].A;
    //   Beam[0]->Particle[j].z=Structure[0].ksi*Structure[0].lmb;
    //
-    for (int i=0;i<Npoints-1;i++){
+	for (int i=0;i<Npoints;i++){
         //for (int j=0;j<Np;j++){
 
             //if (i==0)
            //   Nliv=Beam[i]->GetLivingNumber();
 
-        if (!Structure[i+1].jump){
-            Step(i);
-            Structure[i+1].A=Structure[i].A+dh*(K[0][0].A+K[1][0].A+2*K[2][0].A+2*K[3][0].A)/6;
-            //  fprintf(logFile,"%f %f %f %f %f\n",K[1][0].A,K[2][0].A,K[3][0].A,K[0][0].A,Structure[i+1].A);
-            Beam[i]->Next(Beam[i+1],Par[3],K);
-        } else {
-            //Structure[i+1].A=Structure[i].A ;
-            Beam[i]->Next(Beam[i+1]);
-        }
+		if (Structure[i].Dump) {
+			using namespace HellwegTypes 
+			//char *Fname=(char *)Structure[i].DumpParameters.File;
+			std::ofstream fo(Structure[i].DumpParameters.File.c_str());
+			AnsiString s;
+			
+			fo<<"List of living particles at z= ";
+			s=s.FormatFloat("#0.00",100*Structure[i].ksi*Structure[i].lmb);
+			fo<<s.c_str();
+			fo<<" cm\n";
+			
+			fo<<"Particle #\t";
+			fo<<"Phase [deg]\t";
+			fo<<"Energy [MeV]\t";
+			fo<<"Radius [mm]\t";
+			fo<<"Azimuth [deg]\t";
+			fo<<"Vx [m/s]\t";
+			fo<<"Vth [m/s]\t";
+			fo<<"\n";
+			for (int j=0;j<Np;j++){	
+				if(!Beam[i]->Particle[j].lost){
+					s=s.FormatFloat("#0\n",j+1);
+					fo<<s.c_str();
+					s=s.FormatFloat("#0.00\n",RadToDeg(Beam[i]->Particle[j].phi));
+					fo<<s.c_str();
+					s=s.FormatFloat("#0.00\n",VelocityToMeV(Beam[i]->Particle[j].betta));
+					fo<<s.c_str();
+					s=s.FormatFloat("#0.00\n",1000*Beam[i]->Particle[j].x*Structure[i].lmb);
+					fo<<s.c_str();
+					s=s.FormatFloat("#0.00\n",RadToDeg(Beam[i]->Particle[j].Th));
+					fo<<s.c_str();
+					s=s.FormatFloat("#0.00\n",VelocityToMeV(Beam[i]->Particle[j].Bx));
+					fo<<s.c_str();
+					s=s.FormatFloat("#0.00\n",VelocityToMeV(Beam[i]->Particle[j].Bth));
+					fo<<s.c_str();
+					fo<<"\n";
+				}
+			}    
+			fo.close();  
+		}    
 
-        for (int j=0;j<Np;j++){
-            if (Beam[i+1]->Particle[j].lost==LIVE && mod(Beam[i+1]->Particle[j].x)>=Structure[i+1].Ra)
-                Beam[i+1]->Particle[j].lost=RADIUS_LOST;
+		if (i==Npoints-1) break; // Nowhere to iterate      
+		
+		if (!Structure[i+1].jump){
+			Step(i);
+			Structure[i+1].A=Structure[i].A+dh*(K[0][0].A+K[1][0].A+2*K[2][0].A+2*K[3][0].A)/6;
+			//  fprintf(logFile,"%f %f %f %f %f\n",K[1][0].A,K[2][0].A,K[3][0].A,K[0][0].A,Structure[i+1].A);
+			Beam[i]->Next(Beam[i+1],Par[3],K);
+		} else {
+			//Structure[i+1].A=Structure[i].A ;
+			Beam[i]->Next(Beam[i+1]);
+		}
+
+		for (int j=0;j<Np;j++){
+			if (Beam[i+1]->Particle[j].lost==LIVE && mod(Beam[i+1]->Particle[j].x)>=Structure[i+1].Ra)
+				Beam[i+1]->Particle[j].lost=RADIUS_LOST;
             Beam[i+1]->Particle[j].z=Structure[i+1].ksi*Structure[i+1].lmb;
             Beam[i+1]->Particle[j].phi-=Structure[i+1].dF;
-        }
+		}
+		
         #ifndef RSLINAC
         SmartProgress->operator ++();
         Application->ProcessMessages();
@@ -2112,7 +2193,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     Result.Emittance=100*eps;
     Result.A=A;
 
-    Line="Total Length = "+s.FormatFloat("#0.000",Result.Length)+" cm";
+	Line="Total Length = "+s.FormatFloat("#0.000",Result.Length)+" cm";
     OutputStrings->Add(Line);
     Line="Average Energy = "+s.FormatFloat("#0.000",Result.AverageEnergy)+" MeV";
     OutputStrings->Add(Line);

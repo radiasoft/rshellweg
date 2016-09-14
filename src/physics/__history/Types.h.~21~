@@ -70,8 +70,8 @@ struct TParticle
 };
 struct TDump
 {
-   std::string File;//char *File;
-};
+	AnsiString File;
+}
 struct TCell
 {
     double betta;
@@ -103,9 +103,7 @@ struct TStructure
     double B_ext;
     bool jump;
     bool drift;
-	int CellNumber;
-	bool Dump;
-	TDump DumpParameters;
+    int CellNumber;
 };
 struct TResult
 {

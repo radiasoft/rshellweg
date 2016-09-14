@@ -33,21 +33,21 @@
 namespace HellwegTypes {
 
 enum TError {ERR_NO,ERR_NOFILE,ERR_OPENFILE,ERR_COUPLER,ERR_SOLENOID,ERR_BEAM,
-                ERR_CURRENT,ERR_DRIFT,ERR_CELL,ERR_CELLS,ERR_OPTIONS};
+				ERR_CURRENT,ERR_DRIFT,ERR_CELL,ERR_CELLS,ERR_OPTIONS,ERR_DUMP,ERR_FORMAT};
 
 enum TBeamParameter {X_PAR,TH_PAR,BX_PAR,BTH_PAR,BETTA_PAR,PHI_PAR} ;
 enum TStructureParameter {KSI_PAR,Z_PAR,A_PAR,RP_PAR,B_PAR,ALPHA_PAR,BETTA_F_PAR,RA_PAR,B_EXT_PAR,NUM_PAR} ;
 enum TSplineType {ZSPLINE,LSPLINE,CSPLINE,SSPLINE};
 enum TChartType {CH_EMITTANCE,CH_SECTION,CH_PORTRAIT,CH_PHASE,CH_ENERGY,CH_BETTA,CH_A,CH_B,CH_ELP,CH_ATT,CH_APP,CH_BEXT,CH_CLEAR};
 
-enum TInputParameter {COUPLER,SOLENOID,BEAM,CURRENT,DRIFT,CELL,CELLS,OPTIONS,UNDEFINED,COMMENT};
+enum TInputParameter {POWER,SOLENOID,BEAM,CURRENT,DRIFT,CELL,CELLS,OPTIONS,DUMP,COMMENT,UNDEFINED};
 enum TTrig {SIN,COS,TG,CTG,SEC,CSC};
 enum TLoss {LIVE,RADIUS_LOST,PHASE_LOST,BZ_LOST,BX_LOST,B_LOST,STEP_LOST};
 enum TGraphType {TRANS_SEC,LONGT_SEC,TRANS_SPACE,LONGT_SPACE,LONGT_MOTION,PHASE_SLID,W_SPEC,F_SPEC,F_NONE};
 enum TOptType {BUNCHER,ACCELERATOR};
 enum TBeamType {RANDOM,CST_X,CST_Y,CST_R};
 
-const int MaxParameters=6;
+const int MaxParameters=9;  //Maximum number of parameters after a keyword. Currently: SAVE
 const int NumBessel=6;
 
 struct TInputLine{
@@ -68,6 +68,11 @@ struct TParticle
     double z;
     TLoss lost;
 };
+struct TDump
+{
+   bool End;
+   std::string File;//char *File;
+};
 struct TCell
 {
     double betta;
@@ -79,7 +84,9 @@ struct TCell
     double P0;
     double dF;
     bool Drift;
-    bool First;
+	bool First;
+	bool Dump;
+	TDump DumpParameters;
 };
 struct TStructure
 {
@@ -97,7 +104,9 @@ struct TStructure
     double B_ext;
     bool jump;
     bool drift;
-    int CellNumber;
+	int CellNumber;
+	bool Dump;
+	TDump DumpParameters;
 };
 struct TResult
 {
@@ -368,6 +377,21 @@ inline int GetNegativeSeparatrix(double &gamma,double phi,double bw,double A, do
 //---------------------------------------------------------------------------
 //--------------------TEXT FILES---------------------------------------------
 //---------------------------------------------------------------------------
+bool IsNumber(AnsiString &S)   //Checks if the string is a number
+{
+	double x=0;
+	bool Success=false;
+
+	try {                  //Check if the data is really a number
+		x=S.ToDouble();
+		Success=true;
+	}
+	catch (...){
+		Success=false;
+	}
+	return Success;
+}
+//---------------------------------------------------------------------------
 bool CheckFile(AnsiString &F)   //Checks if the file exists
 {
 	bool Exists=false;
@@ -453,6 +477,34 @@ AnsiString ReadWord(AnsiString &L,int N)   //Parses the Nth word from the string
 	}
 
 	return S;
+}
+//---------------------------------------------------------------------------
+int NumPointsInFile(AnsiString &F,int NumRow)
+{
+	//Check number of valid lines in text file F.
+	//Line is valid if number of elements in a row == NumRow and they are numbers
+	int N=0;
+	AnsiString L,S;
+	double x;
+	bool Num=false;
+	std::ifstream fs(F.c_str());
+
+	while (!fs.eof()){
+		L=GetLine(fs);
+		if (NumWords(L)==NumRow){       //Check if only two numbers in the line
+			for (int i = 0; i < NumRow; i++) {
+				S=ReadWord(L,i+1);
+				Num=IsNumber(S);
+				if (!Num)
+					break;
+			}
+			if (Num)
+				N++;
+		}
+	}
+    fs.close();
+
+	return N;
 }
 
 };
