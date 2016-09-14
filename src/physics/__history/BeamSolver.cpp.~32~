@@ -575,7 +575,7 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 
 	while (!fs.eof()){
 		L=GetLine(fs);   //Now reads line by line
-		S=ReadWord(L);  //Gets the first word in the line (should be a key word)
+		S=ReadWord(L,1);  //Gets the first word in the line (should be a key word)
 
 		   /*	fs>>s;
 			S=AnsiString(s);    */
@@ -626,6 +626,12 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 	FSolenoid=false;
 	SolenoidFile=Solenoid_File;
 	BeamFile=CST_FileX;
+	TError Error=NO_ERR;
+
+	bool BeamDefined=false;
+	bool CurrentDefined=false;
+	bool StructureDefined=false;
+	bool PowerDefined=false;
 
     bool NewCell=true;
 	AnsiString F,S,s;
@@ -777,8 +783,9 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                 W_Eq=(Lines[k].S[5]!="NORM");
 
                 F="BEAM "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4]+"\t"+Lines[k].S[5];
-                ParsedStrings->Add(F);
-                break;
+				ParsedStrings->Add(F);
+				BeamDefined=true;
+				break;
             }
 
             case CURRENT:{
@@ -812,7 +819,8 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 					F="CURRENT "+Lines[k].S[0]+" "+Lines[k].S[1];
 
                 //F="CURRENT "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4];
-                ParsedStrings->Add(F);
+				ParsedStrings->Add(F);
+				CurrentDefined=true;
                 break;
             }
 
@@ -879,10 +887,19 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                 F="POWER "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+s.FormatFloat("#0.00",dF);
                 ParsedStrings->Add(F);
 
-                break;
+				break;
             }
         }
-    }
+	}
+
+	if (!BeamDefined) {
+		ShowMessage("The beam energy and phase distributions are not defined. Put BEAM line in correct format into the input file");
+		Error=ERR_BEAM;
+	}
+	if (!CurrentDefined) {
+		ShowMessage("The beam current and transverse distribution are not defined. Put CURRENT line in correct format into the input file");
+		Error=ERR_BEAM;
+	}
 
     return ERR_NO;
 }
@@ -1508,7 +1525,7 @@ int TBeamSolver::CreateBeam()
 		Np=Beam[0]->CountCSTParticles(BeamFile);
         if(Np<0) {
             return ERR_CURRENT;
-        }
+		}
     }
 
     Beam=new TBeam*[Npoints];
@@ -1562,14 +1579,14 @@ int TBeamSolver::CreateBeam()
         Beam[0]->MakeGaussEmittance(AlphaCS,BettaCS,EmittanceCS);
     }
     else {
-        if (!Beam[0]->ReadCSTEmittance(BeamType)) {
+		if (!Beam[0]->ReadCSTEmittance(BeamFile,Np)) {
             return ERR_CURRENT;
-        }
+		}
     }
 
-    if (BeamType!=CST_Y) {
+   /* if (BeamType!=CST_Y) {  //not used yet
         Beam[0]->MakeEquiprobableDistribution(pi,pi,TH_PAR);
-    }
+	}  */
     Beam[0]->MakeEquiprobableDistribution(0,0,BTH_PAR);
 
     for (int i=0;i<Npoints;i++){
@@ -1593,30 +1610,7 @@ int TBeamSolver::CreateBeam()
 //---------------------------------------------------------------------------
 int TBeamSolver::GetSolenoidPoints()
 {
-	int N=0;
-	AnsiString L,S;
-	double x;
-	std::ifstream fs(SolenoidFile.c_str());
-
-	while (!fs.eof()){
-		L=GetLine(fs);
-		if (NumWords(L)==2){       //Check if only two numbers in the line
-			try {                  //Check if the data is really a number
-				S=ReadWord(L,1);
-				x=S.ToDouble();
-				S=ReadWord(L,2);
-				x=S.ToDouble();
-			}
-			catch (...){
-				continue;          //Skip incorrect line
-			}
-			N++;
-		}
-	}
-
-    fs.close();
-
-	return N;
+	return NumPointsInFile(SolenoidFile,2);
 }
 //---------------------------------------------------------------------------
 bool TBeamSolver::ReadSolenoid(int Nz,double *Z,double* B)
@@ -1629,7 +1623,7 @@ bool TBeamSolver::ReadSolenoid(int Nz,double *Z,double* B)
 
 	while (!fs.eof()){
 		L=GetLine(fs);
-		
+
 		if (NumWords(L)==2){       //Check if only two numbers in the line
 			try {                  //Check if the data is really a number
 				S=ReadWord(L,1);
@@ -1640,7 +1634,7 @@ bool TBeamSolver::ReadSolenoid(int Nz,double *Z,double* B)
 			catch (...){
 				continue;          //Skip incorrect line
 			}
-			if (i==Nz){
+			if (i==Nz){  //if there is more data than expected
 				i++;
 				break;
 			}

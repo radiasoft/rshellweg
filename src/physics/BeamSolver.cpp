@@ -626,6 +626,12 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 	FSolenoid=false;
 	SolenoidFile=Solenoid_File;
 	BeamFile=CST_FileX;
+	TError Error=ERR_NO;
+
+	bool BeamDefined=false;
+	bool CurrentDefined=false;
+	bool CellDefined=false;
+	bool PowerDefined=false;
 
     bool NewCell=true;
 	AnsiString F,S,s;
@@ -639,7 +645,21 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 	switch (Lines[k].P) {
             case UNDEFINED: {
                 throw std::logic_error("Unhandled TInputParameter UNDEFINED in TBeamSolver::ParseLines");             
-            }
+			}
+			case OPTIONS:{
+				F="OPTIONS ";
+				for (int j=0;j<Lines[k].N;j++){
+					if (Lines[k].S[j]=="COULOMB")
+						Coulomb=true;
+					if (Lines[k].S[j]=="REVERSE")
+						Reverse=true;
+					if (Lines[k].S[j]=="MAGNETIZED")
+						Magnetized=true;
+					F=F+"\t"+Lines[k].S[j];
+				}
+				ParsedStrings->Add(F);
+				break;
+			}
             case SOLENOID:{
                 if (Lines[k].N==3){
                     B0=Lines[k].S[0].ToDouble();
@@ -665,12 +685,65 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				}else
 					return ERR_SOLENOID;
                 break;
+			}
+
+			case BEAM:{
+                if (Lines[k].N!=6){
+					return ERR_BEAM;
+				}
+				Phi0=Lines[k].S[0].ToDouble();
+				dPhi=Lines[k].S[1].ToDouble();
+				Phi_Eq=(Lines[k].S[2]!="NORM");
+				W0=Lines[k].S[3].ToDouble();
+                dW=Lines[k].S[4].ToDouble();
+                W_Eq=(Lines[k].S[5]!="NORM");
+
+                F="BEAM "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4]+"\t"+Lines[k].S[5];
+				ParsedStrings->Add(F);
+				BeamDefined=true;
+				break;
             }
+
+            case CURRENT:{
+				if (Lines[k].N!=5 && Lines[k].N!=2){
+                    return ERR_CURRENT;
+                }
+                I0=Lines[k].S[0].ToDouble();
+				F="CURRENT "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t";//+Lines[k].S[2]+"\t";
+				if (Lines[k].N==5 ){
+					Np=Lines[k].S[1].ToInt();
+					AlphaCS=Lines[k].S[2].ToDouble();
+					BettaCS=Lines[k].S[3].ToDouble();
+					EmittanceCS=Lines[k].S[4].ToDouble();
+					F+=Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4];
+				} else if (Lines[k].N==2){
+					if (Lines[k].S[1]=="CST_X" || Lines[k].S[1]=="CST")
+						BeamFile=CST_FileX;
+					else
+						BeamFile=Lines[k].S[1];;
+
+					if (CheckFile(BeamFile))
+						BeamType=CST_X;
+					else{
+						S="ERROR: The file "+BeamFile+" is missing!";
+						ShowMessage(S);
+						return ERR_CURRENT;
+					}
+					BeamType=CST_X;
+				}
+				if (BeamType!=RANDOM)
+					F="CURRENT "+Lines[k].S[0]+" "+Lines[k].S[1];
+
+				//F="CURRENT "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4];
+				ParsedStrings->Add(F);
+				CurrentDefined=true;
+				break;
+			}
 
             case CELL:{
                 if(OnlyParameters)
                     break;
-                if (Lines[k].N==3){
+				if (Lines[k].N==3){
                     Cells[Ni].Mode=Lines[k].S[0].ToDouble();
                     Cells[Ni].betta=Lines[k].S[1].ToDouble();
                     Cells[Ni].ELP=Lines[k].S[2].ToDouble();
@@ -683,7 +756,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                     Cells[Ni].ELP=Lines[k].S[2].ToDouble();
                     Cells[Ni].AL32=Lines[k].S[3].ToDouble();
                     Cells[Ni].AkL=Lines[k].S[4].ToDouble();
-                }
+				}
                 else{
                     return ERR_CELL;
                 }
@@ -703,6 +776,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                 if (Nlim>-1 &&Ni>=Nlim)
                     OnlyParameters=true;
 
+				CellDefined=true;
                 break;
             }
 
@@ -755,136 +829,90 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                     }
                 }
                 else{
-                    return ERR_CELLS;
+					return ERR_CELLS;
                 }
                 if (Ni>0){
                     F="CELLS "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+s.FormatFloat("#0.000",Cells[Ni-1].betta)+"\t"+s.FormatFloat("#0.000",Cells[Ni-1].ELP)+"\t"+s.FormatFloat("#0.000000",Cells[Ni-1].AL32)+"\t"+s.FormatFloat("#0.000000",Cells[Ni-1].AkL);
                     ParsedStrings->Add(F);
-                }
-
-                break;
-            }
-
-            case BEAM:{
-                if (Lines[k].N!=6){
-                    return ERR_BEAM;
-                }
-                Phi0=Lines[k].S[0].ToDouble();
-                dPhi=Lines[k].S[1].ToDouble();
-                Phi_Eq=(Lines[k].S[2]!="NORM");
-                W0=Lines[k].S[3].ToDouble();
-                dW=Lines[k].S[4].ToDouble();
-                W_Eq=(Lines[k].S[5]!="NORM");
-
-                F="BEAM "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4]+"\t"+Lines[k].S[5];
-                ParsedStrings->Add(F);
-                break;
-            }
-
-            case CURRENT:{
-				if (Lines[k].N!=5 && Lines[k].N!=2){
-                    return ERR_CURRENT;
-                }
-                I0=Lines[k].S[0].ToDouble();
-                F="CURRENT "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t";//+Lines[k].S[2]+"\t";
-				if (Lines[k].N==5 ){
-                    Np=Lines[k].S[1].ToInt();
-                    AlphaCS=Lines[k].S[2].ToDouble();
-					BettaCS=Lines[k].S[3].ToDouble();
-                    EmittanceCS=Lines[k].S[4].ToDouble();
-                    F+=Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4];
-				} else if (Lines[k].N==2){
-					if (Lines[k].S[1]=="CST_X" || Lines[k].S[1]=="CST")
-						BeamFile=CST_FileX;
-					else
-						BeamFile=Lines[k].S[1];;
-
-					if (CheckFile(BeamFile))
-						BeamType=CST_X;
-					else{
-						S="ERROR: The file "+BeamFile+" is missing!";
-						ShowMessage(S);
-						return ERR_CURRENT;
-					}
-					BeamType=CST_X;
 				}
-				if (BeamType!=RANDOM)
-					F="CURRENT "+Lines[k].S[0]+" "+Lines[k].S[1];
 
-                //F="CURRENT "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4];
-                ParsedStrings->Add(F);
+				CellDefined=true;
                 break;
             }
-
-            case OPTIONS:{
-                F="OPTIONS ";
-                for (int j=0;j<Lines[k].N;j++){
-                    if (Lines[k].S[j]=="COULOMB")
-                        Coulomb=true;
-                    if (Lines[k].S[j]=="REVERSE")
-                        Reverse=true;
-                    if (Lines[k].S[j]=="MAGNETIZED")
-                        Magnetized=true;
-                    F=F+"\t"+Lines[k].S[j];
-                }
-                ParsedStrings->Add(F);
-                break;
-            }
-
             case DRIFT:{
-                if(OnlyParameters)
-                    break;
-                if (Lines[k].N!=2){
-                    return ERR_DRIFT;
-                }
-                Cells[Ni].Drift=true;
-                Cells[Ni].betta=Lines[k].S[0].ToDouble()/100;//D, cm
-                Cells[Ni].AkL=Lines[k].S[1].ToDouble()/100;//Ra, cm
-                Cells[Ni].ELP=0;
-                Cells[Ni].AL32=0;
-                Cells[Ni].First=true;
-                Cells[Ni].F0=c;
-                Cells[Ni].dF=arc(dF);
-                dF=0;
-                NewCell=true;
+				if(OnlyParameters)
+					break;
+				if (Lines[k].N!=2){
+					return ERR_DRIFT;
+				}
+				Cells[Ni].Drift=true;
+				Cells[Ni].betta=Lines[k].S[0].ToDouble()/100;//D, cm
+				Cells[Ni].AkL=Lines[k].S[1].ToDouble()/100;//Ra, cm
+				Cells[Ni].ELP=0;
+				Cells[Ni].AL32=0;
+				Cells[Ni].First=true;
+				Cells[Ni].F0=c;
+				Cells[Ni].dF=arc(dF);
+				dF=0;
+				NewCell=true;
 
-                F="DRIFT "+Lines[k].S[0]+"\t"+Lines[k].S[1];
-                ParsedStrings->Add(F);
+				F="DRIFT "+Lines[k].S[0]+"\t"+Lines[k].S[1];
+				ParsedStrings->Add(F);
 
-                Ni++;
-                if (Nlim>-1 && Ni>=Nlim)
-                    OnlyParameters=true;
-                break;
-            }
+				Ni++;
+				if (Nlim>-1 && Ni>=Nlim)
+					OnlyParameters=true;
+				break;
+			}
+            case COUPLER:{
+				if (Lines[k].N==2){
+					P0=Lines[k].S[0].ToDouble();
+					F0=Lines[k].S[1].ToDouble();
+					NewCell=true;
+				}
+				else if(Lines[k].N==3){
+					P0=Lines[k].S[0].ToDouble();
+					F0=Lines[k].S[1].ToDouble();
+					dF=Lines[k].S[2].ToDouble();
+					NewCell=true;
+				}
+				else{
+					return ERR_COUPLER;
+				}
+
+				F="POWER "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+s.FormatFloat("#0.00",dF);
+				ParsedStrings->Add(F);
+
+				PowerDefined=true;
+				break;
+			}
+
 			case COMMENT:{
 				ParsedStrings->Add(Lines[k].S[0]);
-			    break;
-	    }
-            case COUPLER:{
-                if (Lines[k].N==2){
-                    P0=Lines[k].S[0].ToDouble();
-                    F0=Lines[k].S[1].ToDouble();
-                    NewCell=true;
-                }
-                else if(Lines[k].N==3){
-                    P0=Lines[k].S[0].ToDouble();
-                    F0=Lines[k].S[1].ToDouble();
-                    dF=Lines[k].S[2].ToDouble();
-                    NewCell=true;
-                }
-                else{
-                    return ERR_COUPLER;
-                }
+				break;
+			}
 
-                F="POWER "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+s.FormatFloat("#0.00",dF);
-                ParsedStrings->Add(F);
+		}
+	}
 
-                break;
-            }
-        }
-    }
+	if (!BeamDefined) {
+		ShowMessage("ERROR: The beam energy and phase distributions are not defined. Put BEAM line in correct format into the input file");
+		Error=ERR_FORMAT;
+	}
+	if (!CurrentDefined) {
+		ShowMessage("ERROR: The beam current and transverse distribution are not defined. Put CURRENT line in correct format into the input file");
+		Error=ERR_FORMAT;
+	}
+	if (Ni<1) {
+		ShowMessage("ERROR: The accelerating structure is not defined. Put at least one element (CELL, DRIFT) line in correct format into the input file");
+		Error=ERR_FORMAT;
+	}
+	if (CellDefined && !PowerDefined) {
+		ShowMessage("ERROR: The RF power is not defined. Put POWER line in correct format into the input file");
+		Error=ERR_FORMAT;
+	}
 
-    return ERR_NO;
+    return Error;
 }
 //---------------------------------------------------------------------------
 TError TBeamSolver::LoadData(int Nl)

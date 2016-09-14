@@ -27,16 +27,16 @@ double Trim(double x,int N)
 void TMainForm::DisplayError()
 {
     switch (ERR) {
-        case ERR_NOFILE:ShowMessage("Error: No Input File Selected");   break;
-        case ERR_OPENFILE: ShowMessage("Error: File Read Error");   break;
-        case ERR_SOLENOID : ShowMessage("Error: Input File: SOLENOID should have format Bz,L,Z0");  break;
-        case ERR_CELL : ShowMessage("Error: Input File: CELL should have format Mode,betta,Field and optional: Attenuation,Aperture");  break;
-        case ERR_CELLS : ShowMessage("Error: Input File: CELLS should have format N,Mode,betta,Field and optional: Attenuation,Aperture");  break;
-        case ERR_BEAM : ShowMessage("Error: Input File: BEAM should have format Phi0,dPhi,Type,W0,dW,Type");    break;
-        case ERR_CURRENT : ShowMessage("Error: Input File: CURRENT should have format I0,Np,alpha,betta,emittance");    break;
-        case ERR_DRIFT : ShowMessage("Error: Input File: DRIFT should have format Length,Radius");  break;
-        case ERR_COUPLER : ShowMessage("Error: Input File: COUPLER should have format Power,Frequency");    break;
-        default:ShowMessage("Error: Input File has a wrong format!");   break;
+		case ERR_NOFILE:ShowMessage("ERROR: No Input File Selected");   break;
+		case ERR_OPENFILE: ShowMessage("ERROR: File Read Error");   break;
+		case ERR_SOLENOID : ShowMessage("ERROR: Input File: SOLENOID should have format Bz,L,Z0");  break;
+		case ERR_CELL : ShowMessage("ERROR: Input File: CELL should have format Mode,betta,Field and optional: Attenuation,Aperture");  break;
+		case ERR_CELLS : ShowMessage("ERROR: Input File: CELLS should have format N,Mode,betta,Field and optional: Attenuation,Aperture");  break;
+		case ERR_BEAM : ShowMessage("ERROR: Input File: BEAM should have format Phi0,dPhi,Type,W0,dW,Type");    break;
+		case ERR_CURRENT : ShowMessage("ERROR: Input File: CURRENT should have format I0,Np,alpha,betta,emittance");    break;
+		case ERR_DRIFT : ShowMessage("ERROR: Input File: DRIFT should have format Length,Radius");  break;
+		case ERR_COUPLER : ShowMessage("ERROR: Input File: COUPLER should have format Power,Frequency");    break;
+        default:ShowMessage("ERROR: Input File has a wrong format!");   break;
     }
 }
 //---------------------------------------------------------------------------
