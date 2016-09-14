@@ -10,18 +10,18 @@ Ex. OPTIONS COULMB REVERSE
 
 SOLENOID. Specifies an exteranal magnetic field. 3 parameters needed: magnetic induction B[T], solenoid length L[m], solenoid position Z0[m]
 Ex. SOLENOID 0.15 0.2 0
-Custom magnetic field distribution can be imported from file. In this case you add the file named BFIELD.txt with magnetic field data and use keyword BFILE after keyword SOLENOID.
-Ex. SOLENOID BFILE
-The following input file format must be used: first column is x coordinate in [m], second is magnetic field in [Gs]. The first row is reserved for header. X coordinates can be outside the simulation domain.
+Custom magnetic field distribution can be imported from file. To do this, add the file name with field distribution after the keyword SOLENOID.
+Ex. SOLENOID BFIELD.txt
+The following input file format must be used: first column is z coordinate in [m], second is magnetic field in [Gs]. z-coordinates can be outside the simulation domain.
 
 BEAM. Specifies input beam phase space parameters. 6 parameters needed: Average phase phi0[deg], phase spectrum dphi[deg], type of phase distribution (EQ for quiprobable, NORM to Gaussian), average kinetic energy W0[MeV], enery spectrum dW[MeV], type of phase distribution (EQ for quiprobable, NORM to Gaussian)
 Ex. BEAM 90 20 EQ 0.8 0.1 NORM
 
 CURRENT. Specifies other beam parameters. 5 parameters needed: Beam current I0[A], Number of Particles to simulate Np[], Twiss parameters alpha[], betta[cm/rad], emittance[cm*rad]
 Ex. CURRENT 0.15 1000 2.2 2.8 0.004
-The particles distribution in transverse phase space x-x' can be exported from the external file. In this case you add the file named cst_x.txt with x-vx data and use keyword CST after beam current.
-Ex. CURRENT 0.15 CST
-The following input file format must be used: first column is x coordinate in [m], second is transverse velocity in [m/s]. The first two rows are reserved for header.
+The particles distribution in transverse phase space x-x' can be exported from the external file. In this case you add the file name  after the beam current value.
+Ex. CURRENT 0.15 beam.txt
+The following input file format must be used: first column is x coordinate in [m], second is transverse velocity in [m/s]. 
 
 POWER. Specifies a power input for all following cells. 2 or 3 parameters needed: Input power P0[MW], Operating Frequency F0[MHz], phase dF [deg]
 Ex. POWER 2.0 2856
@@ -38,3 +38,6 @@ DRIFT. Specifies a drift tube. 2 parameters needed: Length L[cm], Aperture radiu
 Ex. DRIFT 10.0 2.0
 
 END. Specifies the end of file.
+
+Any line with improper format will be ignored and not copied into the output file.
+To make a comment use '!' symbol in the beginning of the line
