@@ -37,6 +37,23 @@ Ex. CELLS 6 0.999 380.0 0.01 0.12
 DRIFT. Specifies a drift tube. 2 parameters needed: Length L[cm], Aperture radius Ra[cm].
 Ex. DRIFT 10.0 2.0
 
+SAVE. If this line is present, the code will export the live particle parameters (phase, energy, radius, azimuth and radial velocity) at position define in the INPUT to the defined file.
+It is possible to define the number of particles to be exported or the region of particles numbers after the name of file
+Several flags are allowed to define the particular parameters to be exported. If no flags are defined, all parameters (except live status) will be exported. If at least one flag is set, only flagged parameters wil be exported.
+LOST – export the lost or live status of the particle
+PHASE – export the phase of the particle 
+ENERGY – export the energy of the particle 
+RADIUS – export the radius of the particle 
+AZIMUTH – export the azimuth of the particle 
+VX – export the radial velocity of the particle 
+The flags must be defined in any combination after the number of elements region or after the file name if the region is not defined.
+Ex. SAVE beam.log
+Ex. SAVE beam.log 500
+Ex. SAVE beam.log 1000 2000
+Ex. SAVE beam.log LOST ENERGY
+Ex. SAVE beam.log 500 ENERGY PHASE RADIUS
+Ex. SAVE beam.log 500 2000 LOST RADIUS VX
+
 END. Specifies the end of file.
 
 Any line with improper format will be ignored and not copied into the output file.

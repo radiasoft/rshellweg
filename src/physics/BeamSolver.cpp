@@ -2131,7 +2131,7 @@ void TBeamSolver::Solve()
 			if (jmin==0 && jmax==Np)
 				fo<<"ALL ";
 			if (Structure[i].DumpParameters.LiveOnly)
-					 fo<<"LIVING ";
+					 fo<<"LIVE ";
 			fo<<"particles ";
 
 			if (!(jmin==0 && jmax==Np)){
