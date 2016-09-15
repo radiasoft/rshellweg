@@ -73,6 +73,12 @@ struct TDump
    std::string File;//char *File;
    int N1;
    int N2;
+   bool LiveOnly;
+   bool Phase;
+   bool Energy;
+   bool Radius;
+   bool Azimuth;
+   bool Vx;
 };
 struct TCell
 {

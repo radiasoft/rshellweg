@@ -874,6 +874,8 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				if (Lines[k].N>=1 && Lines[k].N<=3){
 					Cells[Ni].Dump=true;
 					Cells[Ni].DumpParameters.File=Lines[k].S[0].c_str();
+					Cells[Ni].DumpParameters.LiveOnly=true;
+
 					F="SAVE "+Lines[k].S[0];
 					if (Lines[k].N>=2 && IsNumber(Lines[k].S[1])) {
 						Cells[Ni].DumpParameters.N1=Lines[k].S[1].ToDouble();
@@ -888,6 +890,18 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 						Cells[Ni].DumpParameters.N1=0;
 						Cells[Ni].DumpParameters.N2=0;
 					}
+					if (Lines[k].N>=2 && Lines[k].N<=9) {
+						for (int j=1;j<Lines[k].N;j++){
+							switch (Lines[k].S[j]) {
+								case "LOST":{
+									Cells[Ni].DumpParameters.LiveOnly=false;
+									F=F+" LOST";
+									break;
+								default: break;
+								}
+							}
+						}
+					}
 
 					//check the numbers
 					if (Cells[Ni].DumpParameters.N1<0 || Cells[Ni].DumpParameters.N2<0) {
@@ -899,6 +913,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 						Cells[Ni].DumpParameters.N2=Cells[Ni].DumpParameters.N1;
 						Cells[Ni].DumpParameters.N1=temp;
 					}
+
 					ParsedStrings->Add(F);
 				} else {    // else skip the line
 					ShowMessage("WARNING: The format of SAVE line is wrong and will be ignored.");
@@ -2055,31 +2070,41 @@ void TBeamSolver::Solve()
 				jmin=0;
 				jmax=Structure[i].DumpParameters.N1;
 			} else if (Structure[i].DumpParameters.N1>0 && Structure[i].DumpParameters.N2>0) {
-				jmin=Structure[i].DumpParameters.N1;
+				jmin=Structure[i].DumpParameters.N1-1;
 				jmax=Structure[i].DumpParameters.N2;
 			}
 
 			if (jmin>Np || jmax>Np) {
 				fo<<"WARNING: The defined range of particle numbers exceeds the number of available particles. The region was set to default.\n";
 				jmin=0;
-				jmin=Np;
+				jmax=Np;
 			}
 
-			if (jmin==0 && jmax==Np) {
-				fo<<"List of all living particles at z=";
-			}  else {
-				fo<<"List of living particles from #";
+			fo<<"List of ";
+
+			if (jmin==0 && jmax==Np)
+				fo<<"ALL ";
+			if (Structure[i].DumpParameters.LiveOnly)
+					 fo<<"LIVING ";
+			fo<<"particles ";
+
+			if (!(jmin==0 && jmax==Np)){
+				fo<<" from #";
 				fo<<jmin+1;
 				fo<<" to #";
 				fo<<jmax;
-				fo<<" at z=";
+
 			}
+			fo<<" at z=";
 
 			s=s.FormatFloat("#0.00",100*Structure[i].ksi*Structure[i].lmb);
 			fo<<s.c_str();
 			fo<<" cm\n";
 
 			fo<<"Particle #\t";
+			if (!Structure[i].DumpParameters.LiveOnly) {
+				fo<<"Lost\t";
+			}
 			fo<<"Phase [deg]\t";
 			fo<<"Energy [MeV]\t";
 			fo<<"Radius [mm]\t";
@@ -2089,9 +2114,15 @@ void TBeamSolver::Solve()
 			fo<<"\n";
 
 			for (int j=jmin;j<jmax;j++){
-				if(!Beam[i]->Particle[j].lost){
+				if(!Structure[i].DumpParameters.LiveOnly || (Structure[i].DumpParameters.LiveOnly && !Beam[i]->Particle[j].lost)){
 					s=s.FormatFloat("#0000\t\t",j+1);
 					fo<<s.c_str();
+					if (!Structure[i].DumpParameters.LiveOnly) {
+						if (Beam[i]->Particle[j].lost)
+							fo<<"LOST\t";
+						else
+                            fo<<"LIVE\t";
+					}
 					s=s.FormatFloat("#0.00\t\t",HellwegTypes::RadToDeg(Beam[i]->Particle[j].phi));
 					fo<<s.c_str();
 					s=s.FormatFloat("#0.00\t\t\t",VelocityToMeV(Beam[i]->Particle[j].betta));

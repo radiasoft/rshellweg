@@ -70,7 +70,10 @@ struct TParticle
 };
 struct TDump
 {
-	char *File;
+   std::string File;//char *File;
+   int N1;
+   int N2;
+   bool LiveOnly;
 };
 struct TCell
 {
