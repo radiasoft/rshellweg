@@ -871,14 +871,38 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				break;
 			}
 			case DUMP:{
-				if (Lines[k].N==1){
+				if (Lines[k].N>=1 && Lines[k].N<=3){
 					Cells[Ni].Dump=true;
 					Cells[Ni].DumpParameters.File=Lines[k].S[0].c_str();
 					F="SAVE "+Lines[k].S[0];
-					ParsedStrings->Add(F);      
+					if (Lines[k].N>=2 && IsNumber(Lines[k].S[1])) {
+						Cells[Ni].DumpParameters.N1=Lines[k].S[1].ToDouble();
+						F=F+" "+Lines[k].S[1];
+						if (Lines[k].N>=3 && IsNumber(Lines[k].S[2])){
+							Cells[Ni].DumpParameters.N2=Lines[k].S[2].ToDouble();
+							F=F+" "+Lines[k].S[2];
+						}
+						else
+							Cells[Ni].DumpParameters.N2=0;
+					}  else {
+						Cells[Ni].DumpParameters.N1=0;
+						Cells[Ni].DumpParameters.N2=0;
+					}
+
+					//check the numbers
+					if (Cells[Ni].DumpParameters.N1<0 || Cells[Ni].DumpParameters.N2<0) {
+						ShowMessage("WARNING: The particle numbers in SAVE line can not be negative. The region will be ignored.");
+						Cells[Ni].DumpParameters.N1=0;
+						Cells[Ni].DumpParameters.N2=0;
+					} else if (Cells[Ni].DumpParameters.N2!=0 && Cells[Ni].DumpParameters.N1>Cells[Ni].DumpParameters.N2) {
+						int temp=Cells[Ni].DumpParameters.N2; //switch the numbers
+						Cells[Ni].DumpParameters.N2=Cells[Ni].DumpParameters.N1;
+						Cells[Ni].DumpParameters.N1=temp;
+					}
+					ParsedStrings->Add(F);
 				} else {    // else skip the line
 					ShowMessage("WARNING: The format of SAVE line is wrong and will be ignored.");
-				} 
+				}
 				break;
 			}
 			case COMMENT:{
@@ -2021,37 +2045,70 @@ void TBeamSolver::Solve()
            //   Nliv=Beam[i]->GetLivingNumber();
 
 		if (Structure[i].Dump) {
+			int jmin=0;
+			int jmax=Np;
 			//char *Fname=(char *)Structure[i].DumpParameters.File;
 			std::ofstream fo(Structure[i].DumpParameters.File.c_str());
 			AnsiString s;
-			
-			fo<<"List of living particles at z= ";
+
+			if (Structure[i].DumpParameters.N1>0 && Structure[i].DumpParameters.N2==0) {
+				jmin=0;
+				jmax=Structure[i].DumpParameters.N1;
+			} else if (Structure[i].DumpParameters.N1>0 && Structure[i].DumpParameters.N2>0) {
+				jmin=Structure[i].DumpParameters.N1;
+				jmax=Structure[i].DumpParameters.N2;
+			}
+
+			if (jmin>Np || jmax>Np) {
+				fo<<"WARNING: The defined range of particle numbers exceeds the number of available particles. The region was set to default.\n";
+				jmin=0;
+				jmin=Np;
+			}
+
+			if (jmin==0 && jmax==Np) {
+				fo<<"List of all living particles at z= ";
+			}  else {
+				fo<<"List of living particles from #";
+				fo<<jmin+1;
+				fo<<" to #";
+				fo<<jmax;
+				fo<<" at z= ";
+			}
+
 			s=s.FormatFloat("#0.00",100*Structure[i].ksi*Structure[i].lmb);
 			fo<<s.c_str();
 			fo<<" cm\n";
-			
+
 			fo<<"Particle #\t";
 			fo<<"Phase [deg]\t";
 			fo<<"Energy [MeV]\t";
-			fo<<"Radius [cm]\t";
+			fo<<"Radius [mm]\t";
 			fo<<"Azimuth [deg]\t";
-			fo<<"Vx [m/s]\t";
-			fo<<"Vth [m/s]\t";
+			fo<<"Vx	[m/s]\t";
+			//fo<<"Vth [m/s]\t";
 			fo<<"\n";
-			for (int j=0;j<Np;j++){	
+
+			for (int j=jmin;j<jmax;j++){
 				if(!Beam[i]->Particle[j].lost){
-					s=s.FormatFloat("#0\n",j+1);
+					s=s.FormatFloat("#0000\t\t",j+1);
 					fo<<s.c_str();
-					s=s.FormatFloat("#0.00\n",Beam[i]->Particle[j].phi);
+					s=s.FormatFloat("#0.00\t\t",HellwegTypes::RadToDeg(Beam[i]->Particle[j].phi));
 					fo<<s.c_str();
-					s=s.FormatFloat("#0.00\n",VelocityToMeV(Beam[i]->Particle[j].betta));
+					s=s.FormatFloat("#0.00\t\t\t",VelocityToMeV(Beam[i]->Particle[j].betta));
 					fo<<s.c_str();
-					s=s.FormatFloat("#0.00\n",Beam[i]->Particle[j].);
+					s=s.FormatFloat("#0.00\t\t\t",1000*Beam[i]->Particle[j].x*Structure[i].lmb);
 					fo<<s.c_str();
+					s=s.FormatFloat("#0.00\t\t",HellwegTypes::RadToDeg(Beam[i]->Particle[j].Th));
+					fo<<s.c_str();
+					s=s.FormatFloat("#0.00\t\t",Beam[i]->Particle[j].Bx*c);
+					fo<<s.c_str();
+				 /*	s=s.FormatFloat("#0.00\t\t",Beam[i]->Particle[j].Bth*c);
+					fo<<s.c_str();  */
+					fo<<"\n";
 				}
 			}    
 			fo.close();  
-		}    
+		}
 
 		if (i==Npoints-1) break; // Nowhere to iterate      
 		

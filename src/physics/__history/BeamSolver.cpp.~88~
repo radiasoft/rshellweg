@@ -2035,25 +2035,25 @@ void TBeamSolver::Solve()
 			fo<<"Energy [MeV]\t";
 			fo<<"Radius [mm]\t";
 			fo<<"Azimuth [deg]\t";
-			fo<<"Vx [m/s]\t";
-			fo<<"Vth [m/s]\t";
+			fo<<"Vx	[m/s]\t";
+			//fo<<"Vth [m/s]\t";
 			fo<<"\n";
 			for (int j=0;j<Np;j++){	
 				if(!Beam[i]->Particle[j].lost){
-					s=s.FormatFloat("#0\n",j+1);
+					s=s.FormatFloat("#0000\t\t",j+1);
 					fo<<s.c_str();
-					s=s.FormatFloat("#0.00\n",RadToDeg(Beam[i]->Particle[j].phi));
+					s=s.FormatFloat("#0.00\t\t",HellwegTypes::RadToDeg(Beam[i]->Particle[j].phi));
 					fo<<s.c_str();
-					s=s.FormatFloat("#0.00\n",VelocityToMeV(Beam[i]->Particle[j].betta));
+					s=s.FormatFloat("#0.00\t\t\t",VelocityToMeV(Beam[i]->Particle[j].betta));
 					fo<<s.c_str();
-					s=s.FormatFloat("#0.00\n",1000*Beam[i]->Particle[j].x*Structure[i].lmb);
+					s=s.FormatFloat("#0.00\t\t\t",1000*Beam[i]->Particle[j].x*Structure[i].lmb);
 					fo<<s.c_str();
-					s=s.FormatFloat("#0.00\n",RadToDeg(Beam[i]->Particle[j].Th));
+					s=s.FormatFloat("#0.00\t\t",HellwegTypes::RadToDeg(Beam[i]->Particle[j].Th));
 					fo<<s.c_str();
-					s=s.FormatFloat("#0.00\n",VelocityToMeV(Beam[i]->Particle[j].Bx));
+					s=s.FormatFloat("#0.00\t\t",Beam[i]->Particle[j].Bx*c);
 					fo<<s.c_str();
-					s=s.FormatFloat("#0.00\n",VelocityToMeV(Beam[i]->Particle[j].Bth));
-					fo<<s.c_str();
+				 /*	s=s.FormatFloat("#0.00\t\t",Beam[i]->Particle[j].Bth*c);
+					fo<<s.c_str();  */
 					fo<<"\n";
 				}
 			}    

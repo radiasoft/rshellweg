@@ -71,6 +71,8 @@ struct TParticle
 struct TDump
 {
    std::string File;//char *File;
+   int N1;
+   int N2;
 };
 struct TCell
 {

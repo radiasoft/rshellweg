@@ -871,11 +871,24 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				break;
 			}
 			case DUMP:{
-				if (Lines[k].N==1){
+				if (Lines[k].N>=1 && Lines[k].N<=3){
 					Cells[Ni].Dump=true;
 					Cells[Ni].DumpParameters.File=Lines[k].S[0].c_str();
 					F="SAVE "+Lines[k].S[0];
-					ParsedStrings->Add(F);      
+					if (Lines[k].N>=2 && IsNumber(Lines[k].S[1])) {
+						Cells[Ni].DumpParameters.N1=Lines[k].S[1].ToDouble();
+						F=F+" "+Lines[k].S[1];
+						if (Lines[k].N>=3 && IsNumber(Lines[k].S[2])){
+							Cells[Ni].DumpParameters.N2=Lines[k].S[2].ToDouble();
+							F=F+" "+Lines[k].S[2];
+						}
+						else
+							Cells[Ni].DumpParameters.N2=0;
+					}  else {
+						Cells[Ni].DumpParameters.N1=0;
+						Cells[Ni].DumpParameters.N2=0;
+					}
+					ParsedStrings->Add(F);
 				} else {    // else skip the line
 					ShowMessage("WARNING: The format of SAVE line is wrong and will be ignored.");
 				} 
@@ -1816,7 +1829,7 @@ void TBeamSolver::Integrate(int Si, int Sj)
     double phi=0,r=0;
     double Aqz=0,Aqr=0;
 
-    Par[Sj].Aqz=new double[Np];
+	Par[Sj].Aqz=new double[Np];
     Par[Sj].Aqr=new double[Np];
 
     for (int i=0;i<Np;i++){
@@ -2014,7 +2027,7 @@ void TBeamSolver::Solve()
     K[0][0].A=Structure[0].A;
    //   Beam[0]->Particle[j].z=Structure[0].ksi*Structure[0].lmb;
    //
-    for (int i=0;i<Npoints-1;i++){
+	for (int i=0;i<Npoints;i++){
         //for (int j=0;j<Np;j++){
 
             //if (i==0)
@@ -2033,16 +2046,34 @@ void TBeamSolver::Solve()
 			fo<<"Particle #\t";
 			fo<<"Phase [deg]\t";
 			fo<<"Energy [MeV]\t";
-			fo<<"Radius [cm]\t";
+			fo<<"Radius [mm]\t";
 			fo<<"Azimuth [deg]\t";
-			fo<<"Vx [m/s]\t";
-			fo<<"Vth [m/s]\t";
+			fo<<"Vx	[m/s]\t";
+			//fo<<"Vth [m/s]\t";
 			fo<<"\n";
-		 //	for (int j=0;j<Np;j++){	
-			
-		   //	}    
+			for (int j=0;j<Np;j++){	
+				if(!Beam[i]->Particle[j].lost){
+					s=s.FormatFloat("#0000\t\t",j+1);
+					fo<<s.c_str();
+					s=s.FormatFloat("#0.00\t\t",HellwegTypes::RadToDeg(Beam[i]->Particle[j].phi));
+					fo<<s.c_str();
+					s=s.FormatFloat("#0.00\t\t\t",VelocityToMeV(Beam[i]->Particle[j].betta));
+					fo<<s.c_str();
+					s=s.FormatFloat("#0.00\t\t\t",1000*Beam[i]->Particle[j].x*Structure[i].lmb);
+					fo<<s.c_str();
+					s=s.FormatFloat("#0.00\t\t",HellwegTypes::RadToDeg(Beam[i]->Particle[j].Th));
+					fo<<s.c_str();
+					s=s.FormatFloat("#0.00\t\t",Beam[i]->Particle[j].Bx*c);
+					fo<<s.c_str();
+				 /*	s=s.FormatFloat("#0.00\t\t",Beam[i]->Particle[j].Bth*c);
+					fo<<s.c_str();  */
+					fo<<"\n";
+				}
+			}    
 			fo.close();  
-		}                
+		}    
+
+		if (i==Npoints-1) break; // Nowhere to iterate      
 		
 		if (!Structure[i+1].jump){
 			Step(i);
@@ -2055,8 +2086,8 @@ void TBeamSolver::Solve()
 		}
 
 		for (int j=0;j<Np;j++){
-            if (Beam[i+1]->Particle[j].lost==LIVE && mod(Beam[i+1]->Particle[j].x)>=Structure[i+1].Ra)
-                Beam[i+1]->Particle[j].lost=RADIUS_LOST;
+			if (Beam[i+1]->Particle[j].lost==LIVE && mod(Beam[i+1]->Particle[j].x)>=Structure[i+1].Ra)
+				Beam[i+1]->Particle[j].lost=RADIUS_LOST;
             Beam[i+1]->Particle[j].z=Structure[i+1].ksi*Structure[i+1].lmb;
             Beam[i+1]->Particle[j].phi-=Structure[i+1].dF;
 		}

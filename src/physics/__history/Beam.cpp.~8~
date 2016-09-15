@@ -890,12 +890,12 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
             else
                 k_phi=2*pi*(1/Par.bw-1/bz);
 
-		  /*  if (i==100){
+            if (i==100){
                 FILE *F;
                 F=fopen("beam.log","a");
                 fprintf(F,"%f %f\n",bz,k_phi);
                 fclose(F);
-            }      */
+            }
 
             k_Az=A*Ib0(r*Sr)*cos(phi)+Par.Aqz[i];   //k_Az = Az
             k_Ar=-(1/Sr)*Ib1(r*Sr)*(dA*cos(phi)-(2*Par.B*Par.SumSin+2*pi*A/Par.bw)*sin(phi))+Par.Aqr[i]; //k_Ar = Ar
