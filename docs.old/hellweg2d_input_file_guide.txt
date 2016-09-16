@@ -34,8 +34,9 @@ Ex. CELL 90 0.8 200.0 (for DLS with phase shift 90 or 120 deg ONLY!)
 CELLS. Specifies a Number of identical cells. 6 parameters needed: Number of cells Nc[], parameters for CELL definition
 Ex. CELLS 6 0.999 380.0 0.01 0.12
 
-DRIFT. Specifies a drift tube. 2 parameters needed: Length L[cm], Aperture radius Ra[cm].
-Ex. DRIFT 10.0 2.0
+DRIFT. You can define a drift tube using 2 parameters: length L[cm]; radius a[cm]. Optionally, it is possible to add the number of mesh points for drift element after the radius that will override the global mesh settings.
+Ex. DRIFT 10.0 2.0 
+Ex. DRIFT 10.0 2.0 100
 
 SAVE. If this line is present, the code will export the live particle parameters (phase, energy, radius, azimuth and radial velocity) at position define in the INPUT to the defined file.
 It is possible to define the number of particles to be exported or the region of particles numbers after the name of file

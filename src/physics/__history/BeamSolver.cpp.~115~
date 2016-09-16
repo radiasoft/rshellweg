@@ -642,7 +642,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 	bool CellDefined=false;
 	bool PowerDefined=false;
 
-    bool NewCell=true;
+	bool NewCell=true;
 	AnsiString F,S,s;
     ParsedStrings->Clear();
 
@@ -755,9 +755,10 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				if (Lines[k].N==3 || Lines[k].N==5){
 					Cells[Ni].Mode=Lines[k].S[0].ToDouble();
                     Cells[Ni].betta=Lines[k].S[1].ToDouble();
-                    Cells[Ni].ELP=Lines[k].S[2].ToDouble();
-					
-					if (Lines[k].N==3){ 
+					Cells[Ni].ELP=Lines[k].S[2].ToDouble();
+					Cells[Ni].Mesh=Nmesh;
+
+					if (Lines[k].N==3){
 						GetDimensions(Cells[Ni]);
 					} else if (Lines[k].N==5){
 						Cells[Ni].AL32=Lines[k].S[3].ToDouble();
@@ -797,7 +798,8 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 					for (int j=0;j<Lines[k].S[0].ToInt();j++){
                         Cells[Ni].Mode=Lines[k].S[1].ToDouble();
                         Cells[Ni].betta=Lines[k].S[2].ToDouble();
-						Cells[Ni].ELP=Lines[k].S[3].ToDouble(); 
+						Cells[Ni].ELP=Lines[k].S[3].ToDouble();
+						Cells[Ni].Mesh=Nmesh;
 						if (Lines[k].N==4)
 							GetDimensions(Cells[Ni]);
 						else if (Lines[k].N==6){
@@ -836,12 +838,16 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
             case DRIFT:{
 				if(OnlyParameters)
 					break;
-				if (Lines[k].N!=2){
+				if (Lines[k].N<2 || Lines[k].N>3){
 					return ERR_DRIFT;
 				}
 				Cells[Ni].Drift=true;
 				Cells[Ni].betta=Lines[k].S[0].ToDouble()/100;//D, cm
 				Cells[Ni].AkL=Lines[k].S[1].ToDouble()/100;//Ra, cm
+				if (Lines[k].N==3)
+					Cells[Ni].Mesh=Lines[k].S[2].ToDouble();
+				else
+                    Cells[Ni].Mesh=Nmesh;
 				Cells[Ni].ELP=0;
 				Cells[Ni].AL32=0;
 				Cells[Ni].First=true;
@@ -936,7 +942,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 								F=F+" VX";
 								DefaultSet=false;
 							} else {
-								S="The keyword "+Lines[k].S[j]+" in SAVE line is not recognized and will be ignored";
+								S="WARNING: The keyword "+Lines[k].S[j]+" in SAVE line is not recognized and will be ignored";
 								ShowMessage(S);
 							}
 						}
@@ -1293,12 +1299,16 @@ int TBeamSolver::CreateGeometry()
 
 	int Njmp=0,k0=0;
 
-    for(int i=0;i<Ncells;i++){
-        if (Cells[i].First)
-            Njmp++;
+	Npoints=0;
+	for(int i=0;i<Ncells;i++){
+		Npoints+=Cells[i].Mesh;
+		if (Cells[i].First){
+			Npoints++;
+			Njmp++;
+		}
     }
 
-	Npoints=Ncells*Nmesh+Njmp;//add+1 for the last point; 
+   //	Npoints=Ncells*Nmesh+Njmp;//add+1 for the last point;
 	TSplineType Spl;
 
     X_base = new double[Ncells]; X_int=new double[Npoints];
@@ -1358,13 +1368,14 @@ int TBeamSolver::CreateGeometry()
         x+=D/2;
         X_base[i]=x/lmb;
 		x+=D/2;
-        B_base[i]=Cells[i].betta;
+		B_base[i]=Cells[i].betta;
         E_base[i]=Cells[i].ELP;
         Al_base[i]=Cells[i].AL32;
         zm=D/Nmesh;
 		k0=k;
         Structure[k].dF=Cells[i].dF;
-        for (int j=0;j<Nmesh+Extra;j++){
+		//for (int j=0;j<Nmesh+Extra;j++){
+		for (int j=0;j<Cells[i].Mesh+Extra;j++){
             X_int[k]=z/lmb;
             Structure[k].ksi=z/lmb;
             Structure[k].lmb=lmb;
@@ -1390,8 +1401,8 @@ int TBeamSolver::CreateGeometry()
 		} 
 	}
 	if (Cells[Ncells].Dump){
-		Structure[k0+Nmesh].Dump=true;
-		Structure[k0+Nmesh].DumpParameters=Cells[Ncells].DumpParameters;
+		Structure[k-1].Dump=true;  //was k0+Nmesh
+		Structure[k-1].DumpParameters=Cells[Ncells].DumpParameters; //was k0+Nmesh
 	}
 
 	//   int Njmp=0;
@@ -1419,11 +1430,16 @@ int TBeamSolver::CreateGeometry()
             EndOfBlock=false;
 
         if (EndOfBlock/*Cells[i].First && i!=0 || i==Ncells*/){
-            Ncls=i-Njmp;
-            Npts=Ncls*Nmesh+1;
+			Ncls=i-Njmp;
+			Npts=0;
+			for (int j=Njmp;j<i;j++) {
+				Npts+=Cells[j].Mesh;
+			}
+			Npts++;
+			//int Npts0=Ncls*Nmesh+1;
 
-            /*if (i!=Ncells)
-                Structure[i*Nmesh].jump=true;*/
+			/*if (i!=Ncells)
+				Structure[i*Nmesh].jump=true;*/
 
             Xo=new double[Ncls];
             Bo=new double[Ncls];
@@ -1431,15 +1447,19 @@ int TBeamSolver::CreateGeometry()
             Ao=new double[Ncls];
             Xi=new double[Npts];
 
-            for (int j=0;j<Ncls;j++){
+			for (int j=0;j<Ncls;j++){
                 Xo[j]=X_base[Njmp+j];
                 Bo[j]=B_base[Njmp+j];
                 Eo[j]=E_base[Njmp+j];
                 Ao[j]=Al_base[Njmp+j];
             }
 
-            for (int j=0;j<Npts;j++)
-                Xi[j]=X_int[Njmp*Nmesh+iJmp+j];
+			int pos=0;
+			for (int j=0;j<Njmp;j++)
+				pos+=Cells[j].Mesh;
+
+			for (int j=0;j<Npts;j++)
+				Xi[j]=X_int[/*Njmp*Nmesh*/pos+iJmp+j];
 
             Spl=(Ncls<4)?LSPLINE:SplineType;
 
@@ -2131,7 +2151,7 @@ void TBeamSolver::Solve()
 			if (jmin==0 && jmax==Np)
 				fo<<"ALL ";
 			if (Structure[i].DumpParameters.LiveOnly)
-					 fo<<"LIVING ";
+					 fo<<"LIVE ";
 			fo<<"particles ";
 
 			if (!(jmin==0 && jmax==Np)){

@@ -642,7 +642,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 	bool CellDefined=false;
 	bool PowerDefined=false;
 
-    bool NewCell=true;
+	bool NewCell=true;
 	AnsiString F,S,s;
     ParsedStrings->Clear();
 
@@ -755,9 +755,10 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				if (Lines[k].N==3 || Lines[k].N==5){
 					Cells[Ni].Mode=Lines[k].S[0].ToDouble();
                     Cells[Ni].betta=Lines[k].S[1].ToDouble();
-                    Cells[Ni].ELP=Lines[k].S[2].ToDouble();
-					
-					if (Lines[k].N==3){ 
+					Cells[Ni].ELP=Lines[k].S[2].ToDouble();
+					Cells[Ni].Mesh=Nmesh;
+
+					if (Lines[k].N==3){
 						GetDimensions(Cells[Ni]);
 					} else if (Lines[k].N==5){
 						Cells[Ni].AL32=Lines[k].S[3].ToDouble();
@@ -797,7 +798,8 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 					for (int j=0;j<Lines[k].S[0].ToInt();j++){
                         Cells[Ni].Mode=Lines[k].S[1].ToDouble();
                         Cells[Ni].betta=Lines[k].S[2].ToDouble();
-						Cells[Ni].ELP=Lines[k].S[3].ToDouble(); 
+						Cells[Ni].ELP=Lines[k].S[3].ToDouble();
+						Cells[Ni].Mesh=Nmesh;
 						if (Lines[k].N==4)
 							GetDimensions(Cells[Ni]);
 						else if (Lines[k].N==6){
@@ -836,12 +838,16 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
             case DRIFT:{
 				if(OnlyParameters)
 					break;
-				if (Lines[k].N!=2){
+				if (Lines[k].N<2 || Lines[k].N>3){
 					return ERR_DRIFT;
 				}
 				Cells[Ni].Drift=true;
 				Cells[Ni].betta=Lines[k].S[0].ToDouble()/100;//D, cm
 				Cells[Ni].AkL=Lines[k].S[1].ToDouble()/100;//Ra, cm
+				if (Lines[k].N==3)
+					Cells[Ni].Mesh=Lines[k].S[2].ToDouble();
+				else
+                    Cells[Ni].Mesh=Nmesh;
 				Cells[Ni].ELP=0;
 				Cells[Ni].AL32=0;
 				Cells[Ni].First=true;
@@ -1293,12 +1299,16 @@ int TBeamSolver::CreateGeometry()
 
 	int Njmp=0,k0=0;
 
-    for(int i=0;i<Ncells;i++){
-        if (Cells[i].First)
-            Njmp++;
+	Npoints=0;
+	for(int i=0;i<Ncells;i++){
+		Npoints+=Cells[i].Mesh;
+		if (Cells[i].First){
+			Npoints++;
+			Njmp++;
+		}
     }
 
-	Npoints=Ncells*Nmesh+Njmp;//add+1 for the last point; 
+   //	Npoints=Ncells*Nmesh+Njmp;//add+1 for the last point;
 	TSplineType Spl;
 
     X_base = new double[Ncells]; X_int=new double[Npoints];
@@ -1353,18 +1363,20 @@ int TBeamSolver::CreateGeometry()
         }else{
             lmb=c/Cells[i].F0;
             theta=Cells[i].Mode*pi/180;
-            D=Cells[i].betta*lmb*theta/(2*pi);
+			D=Cells[i].betta*lmb*theta/(2*pi);
         }
         x+=D/2;
         X_base[i]=x/lmb;
 		x+=D/2;
-        B_base[i]=Cells[i].betta;
+		B_base[i]=Cells[i].betta;
         E_base[i]=Cells[i].ELP;
         Al_base[i]=Cells[i].AL32;
-        zm=D/Nmesh;
+		//zm=D/Nmesh;
+		zm=D/Cells[i].Mesh;
 		k0=k;
         Structure[k].dF=Cells[i].dF;
-        for (int j=0;j<Nmesh+Extra;j++){
+		//for (int j=0;j<Nmesh+Extra;j++){
+		for (int j=0;j<Cells[i].Mesh+Extra;j++){
             X_int[k]=z/lmb;
             Structure[k].ksi=z/lmb;
             Structure[k].lmb=lmb;
@@ -1390,8 +1402,8 @@ int TBeamSolver::CreateGeometry()
 		} 
 	}
 	if (Cells[Ncells].Dump){
-		Structure[k0+Nmesh].Dump=true;
-		Structure[k0+Nmesh].DumpParameters=Cells[Ncells].DumpParameters;
+		Structure[k-1].Dump=true;  //was k0+Nmesh
+		Structure[k-1].DumpParameters=Cells[Ncells].DumpParameters; //was k0+Nmesh
 	}
 
 	//   int Njmp=0;
@@ -1419,11 +1431,16 @@ int TBeamSolver::CreateGeometry()
             EndOfBlock=false;
 
         if (EndOfBlock/*Cells[i].First && i!=0 || i==Ncells*/){
-            Ncls=i-Njmp;
-            Npts=Ncls*Nmesh+1;
+			Ncls=i-Njmp;
+			Npts=0;
+			for (int j=Njmp;j<i;j++) {
+				Npts+=Cells[j].Mesh;
+			}
+			Npts++;
+			//int Npts0=Ncls*Nmesh+1;
 
-            /*if (i!=Ncells)
-                Structure[i*Nmesh].jump=true;*/
+			/*if (i!=Ncells)
+				Structure[i*Nmesh].jump=true;*/
 
             Xo=new double[Ncls];
             Bo=new double[Ncls];
@@ -1431,15 +1448,19 @@ int TBeamSolver::CreateGeometry()
             Ao=new double[Ncls];
             Xi=new double[Npts];
 
-            for (int j=0;j<Ncls;j++){
+			for (int j=0;j<Ncls;j++){
                 Xo[j]=X_base[Njmp+j];
                 Bo[j]=B_base[Njmp+j];
                 Eo[j]=E_base[Njmp+j];
                 Ao[j]=Al_base[Njmp+j];
             }
 
-            for (int j=0;j<Npts;j++)
-                Xi[j]=X_int[Njmp*Nmesh+iJmp+j];
+			int pos=0;
+			for (int j=0;j<Njmp;j++)
+				pos+=Cells[j].Mesh;
+
+			for (int j=0;j<Npts;j++)
+				Xi[j]=X_int[/*Njmp*Nmesh*/pos+iJmp+j];
 
             Spl=(Ncls<4)?LSPLINE:SplineType;
 
@@ -1479,10 +1500,10 @@ int TBeamSolver::CreateGeometry()
             }
 
             for (int j=0;j<Npts;j++){
-                B_int[Njmp*Nmesh+iJmp+j]=Bi[j];
-                E_int[Njmp*Nmesh+iJmp+j]=Ei[j];
-                Al_int[Njmp*Nmesh+iJmp+j]=Ai[j];
-            }
+				B_int[/*Njmp*Nmesh*/pos+iJmp+j]=Bi[j];
+				E_int[/*Njmp*Nmesh*/pos+iJmp+j]=Ei[j];
+				Al_int[/*Njmp*Nmesh*/pos+iJmp+j]=Ai[j];
+			}
 
 
         /*  for (int i=0;i<Npts;i++){
@@ -1494,54 +1515,22 @@ int TBeamSolver::CreateGeometry()
             delete[] Xi;
             delete[] Bo;
             delete[] Bi;
-            delete[] Eo;
-            delete[] Ei;
+			delete[] Eo;
+			delete[] Ei;
             delete[] Ao;
-            delete[] Ai;
+			delete[] Ai;
 
-            Njmp=i;
-            iJmp++;
-        }
+			Njmp=i;
+			iJmp++;
+		}
 
-    }
-    // fclose(F);
+	}
+	// fclose(F);
 
-    /*
-    switch (Spl) {
-        case(LSPLINE):{
-            B_int=LinearInterpolation(X_int,X_base,B_base,Ncells,Npoints);
-            E_int=LinearInterpolation(X_int,X_base,E_base,Ncells,Npoints);
-            Al_int=LinearInterpolation(X_int,X_base,Al_base,Ncells,Npoints);
-            break;
-        }
-        case(CSPLINE):{
-            B_int=SplineInterpolation(X_int,X_base,B_base,Ncells,Npoints);
-            E_int=SplineInterpolation(X_int,X_base,E_base,Ncells,Npoints);
-            Al_int=SplineInterpolation(X_int,X_base,Al_base,Ncells,Npoints);
-            break;
-        }
-        case(SSPLINE):{
-            B_int=SmoothInterpolation(X_int,X_base,B_base,Ncells,Npoints,Smooth);
-            E_int=SmoothInterpolation(X_int,X_base,E_base,Ncells,Npoints,Smooth);
-            Al_int=SmoothInterpolation(X_int,X_base,Al_base,Ncells,Npoints,Smooth);
-            break;
-        }
-
-    }      */
-
-   /*   E_int[Npoints-1]=E_int[Npoints-2];
-    B_int[Npoints-1]=B_int[Npoints-2];
-    Al_int[Npoints-1]=Al_int[Npoints-2];*/
-
-  /*    for (int i=0;i<Npoints;i++){
-        Structure[i].Rp=E_int[i];
-    }   */
-
-
-    if (FSolenoid) {
+	if (FSolenoid) {
 		int NSol=0;
-        double *Xz=NULL;
-        double *Bz=NULL;
+		double *Xz=NULL;
+		double *Bz=NULL;
 
 		NSol=GetSolenoidPoints();
 		if(NSol<1){
@@ -2312,16 +2301,16 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     double alpha=0,betta=0,eps=0;
     GetCourantSneider(j,alpha,betta,eps);
 
-    double A=0;
-    int Na=j-Nmesh/2;
-    if (Na>0)
-        A=Structure[Na].A;
+  /*  double A=0;
+  	int Na=j-Nmesh/2;
+	if (Na>0)
+		A=Structure[Na].A;     */
 
     Result.Length=z;
     Result.AverageEnergy=W;
     Result.MaximumEnergy=Wm;
-    Result.EnergySpectrum=dW;
-    Result.InputCurrent=1e3*I0;
+	Result.EnergySpectrum=dW;
+	Result.InputCurrent=1e3*I0;
     Result.BeamCurrent=1e3*I;
     Result.Captured=kc;
     Result.BeamRadius=r;
@@ -2332,7 +2321,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     Result.Alpha=alpha;
     Result.Betta=100*betta;
     Result.Emittance=100*eps;
-    Result.A=A;
+  //  Result.A=A;
 
 	Line="Total Length = "+s.FormatFloat("#0.000",Result.Length)+" cm";
     OutputStrings->Add(Line);

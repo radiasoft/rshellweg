@@ -89,7 +89,8 @@ struct TCell
     double Mode;
     double F0;
     double P0;
-    double dF;
+	double dF;
+	int Mesh;
     bool Drift;
 	bool First;
 	bool Dump;

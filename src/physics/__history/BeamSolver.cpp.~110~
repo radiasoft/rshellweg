@@ -548,7 +548,7 @@ void TBeamSolver::GetDimensions(TCell& Cell)
 TInputLine *TBeamSolver::ParseFile(int& N)
 {
 	const char *FileName=InputFile.c_str();
-	AnsiString S,L;
+	AnsiString S,L,M;
 
 	if (!CheckFile(InputFile)){
 		S="ERROR: The input file "+InputFile+" was not found";
@@ -606,6 +606,12 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 				Lines[i].S[0]=L;
 			else{
 				Lines[i].N=NumWords(L)-1; //Parse number of words in the line
+				if (Lines[i].N>MaxParameters){
+					M="WARNING: Too many parameters in Line "+S+"! The excessive parameters will be ignored";
+					Lines[i].N=MaxParameters;
+					ShowMessage(M);
+                }
+
 				for (j=0;j<Lines[i].N;j++)
 					Lines[i].S[j]=ReadWord(L,j+2);
 			}
@@ -636,7 +642,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 	bool CellDefined=false;
 	bool PowerDefined=false;
 
-    bool NewCell=true;
+	bool NewCell=true;
 	AnsiString F,S,s;
     ParsedStrings->Clear();
 
@@ -749,9 +755,10 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				if (Lines[k].N==3 || Lines[k].N==5){
 					Cells[Ni].Mode=Lines[k].S[0].ToDouble();
                     Cells[Ni].betta=Lines[k].S[1].ToDouble();
-                    Cells[Ni].ELP=Lines[k].S[2].ToDouble();
-					
-					if (Lines[k].N==3){ 
+					Cells[Ni].ELP=Lines[k].S[2].ToDouble();
+					Cells[Ni].Mesh=Nmesh;
+
+					if (Lines[k].N==3){
 						GetDimensions(Cells[Ni]);
 					} else if (Lines[k].N==5){
 						Cells[Ni].AL32=Lines[k].S[3].ToDouble();
@@ -791,7 +798,8 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 					for (int j=0;j<Lines[k].S[0].ToInt();j++){
                         Cells[Ni].Mode=Lines[k].S[1].ToDouble();
                         Cells[Ni].betta=Lines[k].S[2].ToDouble();
-						Cells[Ni].ELP=Lines[k].S[3].ToDouble(); 
+						Cells[Ni].ELP=Lines[k].S[3].ToDouble();
+						Cells[Ni].Mesh=Nmesh;
 						if (Lines[k].N==4)
 							GetDimensions(Cells[Ni]);
 						else if (Lines[k].N==6){
@@ -830,12 +838,16 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
             case DRIFT:{
 				if(OnlyParameters)
 					break;
-				if (Lines[k].N!=2){
+				if (Lines[k].N<2 || Lines[k].N>3){
 					return ERR_DRIFT;
 				}
 				Cells[Ni].Drift=true;
 				Cells[Ni].betta=Lines[k].S[0].ToDouble()/100;//D, cm
 				Cells[Ni].AkL=Lines[k].S[1].ToDouble()/100;//Ra, cm
+				if (Lines[k].N==3)
+					Cells[Ni].Mesh=Lines[k].S[2].ToDouble();
+				else
+                    Cells[Ni].Mesh=Nmesh;
 				Cells[Ni].ELP=0;
 				Cells[Ni].AL32=0;
 				Cells[Ni].First=true;
@@ -871,35 +883,76 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				break;
 			}
 			case DUMP:{
-				if (Lines[k].N>=1 && Lines[k].N<=3){
+				if (Lines[k].N>=1 && Lines[k].N<=9){
 					Cells[Ni].Dump=true;
 					Cells[Ni].DumpParameters.File=Lines[k].S[0].c_str();
 					Cells[Ni].DumpParameters.LiveOnly=true;
+					Cells[Ni].DumpParameters.Phase=false;
+					Cells[Ni].DumpParameters.Energy=false;
+					Cells[Ni].DumpParameters.Radius=false;
+					Cells[Ni].DumpParameters.Azimuth=false;
+					Cells[Ni].DumpParameters.Vx=false;
+					bool DefaultSet=true;
+					int Nkey=1; // the word from which the flags are checked
 
 					F="SAVE "+Lines[k].S[0];
 					if (Lines[k].N>=2 && IsNumber(Lines[k].S[1])) {
 						Cells[Ni].DumpParameters.N1=Lines[k].S[1].ToDouble();
 						F=F+" "+Lines[k].S[1];
+						Nkey=2;
 						if (Lines[k].N>=3 && IsNumber(Lines[k].S[2])){
 							Cells[Ni].DumpParameters.N2=Lines[k].S[2].ToDouble();
 							F=F+" "+Lines[k].S[2];
+							Nkey=3;
 						}
 						else
 							Cells[Ni].DumpParameters.N2=0;
 					}  else {
 						Cells[Ni].DumpParameters.N1=0;
 						Cells[Ni].DumpParameters.N2=0;
-					} else if (Lines[k].N>=2 && Lines[k].N<=9) {
-						for (int j=1;j<Lines[k].N;j++){
-							switch (Lines[k].S[j]) {
-								case "LOST":{
-									Cells[Ni].DumpParameters.LiveOnly=false;
-									F=F+" LOST";
-									break;
-								default: break;
-								}
+					}
+					if (Lines[k].N>=2 && Lines[k].N<=9) {
+						for (int j=Nkey;j<Lines[k].N;j++){
+							if (Lines[k].S[j]=="LOST") {
+								Cells[Ni].DumpParameters.LiveOnly=false;
+								F=F+" LOST";
+							}
+							else if (Lines[k].S[j]=="PHASE") {
+								Cells[Ni].DumpParameters.Phase=true;
+								F=F+" PHASE";
+								DefaultSet=false;
+							}
+							else if (Lines[k].S[j]=="ENERGY") {
+								Cells[Ni].DumpParameters.Energy=true;
+								F=F+" ENERGY";
+								DefaultSet=false;
+							}
+							else if (Lines[k].S[j]=="RADIUS") {
+								Cells[Ni].DumpParameters.Radius=true;
+								F=F+" RADIUS";
+								DefaultSet=false;
+							}
+							else if (Lines[k].S[j]=="AZIMUTH") {
+								Cells[Ni].DumpParameters.Azimuth=true;
+								F=F+" AZIMUTH";
+								DefaultSet=false;
+							}
+							else if (Lines[k].S[j]=="VX") {
+								Cells[Ni].DumpParameters.Vx=true;
+								F=F+" VX";
+								DefaultSet=false;
+							} else {
+								S="WARNING: The keyword "+Lines[k].S[j]+" in SAVE line is not recognized and will be ignored";
+								ShowMessage(S);
 							}
 						}
+					}
+					if (DefaultSet) {
+						Cells[Ni].DumpParameters.Phase=true;
+						Cells[Ni].DumpParameters.Energy=true;
+						Cells[Ni].DumpParameters.Radius=true;
+						Cells[Ni].DumpParameters.Azimuth=true;
+						Cells[Ni].DumpParameters.Vx=true;
 					}
 
 					//check the numbers
@@ -2079,43 +2132,74 @@ void TBeamSolver::Solve()
 				jmax=Np;
 			}
 
-			if (jmin==0 && jmax==Np) {
-				fo<<"List of all living particles at z=";
-			}  else {
-				fo<<"List of living particles from #";
+			fo<<"List of ";
+
+			if (jmin==0 && jmax==Np)
+				fo<<"ALL ";
+			if (Structure[i].DumpParameters.LiveOnly)
+					 fo<<"LIVE ";
+			fo<<"particles ";
+
+			if (!(jmin==0 && jmax==Np)){
+				fo<<" from #";
 				fo<<jmin+1;
 				fo<<" to #";
 				fo<<jmax;
-				fo<<" at z=";
+
 			}
+			fo<<" at z=";
 
 			s=s.FormatFloat("#0.00",100*Structure[i].ksi*Structure[i].lmb);
 			fo<<s.c_str();
 			fo<<" cm\n";
 
 			fo<<"Particle #\t";
-			fo<<"Phase [deg]\t";
-			fo<<"Energy [MeV]\t";
-			fo<<"Radius [mm]\t";
-			fo<<"Azimuth [deg]\t";
-			fo<<"Vx	[m/s]\t";
+			if (!Structure[i].DumpParameters.LiveOnly)
+				fo<<"Lost\t";
+
+			if (Structure[i].DumpParameters.Phase)
+				fo<<"Phase [deg]\t";
+			if (Structure[i].DumpParameters.Energy)
+				fo<<"Energy [MeV]\t";
+			if (Structure[i].DumpParameters.Radius)
+				fo<<"Radius [mm]\t";
+			if (Structure[i].DumpParameters.Azimuth)
+				fo<<"Azimuth [deg]\t";
+			if (Structure[i].DumpParameters.Vx)
+				fo<<"Vx	[m/s]\t";
 			//fo<<"Vth [m/s]\t";
 			fo<<"\n";
 
 			for (int j=jmin;j<jmax;j++){
-				if(!Beam[i]->Particle[j].lost){
+				if(!Structure[i].DumpParameters.LiveOnly || (Structure[i].DumpParameters.LiveOnly && !Beam[i]->Particle[j].lost)){
 					s=s.FormatFloat("#0000\t\t",j+1);
 					fo<<s.c_str();
-					s=s.FormatFloat("#0.00\t\t",HellwegTypes::RadToDeg(Beam[i]->Particle[j].phi));
-					fo<<s.c_str();
-					s=s.FormatFloat("#0.00\t\t\t",VelocityToMeV(Beam[i]->Particle[j].betta));
-					fo<<s.c_str();
-					s=s.FormatFloat("#0.00\t\t\t",1000*Beam[i]->Particle[j].x*Structure[i].lmb);
-					fo<<s.c_str();
-					s=s.FormatFloat("#0.00\t\t",HellwegTypes::RadToDeg(Beam[i]->Particle[j].Th));
-					fo<<s.c_str();
-					s=s.FormatFloat("#0.00\t\t",Beam[i]->Particle[j].Bx*c);
-					fo<<s.c_str();
+					if (!Structure[i].DumpParameters.LiveOnly) {
+						if (Beam[i]->Particle[j].lost)
+							fo<<"LOST\t";
+						else
+                            fo<<"LIVE\t";
+					}
+					if (Structure[i].DumpParameters.Phase){
+						s=s.FormatFloat("#0.00\t\t",HellwegTypes::RadToDeg(Beam[i]->Particle[j].phi));
+						fo<<s.c_str();
+					}
+					if (Structure[i].DumpParameters.Energy){
+						s=s.FormatFloat("#0.00\t\t\t",VelocityToMeV(Beam[i]->Particle[j].betta));
+						fo<<s.c_str();
+					}
+					if (Structure[i].DumpParameters.Radius){
+						s=s.FormatFloat("#0.00\t\t\t",1000*Beam[i]->Particle[j].x*Structure[i].lmb);
+						fo<<s.c_str();
+					}
+					if (Structure[i].DumpParameters.Azimuth){
+						s=s.FormatFloat("#0.00\t\t",HellwegTypes::RadToDeg(Beam[i]->Particle[j].Th));
+						fo<<s.c_str();
+					}
+					if (Structure[i].DumpParameters.Vx){
+						s=s.FormatFloat("#0.00\t\t",Beam[i]->Particle[j].Bx*c);
+						fo<<s.c_str();
+					}
 				 /*	s=s.FormatFloat("#0.00\t\t",Beam[i]->Particle[j].Bth*c);
 					fo<<s.c_str();  */
 					fo<<"\n";
