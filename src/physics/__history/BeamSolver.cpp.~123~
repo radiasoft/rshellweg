@@ -88,6 +88,12 @@ void TBeamSolver::Initialize()
     #endif
 }
 //---------------------------------------------------------------------------
+void TBeamSolver::ShowError(AnsiString &S)
+{
+	ShowMessage(S);
+	ParsedStrings->Add(S);
+}
+//---------------------------------------------------------------------------
 void TBeamSolver::SaveToFile(AnsiString& Fname)
 {
     FILE *F;
@@ -533,7 +539,7 @@ void TBeamSolver::GetDimensions(TCell& Cell)
 
   /*    fprintf(T,"%f %f %f %f\n",Cell.betta,Cell.ELP,Cell.AkL,Cell.AL32);
     fclose(T);  */
-    //ShowMessage(E12[0][1]);
+	//ShowError(E12[0][1]);
 
     
   /*    for (int i=0;i<Nbt;i++){
@@ -552,8 +558,8 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 
 	if (!CheckFile(InputFile)){
 		S="ERROR: The input file "+InputFile+" was not found";
-		ShowMessage(S);
-        return NULL;
+		ShowError(S);
+		return NULL;
 	}
 
 	TInputLine *Lines;
@@ -609,8 +615,8 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 				if (Lines[i].N>MaxParameters){
 					M="WARNING: Too many parameters in Line "+S+"! The excessive parameters will be ignored";
 					Lines[i].N=MaxParameters;
-					ShowMessage(M);
-                }
+					ShowError(M);
+				}
 
 				for (j=0;j<Lines[i].N;j++)
 					Lines[i].S[j]=ReadWord(L,j+2);
@@ -688,7 +694,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 						ParsedStrings->Add(F);
 					}else{
 						S="ERROR: The file "+SolenoidFile+" is missing!";
-						ShowMessage(S);
+						ShowError(S);
 						return ERR_SOLENOID;
 					}
 				}else
@@ -735,7 +741,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 						BeamType=CST_X;
 					else{
 						S="ERROR: The file "+BeamFile+" is missing!";
-						ShowMessage(S);
+						ShowError(S);
 						return ERR_CURRENT;
 					}
 					BeamType=CST_X;
@@ -777,7 +783,8 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 			   //	Cells[Ni].Drift=false;
 				Cells[Ni].First=NewCell;
 				if (NewCell && !PowerDefined) {
-					ShowMessage("ERROR: The RF power source must be defined before each RF section. Put POWER line in correct format into the input file before the end of each RF section. Note that DRIFT element terminates the defined RF power!");
+					S="ERROR: The RF power source must be defined before each RF section. Put POWER line in correct format into the input file before the end of each RF section. Note that DRIFT element terminates the defined RF power!";
+					ShowError(S);
 					Error=ERR_FORMAT;
 				}
 				NewCell=false;
@@ -812,8 +819,9 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 					 //   Cells[Ni].Drift=false;
 						Cells[Ni].First=NewCell;
 						if (NewCell && !PowerDefined) {
-							ShowMessage("ERROR: The RF power source must be defined before each RF section. Put POWER line in correct format into the input file before the end of each RF section. Note that DRIFT element terminates the defined RF power!");
-							Error=ERR_FORMAT;    
+							S="ERROR: The RF power source must be defined before each RF section. Put POWER line in correct format into the input file before the end of each RF section. Note that DRIFT element terminates the defined RF power!";
+							ShowError(S);
+							Error=ERR_FORMAT;
 						}
 						NewCell=false;
 						dF=0;
@@ -844,10 +852,18 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				Cells[Ni].Drift=true;
 				Cells[Ni].betta=Lines[k].S[0].ToDouble()/100;//D, cm
 				Cells[Ni].AkL=Lines[k].S[1].ToDouble()/100;//Ra, cm
-				if (Lines[k].N==3)
-					Cells[Ni].Mesh=Lines[k].S[2].ToDouble();
+				if (Lines[k].N==3){
+					double m=Lines[k].S[2].ToDouble();
+					if (m>0)
+						Cells[Ni].Mesh=m;
+					else{
+						S="Number of mesh points must be more than 1";
+						ShowError(S);
+						Cells[Ni].Mesh=Nmesh;
+                    }
+				}
 				else
-                    Cells[Ni].Mesh=Nmesh;
+					Cells[Ni].Mesh=Nmesh;
 				Cells[Ni].ELP=0;
 				Cells[Ni].AL32=0;
 				Cells[Ni].First=true;
@@ -943,7 +959,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 								DefaultSet=false;
 							} else {
 								S="WARNING: The keyword "+Lines[k].S[j]+" in SAVE line is not recognized and will be ignored";
-								ShowMessage(S);
+								ShowError(S);
 							}
 						}
 					}
@@ -957,7 +973,8 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 
 					//check the numbers
 					if (Cells[Ni].DumpParameters.N1<0 || Cells[Ni].DumpParameters.N2<0) {
-						ShowMessage("WARNING: The particle numbers in SAVE line can not be negative. The region will be ignored.");
+						S="WARNING: The particle numbers in SAVE line can not be negative. The region will be ignored.";
+						ShowError(S);
 						Cells[Ni].DumpParameters.N1=0;
 						Cells[Ni].DumpParameters.N2=0;
 					} else if (Cells[Ni].DumpParameters.N2!=0 && Cells[Ni].DumpParameters.N1>Cells[Ni].DumpParameters.N2) {
@@ -968,7 +985,8 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 
 					ParsedStrings->Add(F);
 				} else {    // else skip the line
-					ShowMessage("WARNING: The format of SAVE line is wrong and will be ignored.");
+					S="WARNING: The format of SAVE line is wrong and will be ignored.";
+					ShowError(S);
 				}
 				break;
 			}
@@ -981,19 +999,22 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 	}
 
 	if (!BeamDefined) {
-		ShowMessage("ERROR: The beam energy and phase distributions are not defined. Put BEAM line in correct format into the input file");
+		S="ERROR: The beam energy and phase distributions are not defined. Put BEAM line in correct format into the input file";
+		ShowError(S);
 		Error=ERR_FORMAT;
 	}
 	if (!CurrentDefined) {
-		ShowMessage("ERROR: The beam current and transverse distribution are not defined. Put CURRENT line in correct format into the input file");
+		S="ERROR: The beam current and transverse distribution are not defined. Put CURRENT line in correct format into the input file";
+		ShowError(S);
 		Error=ERR_FORMAT;
 	}
 	if (Ni<1) {
-		ShowMessage("ERROR: The accelerating structure is not defined. Put at least one element (CELL, DRIFT) line in correct format into the input file");
+		S="ERROR: The accelerating structure is not defined. Put at least one element (CELL, DRIFT) line in correct format into the input file";
+		ShowError(S);
 		Error=ERR_FORMAT;
 	}
    /*	if (CellDefined && !PowerDefined) {
-		ShowMessage("ERROR: The RF power source must be defined before each RF section. Put POWER line in correct format into the input file before the end of each RF section");
+		ShowError("ERROR: The RF power source must be defined before each RF section. Put POWER line in correct format into the input file before the end of each RF section");
 		Error=ERR_FORMAT;
 	}       */
 
@@ -1036,7 +1057,8 @@ TError TBeamSolver::LoadData(int Nl)
 
 	if (Nlim>-1 && Ncells>=Nlim){  //# of cells limit. Consider removing
 		Ncells=Nlim;
-		ShowMessage("The number of elements exceeds the user-defined limit. Check the hellweg.ini file");
+		S="The number of elements exceeds the user-defined limit. Check the hellweg.ini file";
+		ShowError(S);
 	}
 	Cells = new TCell[Ncells+1];  //+1 - end point
 	for (int k=0;k<Ncells+1;k++){
@@ -1363,7 +1385,7 @@ int TBeamSolver::CreateGeometry()
         }else{
             lmb=c/Cells[i].F0;
             theta=Cells[i].Mode*pi/180;
-            D=Cells[i].betta*lmb*theta/(2*pi);
+			D=Cells[i].betta*lmb*theta/(2*pi);
         }
         x+=D/2;
         X_base[i]=x/lmb;
@@ -1371,7 +1393,8 @@ int TBeamSolver::CreateGeometry()
 		B_base[i]=Cells[i].betta;
         E_base[i]=Cells[i].ELP;
         Al_base[i]=Cells[i].AL32;
-        zm=D/Nmesh;
+		//zm=D/Nmesh;
+		zm=D/Cells[i].Mesh;
 		k0=k;
         Structure[k].dF=Cells[i].dF;
 		//for (int j=0;j<Nmesh+Extra;j++){
@@ -1436,7 +1459,7 @@ int TBeamSolver::CreateGeometry()
 				Npts+=Cells[j].Mesh;
 			}
 			Npts++;
-			int Npts0=Ncls*Nmesh+1;
+			//int Npts0=Ncls*Nmesh+1;
 
 			/*if (i!=Ncells)
 				Structure[i*Nmesh].jump=true;*/
@@ -1454,8 +1477,12 @@ int TBeamSolver::CreateGeometry()
                 Ao[j]=Al_base[Njmp+j];
             }
 
-            for (int j=0;j<Npts;j++)
-                Xi[j]=X_int[Njmp*Nmesh+iJmp+j];
+			int pos=0;
+			for (int j=0;j<Njmp;j++)
+				pos+=Cells[j].Mesh;
+
+			for (int j=0;j<Npts;j++)
+				Xi[j]=X_int[/*Njmp*Nmesh*/pos+iJmp+j];
 
             Spl=(Ncls<4)?LSPLINE:SplineType;
 
@@ -1495,10 +1522,10 @@ int TBeamSolver::CreateGeometry()
             }
 
             for (int j=0;j<Npts;j++){
-                B_int[Njmp*Nmesh+iJmp+j]=Bi[j];
-                E_int[Njmp*Nmesh+iJmp+j]=Ei[j];
-                Al_int[Njmp*Nmesh+iJmp+j]=Ai[j];
-            }
+				B_int[/*Njmp*Nmesh*/pos+iJmp+j]=Bi[j];
+				E_int[/*Njmp*Nmesh*/pos+iJmp+j]=Ei[j];
+				Al_int[/*Njmp*Nmesh*/pos+iJmp+j]=Ai[j];
+			}
 
 
         /*  for (int i=0;i<Npts;i++){
@@ -1510,54 +1537,22 @@ int TBeamSolver::CreateGeometry()
             delete[] Xi;
             delete[] Bo;
             delete[] Bi;
-            delete[] Eo;
-            delete[] Ei;
+			delete[] Eo;
+			delete[] Ei;
             delete[] Ao;
-            delete[] Ai;
+			delete[] Ai;
 
-            Njmp=i;
-            iJmp++;
-        }
+			Njmp=i;
+			iJmp++;
+		}
 
-    }
-    // fclose(F);
+	}
+	// fclose(F);
 
-    /*
-    switch (Spl) {
-        case(LSPLINE):{
-            B_int=LinearInterpolation(X_int,X_base,B_base,Ncells,Npoints);
-            E_int=LinearInterpolation(X_int,X_base,E_base,Ncells,Npoints);
-            Al_int=LinearInterpolation(X_int,X_base,Al_base,Ncells,Npoints);
-            break;
-        }
-        case(CSPLINE):{
-            B_int=SplineInterpolation(X_int,X_base,B_base,Ncells,Npoints);
-            E_int=SplineInterpolation(X_int,X_base,E_base,Ncells,Npoints);
-            Al_int=SplineInterpolation(X_int,X_base,Al_base,Ncells,Npoints);
-            break;
-        }
-        case(SSPLINE):{
-            B_int=SmoothInterpolation(X_int,X_base,B_base,Ncells,Npoints,Smooth);
-            E_int=SmoothInterpolation(X_int,X_base,E_base,Ncells,Npoints,Smooth);
-            Al_int=SmoothInterpolation(X_int,X_base,Al_base,Ncells,Npoints,Smooth);
-            break;
-        }
-
-    }      */
-
-   /*   E_int[Npoints-1]=E_int[Npoints-2];
-    B_int[Npoints-1]=B_int[Npoints-2];
-    Al_int[Npoints-1]=Al_int[Npoints-2];*/
-
-  /*    for (int i=0;i<Npoints;i++){
-        Structure[i].Rp=E_int[i];
-    }   */
-
-
-    if (FSolenoid) {
+	if (FSolenoid) {
 		int NSol=0;
-        double *Xz=NULL;
-        double *Bz=NULL;
+		double *Xz=NULL;
+		double *Bz=NULL;
 
 		NSol=GetSolenoidPoints();
 		if(NSol<1){
@@ -1566,7 +1561,7 @@ int TBeamSolver::CreateGeometry()
             Lmag=0;
 			FSolenoid=false;
 			S="The format of "+SolenoidFile+" is wrong or too few points available";
-			ShowMessage(S);
+			ShowError(S);
         } else {
             Xz=new double[NSol];
             Bz=new double[NSol];
@@ -1959,8 +1954,9 @@ void TBeamSolver::CountLiving(int Si)
             fprintf(F,"\n");
         }
         fclose(F);   */
-        #ifndef RSLINAC
-        ShowMessage("Beam Lost!");
+		#ifndef RSLINAC
+		AnsiString S="Beam Lost!";
+		ShowError(S);
         #endif
         Stop=true;
         return;
@@ -2093,9 +2089,9 @@ void TBeamSolver::Step(int Si)
 //---------------------------------------------------------------------------
 void TBeamSolver::Solve()
 {
-    #ifndef RSLINAC
-    if (SmartProgress==NULL){
-        ShowMessage("System Message: ProgressBar not assigned! Code needs to be corrected");
+	#ifndef RSLINAC
+	if (SmartProgress==NULL){
+		ShowMessage("System Message: ProgressBar not assigned! Code needs to be corrected");
         return;
     }
     SmartProgress->Reset(Npoints-1/*Np*/);
@@ -2243,9 +2239,10 @@ void TBeamSolver::Solve()
         #endif
         if (Stop){
             Stop=false;
-            #ifndef RSLINAC
-            ShowMessage("Solve Process Aborted!");
-            SmartProgress->Reset();
+			#ifndef RSLINAC
+			AnsiString S="Solve Process Aborted!";
+			ShowError(S);
+			SmartProgress->Reset();
             #endif
             return;
         }
@@ -2328,16 +2325,16 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     double alpha=0,betta=0,eps=0;
     GetCourantSneider(j,alpha,betta,eps);
 
-    double A=0;
-    int Na=j-Nmesh/2;
-    if (Na>0)
-        A=Structure[Na].A;
+  /*  double A=0;
+  	int Na=j-Nmesh/2;
+	if (Na>0)
+		A=Structure[Na].A;     */
 
     Result.Length=z;
     Result.AverageEnergy=W;
     Result.MaximumEnergy=Wm;
-    Result.EnergySpectrum=dW;
-    Result.InputCurrent=1e3*I0;
+	Result.EnergySpectrum=dW;
+	Result.InputCurrent=1e3*I0;
     Result.BeamCurrent=1e3*I;
     Result.Captured=kc;
     Result.BeamRadius=r;
@@ -2348,7 +2345,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     Result.Alpha=alpha;
     Result.Betta=100*betta;
     Result.Emittance=100*eps;
-    Result.A=A;
+  //  Result.A=A;
 
 	Line="Total Length = "+s.FormatFloat("#0.000",Result.Length)+" cm";
     OutputStrings->Add(Line);

@@ -72,9 +72,7 @@ private:
     bool ReadSolenoid(int Nz,double *Z,double* B);
 
     bool IsKeyWord(AnsiString& S);
-	TInputParameter Parse(AnsiString &S);
-
-	void ShowError(AnsiString &S);
+    TInputParameter Parse(AnsiString &S);
 protected:
 
 public:

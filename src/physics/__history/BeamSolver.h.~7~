@@ -74,7 +74,7 @@ private:
     bool IsKeyWord(AnsiString& S);
 	TInputParameter Parse(AnsiString &S);
 
-	void ShowError(AnsiString &S);
+	void ShowError(TError E);
 protected:
 
 public:
