@@ -98,8 +98,11 @@ void TResForm::GetTransBoundaries()
         if (W>Wmax)
             Wmax=W;
         for (int j=0;j<Np;j++){
-            if (Solver->Beam[i]->Particle[j].lost==LIVE){
-                double X=Solver->Beam[i]->Particle[j].Bx/Solver->Beam[i]->Particle[j].betta;
+			if (Solver->Beam[i]->Particle[j].lost==LIVE){
+				double beta=Solver->Beam[i]->Particle[j].betta;
+				double X=0;
+				if (beta>0)
+					Solver->Beam[i]->Particle[j].Bx/beta;
                 if (mod(X)>Xmax)
                     Xmax=mod(X);
             }
