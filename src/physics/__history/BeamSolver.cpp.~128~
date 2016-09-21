@@ -814,7 +814,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 							Cells[Ni].AkL=Lines[k].S[5].ToDouble();
 						}
                         Cells[Ni].F0=F0*1e6;
-                        Cells[Ni].P0=P0*1e6;
+						Cells[Ni].P0=P0*1e6;
                         Cells[Ni].dF=arc(dF);
 					 //   Cells[Ni].Drift=false;
 						Cells[Ni].First=NewCell;
@@ -1103,7 +1103,7 @@ TError TBeamSolver::MakeBuncher(TCell& iCell)
     Lines=ParseFile(N);
     Error=ParseLines(Lines,N,true);
 
-    if (F0*1e6!=iCell.F0 || P0*1e6!=iCell.P0){
+	if (F0*1e6!=iCell.F0 || P0*1e6!=iCell.P0){
         F0=iCell.F0*1e-6;
         P0=iCell.P0*1e-6;
         F="POWER "+s.FormatFloat("#0.00",P0)+"\t"+s.FormatFloat("#0.00",F0);
@@ -2295,14 +2295,14 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 
     double W=0,dW=0;
 
-    TSpectrumBar *WSpectrum=GetEnergySpectrum(j,true,W,Ws);
+	TSpectrumBar *WSpectrum=GetEnergySpectrum(j,true,W,Ws);
     if (W!=0)
         dW=100*Ws/W;
     else
         dW=100;
-    double Wm=Beam[j]->GetMaxEnergy();
-    double I=Beam[j]->Ib;
-    double I0=Beam[0]->Ib;
+	double Wm=Beam[j]->GetMaxEnergy();
+	double I=Beam[j]->Ib;
+	double I0=Beam[0]->Ib;
     double kc=100.0*Beam[j]->GetLivingNumber()/Beam[0]->GetLivingNumber();
     double r=1e3*Beam[j]->GetBeamRadius();
 
@@ -2311,16 +2311,21 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     TSpectrumBar *FSpectrum=GetPhaseSpectrum(j,true,F,dF);
     double f=1e-6*c/Structure[j].lmb;
     double Ra=1e3*Structure[j].Ra*Structure[j].lmb;
-    double P=W*I;
+	double P=W*I;
 
-    double v=Structure[j].betta;
-    double E=sqrt(2*Structure[j].Rp);
-    double Pb=E!=0?1e-6*sqr(Structure[j].A*We0/E):0;
+	double W0=Beam[0]->GetAverageEnergy();
+	//double Wout=Beam[j]->GetAverageEnergy();
+	double Pin=W0*I0;
+
+
+	double v=Structure[j].betta;
+	double E=sqrt(2*Structure[j].Rp);
+	double Pb=E!=0?1e-6*sqr(Structure[j].A*We0/E):0;
 
     /*double Pw=P0;
     for(int i=1;i<Npoints;i++)
         Pw=Pw*exp(-2*(Structure[i].ksi-Structure[i-1].ksi)*Structure[i].alpha*Structure[i].lmb);  */
-    double Pw=1e-6*P0-(P+Pb);
+	double Pw=1e-6*P0-(P-Pin+Pb);
 
     double alpha=0,betta=0,eps=0;
     GetCourantSneider(j,alpha,betta,eps);
@@ -2367,8 +2372,10 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     OutputStrings->Add(Line);
     Line="Phase Length = "+s.FormatFloat("#0.00",Result.PhaseLength)+" deg";
     OutputStrings->Add(Line);
-    Line="Beam Power = "+s.FormatFloat("#0.0000",Result.BeamPower)+" MW";
-    OutputStrings->Add(Line);
+	Line="Beam Power = "+s.FormatFloat("#0.0000",Result.BeamPower)+" MW";
+	OutputStrings->Add(Line);
+	Line="Beam Power Gain = "+s.FormatFloat("#0.0000",Result.BeamPower-Pin)+" MW";
+	OutputStrings->Add(Line);
     Line="Load Power = "+s.FormatFloat("#0.0000",Result.LoadPower)+" MW";
     OutputStrings->Add(Line);
     Line="Loss Power = "+s.FormatFloat("#0.0000",Pw)+" MW";

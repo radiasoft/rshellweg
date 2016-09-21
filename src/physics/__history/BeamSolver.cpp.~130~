@@ -814,7 +814,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 							Cells[Ni].AkL=Lines[k].S[5].ToDouble();
 						}
                         Cells[Ni].F0=F0*1e6;
-                        Cells[Ni].P0=P0*1e6;
+						Cells[Ni].P0=P0*1e6;
                         Cells[Ni].dF=arc(dF);
 					 //   Cells[Ni].Drift=false;
 						Cells[Ni].First=NewCell;
@@ -852,10 +852,18 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				Cells[Ni].Drift=true;
 				Cells[Ni].betta=Lines[k].S[0].ToDouble()/100;//D, cm
 				Cells[Ni].AkL=Lines[k].S[1].ToDouble()/100;//Ra, cm
-				if (Lines[k].N==3)
-					Cells[Ni].Mesh=Lines[k].S[2].ToDouble();
+				if (Lines[k].N==3){
+					double m=Lines[k].S[2].ToDouble();
+					if (m>1)
+						Cells[Ni].Mesh=m;
+					else{
+						S="WARNING: Number of mesh points must be more than 1";
+						ShowError(S);
+						Cells[Ni].Mesh=Nmesh;
+                    }
+				}
 				else
-                    Cells[Ni].Mesh=Nmesh;
+					Cells[Ni].Mesh=Nmesh;
 				Cells[Ni].ELP=0;
 				Cells[Ni].AL32=0;
 				Cells[Ni].First=true;
@@ -1095,7 +1103,7 @@ TError TBeamSolver::MakeBuncher(TCell& iCell)
     Lines=ParseFile(N);
     Error=ParseLines(Lines,N,true);
 
-    if (F0*1e6!=iCell.F0 || P0*1e6!=iCell.P0){
+	if (F0*1e6!=iCell.F0 || P0*1e6!=iCell.P0){
         F0=iCell.F0*1e-6;
         P0=iCell.P0*1e-6;
         F="POWER "+s.FormatFloat("#0.00",P0)+"\t"+s.FormatFloat("#0.00",F0);
@@ -1947,7 +1955,7 @@ void TBeamSolver::CountLiving(int Si)
         }
         fclose(F);   */
 		#ifndef RSLINAC
-		S="Beam Lost!";
+		AnsiString S="Beam Lost!";
 		ShowError(S);
         #endif
         Stop=true;
@@ -2081,9 +2089,9 @@ void TBeamSolver::Step(int Si)
 //---------------------------------------------------------------------------
 void TBeamSolver::Solve()
 {
-    #ifndef RSLINAC
+	#ifndef RSLINAC
 	if (SmartProgress==NULL){
-		ShowError("System Message: ProgressBar not assigned! Code needs to be corrected");
+		ShowMessage("System Message: ProgressBar not assigned! Code needs to be corrected");
         return;
     }
     SmartProgress->Reset(Npoints-1/*Np*/);
@@ -2232,7 +2240,7 @@ void TBeamSolver::Solve()
         if (Stop){
             Stop=false;
 			#ifndef RSLINAC
-			S="Solve Process Aborted!";
+			AnsiString S="Solve Process Aborted!";
 			ShowError(S);
 			SmartProgress->Reset();
             #endif
@@ -2287,14 +2295,14 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 
     double W=0,dW=0;
 
-    TSpectrumBar *WSpectrum=GetEnergySpectrum(j,true,W,Ws);
+	TSpectrumBar *WSpectrum=GetEnergySpectrum(j,true,W,Ws);
     if (W!=0)
         dW=100*Ws/W;
     else
         dW=100;
-    double Wm=Beam[j]->GetMaxEnergy();
-    double I=Beam[j]->Ib;
-    double I0=Beam[0]->Ib;
+	double Wm=Beam[j]->GetMaxEnergy();
+	double I=Beam[j]->Ib;
+	double I0=Beam[0]->Ib;
     double kc=100.0*Beam[j]->GetLivingNumber()/Beam[0]->GetLivingNumber();
     double r=1e3*Beam[j]->GetBeamRadius();
 
@@ -2302,17 +2310,22 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 
     TSpectrumBar *FSpectrum=GetPhaseSpectrum(j,true,F,dF);
     double f=1e-6*c/Structure[j].lmb;
-    double Ra=1e3*Structure[j].Ra*Structure[j].lmb;
-    double P=W*I;
+	double Ra=1e3*Structure[j].Ra*Structure[j].lmb;
+	double P=W*I;
 
-    double v=Structure[j].betta;
-    double E=sqrt(2*Structure[j].Rp);
-    double Pb=E!=0?1e-6*sqr(Structure[j].A*We0/E):0;
+	double W0=Beam[0]->GetAverageEnergy();
+	//double Wout=Beam[j]->GetAverageEnergy();
+	double Pin=W0*I0;
+
+
+	double v=Structure[j].betta;
+	double E=sqrt(2*Structure[j].Rp);
+	double Pb=E!=0?1e-6*sqr(Structure[j].A*We0/E):0;
 
     /*double Pw=P0;
     for(int i=1;i<Npoints;i++)
         Pw=Pw*exp(-2*(Structure[i].ksi-Structure[i-1].ksi)*Structure[i].alpha*Structure[i].lmb);  */
-    double Pw=1e-6*P0-(P+Pb);
+	double Pw=1e-6*P0-(P-Pin+Pb);
 
     double alpha=0,betta=0,eps=0;
     GetCourantSneider(j,alpha,betta,eps);
@@ -2356,23 +2369,36 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     Line="Beam Radius (RMS) = "+s.FormatFloat("#0.00",Result.BeamRadius)+" mm";
     OutputStrings->Add(Line);
     Line="Average Phase = "+s.FormatFloat("#0.00",Result.AveragePhase)+" deg";
-    OutputStrings->Add(Line);
-    Line="Phase Length = "+s.FormatFloat("#0.00",Result.PhaseLength)+" deg";
-    OutputStrings->Add(Line);
-    Line="Beam Power = "+s.FormatFloat("#0.0000",Result.BeamPower)+" MW";
-    OutputStrings->Add(Line);
+	OutputStrings->Add(Line);
+	Line="Phase Length = "+s.FormatFloat("#0.00",Result.PhaseLength)+" deg";
+	OutputStrings->Add(Line);
+	OutputStrings->Add("Twiss Parameters:");
+	Line="alpha= "+s.FormatFloat("#0.00000",Result.Alpha);
+	OutputStrings->Add(Line);
+	Line="betta = "+s.FormatFloat("#0.00000",Result.Betta)+" cm/rad";
+	OutputStrings->Add(Line);
+	Line="epsilon = "+s.FormatFloat("#0.000000",Result.Emittance)+" cm*rad";
+	OutputStrings->Add(Line);
+	OutputStrings->Add("==========================================");
+
+	int Nsec=0;
+	for (int i=0;i<=j;i++){
+		if (Structure[i].jump && !Structure[i].drift) {
+			Nsec++;
+			Line="=======Section #"+s.FormatFloat("#",Nsec)+" ================";
+			OutputStrings->Add(Line);
+		}
+	}
+	Line="Beam Power = "+s.FormatFloat("#0.0000",Result.BeamPower)+" MW";
+	OutputStrings->Add(Line);
+	Line="Beam Power Gain = "+s.FormatFloat("#0.0000",Result.BeamPower-Pin)+" MW";
+	OutputStrings->Add(Line);
     Line="Load Power = "+s.FormatFloat("#0.0000",Result.LoadPower)+" MW";
     OutputStrings->Add(Line);
     Line="Loss Power = "+s.FormatFloat("#0.0000",Pw)+" MW";
-    OutputStrings->Add(Line);
-    OutputStrings->Add("Courant-Sneider Parameters:");
-    Line="alpha= "+s.FormatFloat("#0.00000",Result.Alpha);
-    OutputStrings->Add(Line);
-    Line="betta = "+s.FormatFloat("#0.00000",Result.Betta)+" cm/rad";
-    OutputStrings->Add(Line);
-    Line="epsilon = "+s.FormatFloat("#0.000000",Result.Emittance)+" cm*rad";
-    OutputStrings->Add(Line);
-    OutputStrings->Add("==========================================");
+	OutputStrings->Add(Line);
+	OutputStrings->Add("==========================================");
+
 
     #ifndef RSLINAC
     if (Memo!=NULL){
