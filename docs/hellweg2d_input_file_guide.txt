@@ -1,0 +1,61 @@
+INPUT FILE STRUCTURE:
+
+KEYWORDS:
+
+OPTIONS. After this keyword you need to specify which options do you want to consider in your calculations.
+COULOMB. Space charge would be considered. Must be used after k\w OPTIONS.
+REVERSE. Backward travelling wave regime would br considered. Must be used after k\w OPTIONS.
+MAGNETIZED. The program will consider that input particles are emitted from cathode with magnetic field at z=0. Must be used after k\w OPTIONS.
+Ex. OPTIONS COULMB REVERSE
+
+SOLENOID. Specifies an exteranal magnetic field. 3 parameters needed: magnetic induction B[T], solenoid length L[m], solenoid position Z0[m]
+Ex. SOLENOID 0.15 0.2 0
+Custom magnetic field distribution can be imported from file. To do this, add the file name with field distribution after the keyword SOLENOID.
+Ex. SOLENOID BFIELD.txt
+The following input file format must be used: first column is z coordinate in [m], second is magnetic field in [Gs]. z-coordinates can be outside the simulation domain.
+
+BEAM. Specifies input beam phase space parameters. 6 parameters needed: Average phase phi0[deg], phase spectrum dphi[deg], type of phase distribution (EQ for quiprobable, NORM to Gaussian), average kinetic energy W0[MeV], enery spectrum dW[MeV], type of phase distribution (EQ for quiprobable, NORM to Gaussian)
+Ex. BEAM 90 20 EQ 0.8 0.1 NORM
+
+CURRENT. Specifies other beam parameters. 5 parameters needed: Beam current I0[A], Number of Particles to simulate Np[], Twiss parameters alpha[], betta[cm/rad], emittance[cm*rad]
+Ex. CURRENT 0.15 1000 2.2 2.8 0.004
+The particles distribution in transverse phase space x-x' can be exported from the external file. In this case you add the file name  after the beam current value.
+Ex. CURRENT 0.15 beam.txt
+The following input file format must be used: first column is x coordinate in [m], second is transverse velocity in [m/s]. 
+
+POWER. Specifies a power input for all following cells. 2 or 3 parameters needed: Input power P0[MW], Operating Frequency F0[MHz], phase dF [deg]
+Ex. POWER 2.0 2856
+Ex. POWER 4.5 5712 90
+
+CELL. Specifies a cell. 5 parameters needed: Phase shift Th[deg], Phase velocity betta[], Normalized Electric Field Stregth E*lambda/sqrt(P)[Ohm^-1/2], Normalized attenuation alpha*lambda^3/2[m^1/2], Normalized aperture size Ra/lambda[]. If last 2 parameters are missing, the structure is considered to be a disk-loaded structure and these parameters are found from the experemental tables.
+Ex. CELL 120 0.999 380.0 0.01 0.12
+Ex. CELL 90 0.8 200.0 (for DLS with phase shift 90 or 120 deg ONLY!)
+
+CELLS. Specifies a Number of identical cells. 6 parameters needed: Number of cells Nc[], parameters for CELL definition
+Ex. CELLS 6 0.999 380.0 0.01 0.12
+
+DRIFT. You can define a drift tube using 2 parameters: length L[cm]; radius a[cm]. Optionally, it is possible to add the number of mesh points for drift element after the radius that will override the global mesh settings.
+Ex. DRIFT 10.0 2.0 
+Ex. DRIFT 10.0 2.0 100
+
+SAVE. If this line is present, the code will export the live particle parameters (phase, energy, radius, azimuth and radial velocity) at position define in the INPUT to the defined file.
+It is possible to define the number of particles to be exported or the region of particles numbers after the name of file
+Several flags are allowed to define the particular parameters to be exported. If no flags are defined, all parameters (except live status) will be exported. If at least one flag is set, only flagged parameters wil be exported.
+LOST – export the lost or live status of the particle
+PHASE – export the phase of the particle 
+ENERGY – export the energy of the particle 
+RADIUS – export the radius of the particle 
+AZIMUTH – export the azimuth of the particle 
+VX – export the radial velocity of the particle 
+The flags must be defined in any combination after the number of elements region or after the file name if the region is not defined.
+Ex. SAVE beam.log
+Ex. SAVE beam.log 500
+Ex. SAVE beam.log 1000 2000
+Ex. SAVE beam.log LOST ENERGY
+Ex. SAVE beam.log 500 ENERGY PHASE RADIUS
+Ex. SAVE beam.log 500 2000 LOST RADIUS VX
+
+END. Specifies the end of file.
+
+Any line with improper format will be ignored and not copied into the output file.
+To make a comment use '!' symbol in the beginning of the line
