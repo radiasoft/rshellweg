@@ -1590,11 +1590,11 @@ int TBeamSolver::CreateGeometry()
 	for (int i=0;i<Npoints;i++){
         //int s=0;
         double lmb=1;
-        lmb=Structure[i].lmb;
-        if (B_int[i]<1)
-            Structure[i].betta=B_int[i];
-        else
-            Structure[i].betta=0.999;
+		lmb=Structure[i].lmb;
+	   if (B_int[i]!=1)
+			Structure[i].betta=B_int[i];
+		else
+            Structure[i].betta=MeVToVelocity(EnergyLimit);
 
         Structure[i].E=E_int[i];
         Structure[i].A=Structure[i].P>0?E_int[i]*sqrt(Structure[i].P)/We0:0;
@@ -2273,19 +2273,19 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     Nliv=Beam[Npoints-1]->GetLivingNumber();
                      */
     OutputStrings->Clear();
-    OutputStrings->Add("==========================================");
+	OutputStrings->Add("========================================");
     OutputStrings->Add("INPUT DATA from:");
 	OutputStrings->Add(InputFile);
-    OutputStrings->Add("==========================================");
+	OutputStrings->Add("========================================");
 
   /*    TStringList *InputStrings;
     InputStrings= new TStringList;
     InputStrings->LoadFromFile(InputFile);    */
     OutputStrings->AddStrings(InputStrings);
 
-    OutputStrings->Add("==========================================");
+	OutputStrings->Add("========================================");
     OutputStrings->Add("RESULTS");
-    OutputStrings->Add("==========================================");
+	OutputStrings->Add("========================================");
     OutputStrings->Add("");
 
     double Ws=0;
@@ -2310,7 +2310,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 
     TSpectrumBar *FSpectrum=GetPhaseSpectrum(j,true,F,dF);
     double f=1e-6*c/Structure[j].lmb;
-    double Ra=1e3*Structure[j].Ra*Structure[j].lmb;
+	double Ra=1e3*Structure[j].Ra*Structure[j].lmb;
 	double P=W*I;
 
 	double W0=Beam[0]->GetAverageEnergy();
@@ -2369,8 +2369,8 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     Line="Beam Radius (RMS) = "+s.FormatFloat("#0.00",Result.BeamRadius)+" mm";
     OutputStrings->Add(Line);
     Line="Average Phase = "+s.FormatFloat("#0.00",Result.AveragePhase)+" deg";
-    OutputStrings->Add(Line);
-    Line="Phase Length = "+s.FormatFloat("#0.00",Result.PhaseLength)+" deg";
+	OutputStrings->Add(Line);
+	Line="Phase Length = "+s.FormatFloat("#0.00",Result.PhaseLength)+" deg";
 	OutputStrings->Add(Line);
 	OutputStrings->Add("Twiss Parameters:");
 	Line="alpha= "+s.FormatFloat("#0.00000",Result.Alpha);
@@ -2379,16 +2379,45 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	OutputStrings->Add(Line);
 	Line="epsilon = "+s.FormatFloat("#0.000000",Result.Emittance)+" cm*rad";
 	OutputStrings->Add(Line);
-	OutputStrings->Add("==========================================");
-	Line="Beam Power = "+s.FormatFloat("#0.0000",Result.BeamPower)+" MW";
-	OutputStrings->Add(Line);
-	Line="Beam Power Gain = "+s.FormatFloat("#0.0000",Result.BeamPower-Pin)+" MW";
-	OutputStrings->Add(Line);
-    Line="Load Power = "+s.FormatFloat("#0.0000",Result.LoadPower)+" MW";
-    OutputStrings->Add(Line);
-    Line="Loss Power = "+s.FormatFloat("#0.0000",Pw)+" MW";
-	OutputStrings->Add(Line);
-	OutputStrings->Add("==========================================");
+	//OutputStrings->Add("========================================");
+
+	int Nsec=0;
+	double Pbeam0=0, Wb0=0;
+	double Ib=0, Wb=0, P0=0;
+	for (int i=0;i<=j;i++){
+		if (Structure[i].jump && !Structure[i].drift || i==j) {
+			Ib=Beam[i]->Ib;
+			Wb=Beam[i]->GetAverageEnergy();
+
+			if (Nsec>0) {
+				double Pload=E!=0?1e-6*sqr(Structure[i-1].A*We0/E):0;
+				double Pbeam=Ib*Wb;
+
+				Line="===========Section #"+s.FormatFloat("#",Nsec)+" ======================";
+				OutputStrings->Add(Line);
+				Line="Input Power = "+s.FormatFloat("#0.0000",P0)+" MW";
+				OutputStrings->Add(Line);
+			   /*	Line="Beam Power = "+s.FormatFloat("#0.0000",Pbeam)+" MW";
+				OutputStrings->Add(Line);
+				Line="Beam Energy = "+s.FormatFloat("#0.0000",Wb)+" MeV";
+				OutputStrings->Add(Line);   */
+				Line="Beam Energy Gain = "+s.FormatFloat("#0.0000",Wb-Wb0)+" MeV";
+				OutputStrings->Add(Line);
+				Line="Beam Power Gain = "+s.FormatFloat("#0.0000",Pbeam-Pbeam0)+" MW";
+				OutputStrings->Add(Line);
+				Line="Load Power = "+s.FormatFloat("#0.0000",Pload)+" MW";
+				OutputStrings->Add(Line);
+				Line="Loss Power = "+s.FormatFloat("#0.0000",P0-(Pbeam-Pbeam0+Pload))+" MW";
+				OutputStrings->Add(Line);
+			}
+
+			Pbeam0=Ib*Wb;
+			P0=1e-6*Structure[i].P;
+			Wb0=Wb;
+			Nsec++;
+		}
+	}
+	OutputStrings->Add("========================================");
 
 
     #ifndef RSLINAC

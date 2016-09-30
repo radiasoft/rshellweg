@@ -463,7 +463,7 @@ void TResForm::DrawLongtSpace()
 
     AnsiString s;
     int j=PositionTrackBar->Position;
-    double z=100*Solver->Structure[j].ksi*Solver->Structure[j].lmb;
+	double z=100*Solver->Structure[j].ksi*Solver->Structure[j].lmb;
 
 
     BeamChart->Title->Caption="Longitudinal Phase Space at position z="+s.FormatFloat("#0.000",z)+" cm";
@@ -476,12 +476,15 @@ void TResForm::DrawLongtSpace()
     if (VertFitCheck->Checked)
         Wmax=Solver->Beam[j]->GetMaxEnergy();
 
-    BeamChart->LeftAxis->Maximum=Wmax;
+	BeamChart->LeftAxis->Maximum=Wmax;
     Solver->Beam[j]->GetMaxEnergy();
-    BeamChart->BottomAxis->Minimum=MinPhase;
-    BeamChart->BottomAxis->Maximum=MaxPhase;
+	BeamChart->BottomAxis->Minimum=MinPhase;
+	BeamChart->BottomAxis->Maximum=MaxPhase;
 
-    if (EnvelopeCheck->Checked){
+	double Phi_min=HellwegTypes::RadToDeg(Solver->Beam[j]->GetMinPhase());
+	double Phi_max=HellwegTypes::RadToDeg(Solver->Beam[j]->GetMaxPhase());
+
+	if (EnvelopeCheck->Checked){
         double H=0,W=0, gamma=0, phi=0;
         double beta_w=Solver->Structure[j].betta;
         double A=Solver->Structure[j].A;
@@ -491,32 +494,42 @@ void TResForm::DrawLongtSpace()
         double Hmin=1e6, Hmax=0;
 
         for (int k=0; k < SeparatrixNumber; k++) {
-            W=k*Wmax/(SeparatrixNumber-1);
-            gamma=MeVToGamma(W);
-         // for (int i=0;i<PointsNumber;i++){
-               //   phi=MinPhase+i*(MaxPhase-MinPhase)/(PointsNumber-1);
-               phi=90;
-                H=GetH(gamma,phi,beta_w,A);
-                if (H>Hmax)
-                    Hmax=H;
-                if (H<Hmin)
-                    Hmin=H;
+			W=k*Wmax/(SeparatrixNumber-1);
+			gamma=MeVToGamma(W);
+		 // for (int i=0;i<PointsNumber;i++){
+			   //   phi=MinPhase+i*(MaxPhase-MinPhase)/(PointsNumber-1);
+			   phi=90;
+				H=GetH(gamma,phi,beta_w,A);
+				if (H>Hmax)
+					Hmax=H;
+				if (H<Hmin)
+					Hmin=H;
 
       //        }
         }
 
         for (int n=0; n < 2; n++) {
-            for (int k=0; k < SeparatrixNumber; k++) {
-                H=Hmin+k*(Hmax-Hmin)/(SeparatrixNumber-1);
+			for (int k=0; k < SeparatrixNumber; k++) {
+
+				if (Solver->Structure[j].drift) {
+					W=k*Wmax/(SeparatrixNumber-1);
+					gamma=MeVToGamma(W);
+					H=GetH(gamma,90,beta_w,A);
+				} else
+					H=Hmin+k*(Hmax-Hmin)/(SeparatrixNumber-1);
+
                 sep=true;
 
-                    for (int i=0;i<4*PointsNumber;i++){
-                    phi=MinPhase+i*(MaxPhase-MinPhase)/(PointsNumber-1);
-                    Nroots=n==0?GetPositiveSeparatrix(gamma,phi,beta_w,A,H):GetNegativeSeparatrix(gamma,phi,beta_w,A,H);
-                    if ((n==0 && Nroots>0) || (n==1 & Nroots==2)){
-                        W=GammaToMeV(gamma);
-                     // if (W>0 && W<Wmax) {
-                            if (sep)
+                    for (int i=0;i<PointsNumber;i++){
+					//phi=MinPhase+i*(MaxPhase-MinPhase)/(PointsNumber-1);
+					phi=Phi_min+i*(Phi_max-Phi_min)/(PointsNumber-1);
+					Nroots=n==0?GetPositiveSeparatrix(gamma,phi,beta_w,A,H):GetNegativeSeparatrix(gamma,phi,beta_w,A,H);
+					if (((n==0 && Nroots>0) || (n==1 & Nroots==2)) && gamma>1){
+						W=GammaToMeV(gamma);
+						if (W>2*Wmax)
+							continue;
+					 // if (W>0 && W<Wmax) {
+							if (sep)
                                 EnvelopeSeries->AddNullXY(phi,W);
                             else
                                 EnvelopeSeries->AddXY(phi,W);
@@ -526,18 +539,20 @@ void TResForm::DrawLongtSpace()
                     //}
                 }
             }
-        }
-    }
+		}
+	}
 
-    if (ChartCheck->Checked){
-        for (int i=0;i<Np;i++){
-            if (Solver->Beam[j]->Particle[i].lost==LIVE){
-                double W=VelocityToMeV(Solver->Beam[j]->Particle[i].betta);
-                double phi=HellwegTypes::RadToDeg(Solver->Beam[j]->Particle[i].phi);
-                BeamSeries->AddXY(phi,W);
-            }
-        }
-    }
+	if (ChartCheck->Checked){
+		for (int i=0;i<Np;i++){
+			if (Solver->Beam[j]->Particle[i].lost==LIVE){
+				double W=VelocityToMeV(Solver->Beam[j]->Particle[i].betta);
+				double phi=HellwegTypes::RadToDeg(Solver->Beam[j]->Particle[i].phi);
+				BeamSeries->AddXY(phi,W);
+			}
+		}
+	}
+	//BeamChart->ExchangeSeries(1,0);
+
 }
 //---------------------------------------------------------------------------
 void TResForm::DrawTransSection()

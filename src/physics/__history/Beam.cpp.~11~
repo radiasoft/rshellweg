@@ -586,26 +586,6 @@ double TBeam::GetPhaseLength()
     return dF;
 }
 //---------------------------------------------------------------------------
-double TBeam::GetMinPhase()
-{
-	double phi_min=1e32;
-	for (int i=0;i<Np;i++){
-		if (Particle[i].lost==LIVE && Particle[i].phi<phi_min)
-			phi_min=Particle[i].phi;
-	}
-	return phi_min;
-}
-//---------------------------------------------------------------------------
-double TBeam::GetMaxPhase()
-{
-	double phi_max=-1e32;
-	for (int i=0;i<Np;i++){
-		if (Particle[i].lost==LIVE && Particle[i].phi>phi_max)
-			phi_max=Particle[i].phi;
-	}
-	return phi_max;
-}
-//---------------------------------------------------------------------------
 double TBeam::GetAveragePhase()
 {
     double Fav=0,dF=0;
@@ -625,12 +605,12 @@ double TBeam::GetAverageEnergy()
    //   GetParameters(B,BETTA_PAR);
 
     int j=0;
-	for (int i=0;i<Np;i++){
-		if (Particle[i].lost==LIVE){
-			B[i]=RadToDeg(Particle[i].betta);
-			j++;
-		}
-	}
+    for (int i=0;i<Np;i++){
+        if (Particle[i].lost==LIVE){
+            B[i]=RadToDeg(Particle[i].betta);
+            j++;
+        }
+    }
          */
    //   Spectrum=GetSpectrum(false,B,Bav,dB);
     delete[] Spectrum;

@@ -49,7 +49,9 @@ public:
     double GetPhaseLength();
     double GetAveragePhase();
     double GetAverageEnergy();
-    double GetMaxEnergy();
+	double GetMaxEnergy();
+	double GetMinPhase();
+	double GetMaxPhase();
 
     double iGetAverageEnergy(TIntParameters& Par,TIntegration *I);
     double iGetBeamLength(TIntParameters& Par,TIntegration *I);

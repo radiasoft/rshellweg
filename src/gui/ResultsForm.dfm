@@ -2,12 +2,12 @@ object ResForm: TResForm
   Left = 0
   Top = 0
   Caption = 'Results'
-  ClientHeight = 817
-  ClientWidth = 1257
+  ClientHeight = 625
+  ClientWidth = 961
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -14
+  Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
   Menu = MainMenu1
@@ -15,29 +15,20 @@ object ResForm: TResForm
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
-  PixelsPerInch = 120
-  TextHeight = 17
+  PixelsPerInch = 96
+  TextHeight = 13
   object GraphPanel: TPanel
     Left = 0
     Top = 0
-    Width = 1015
-    Height = 699
-    Margins.Left = 4
-    Margins.Top = 4
-    Margins.Right = 4
-    Margins.Bottom = 4
+    Width = 776
+    Height = 535
     Align = alClient
     TabOrder = 0
-    ExplicitHeight = 758
     object PackChart: TChart
       Left = 1
       Top = 1
-      Width = 1013
-      Height = 756
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Width = 774
+      Height = 533
       AllowPanning = pmNone
       BackWall.Color = clWhite
       Legend.CheckBoxesStyle = cbsRadio
@@ -160,12 +151,8 @@ object ResForm: TResForm
     object SpectrumChart: TChart
       Left = 1
       Top = 1
-      Width = 1013
-      Height = 756
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Width = 774
+      Height = 533
       Legend.Visible = False
       Title.Font.Height = -32
       Title.Text.Strings = (
@@ -225,12 +212,8 @@ object ResForm: TResForm
     object BarsChart: TChart
       Left = 1
       Top = 1
-      Width = 1013
-      Height = 756
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Width = 774
+      Height = 533
       AllowPanning = pmNone
       Legend.Font.Height = -24
       Title.Font.Height = -32
@@ -328,12 +311,8 @@ object ResForm: TResForm
     object PieChart: TChart
       Left = 1
       Top = 1
-      Width = 1013
-      Height = 756
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Width = 774
+      Height = 533
       AllowPanning = pmNone
       Legend.Font.Height = -24
       Legend.TextStyle = ltsRightPercent
@@ -397,12 +376,8 @@ object ResForm: TResForm
     object BeamChart: TChart
       Left = 1
       Top = 1
-      Width = 1013
-      Height = 756
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Width = 774
+      Height = 533
       AllowPanning = pmNone
       Legend.Visible = False
       Title.Font.Height = -32
@@ -448,363 +423,250 @@ object ResForm: TResForm
   end
   object BottomPanel: TPanel
     Left = 0
-    Top = 699
-    Width = 1257
-    Height = 118
-    Margins.Left = 4
-    Margins.Top = 4
-    Margins.Right = 4
-    Margins.Bottom = 4
+    Top = 535
+    Width = 961
+    Height = 90
     Align = alBottom
     TabOrder = 1
-    ExplicitTop = 758
     DesignSize = (
-      1257
-      118)
+      961
+      90)
     object EnergyButton: TSpeedButton
-      Left = 21
-      Top = 7
-      Width = 85
-      Height = 28
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 16
+      Top = 5
+      Width = 65
+      Height = 22
       GroupIndex = 1
       Caption = 'Energy'
       OnClick = EnergyButtonClick
     end
     object PhaseButton: TSpeedButton
-      Left = 21
-      Top = 43
-      Width = 85
-      Height = 29
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 16
+      Top = 33
+      Width = 65
+      Height = 22
       GroupIndex = 1
       Caption = 'Phase'
       OnClick = PhaseButtonClick
     end
     object RadiusButton: TSpeedButton
-      Left = 21
-      Top = 80
-      Width = 85
-      Height = 29
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 16
+      Top = 61
+      Width = 65
+      Height = 22
       GroupIndex = 1
       Caption = 'Radius'
       OnClick = RadiusButtonClick
     end
     object FieldButton: TSpeedButton
-      Left = 135
-      Top = 7
-      Width = 85
-      Height = 28
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 103
+      Top = 5
+      Width = 65
+      Height = 22
       GroupIndex = 1
       Caption = 'Field'
       OnClick = FieldButtonClick
     end
     object LossButton: TSpeedButton
-      Left = 679
-      Top = 44
-      Width = 108
-      Height = 29
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 519
+      Top = 34
+      Width = 83
+      Height = 22
       GroupIndex = 1
       Caption = 'Loss Diagram'
       OnClick = LossButtonClick
     end
     object LossPieButton: TSpeedButton
-      Left = 679
-      Top = 8
-      Width = 108
-      Height = 29
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 519
+      Top = 6
+      Width = 83
+      Height = 22
       GroupIndex = 1
       Caption = 'Loss Pie'
       OnClick = LossPieButtonClick
     end
     object FSpectrumButton: TSpeedButton
-      Left = 247
-      Top = 7
-      Width = 119
-      Height = 28
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 189
+      Top = 5
+      Width = 91
+      Height = 22
       GroupIndex = 1
       Caption = 'Phase Spectrum'
       OnClick = FSpectrumButtonClick
     end
     object WSpectrumButton: TSpeedButton
-      Left = 247
-      Top = 43
-      Width = 119
-      Height = 29
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 189
+      Top = 33
+      Width = 91
+      Height = 22
       GroupIndex = 1
       Caption = 'Energy Spectrum'
       OnClick = WSpectrumButtonClick
     end
     object LongtitudalButton: TSpeedButton
-      Left = 543
-      Top = 7
-      Width = 108
-      Height = 28
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 415
+      Top = 5
+      Width = 83
+      Height = 22
       GroupIndex = 1
       Caption = 'Phase Space'
       OnClick = LongtitudalButtonClick
     end
     object TransverseButton: TSpeedButton
-      Left = 395
-      Top = 8
-      Width = 119
-      Height = 29
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 302
+      Top = 6
+      Width = 91
+      Height = 22
       GroupIndex = 1
       Caption = 'Transverse Space'
       OnClick = TransverseButtonClick
     end
     object TransSectionButton: TSpeedButton
-      Left = 395
-      Top = 43
-      Width = 119
-      Height = 29
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 302
+      Top = 33
+      Width = 91
+      Height = 22
       GroupIndex = 1
       Caption = 'Transv. Section'
       OnClick = TransSectionButtonClick
     end
     object PowerButton: TSpeedButton
-      Left = 135
-      Top = 43
-      Width = 85
-      Height = 29
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 103
+      Top = 33
+      Width = 65
+      Height = 22
       GroupIndex = 1
       Caption = 'Power'
       OnClick = PowerButtonClick
     end
     object AvEnergyButton: TSpeedButton
-      Left = 135
-      Top = 80
-      Width = 85
-      Height = 29
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 103
+      Top = 61
+      Width = 65
+      Height = 22
       GroupIndex = 1
       Caption = 'Av. Energy'
       OnClick = AvEnergyButtonClick
     end
     object BettaButton: TSpeedButton
-      Left = 247
-      Top = 80
-      Width = 119
-      Height = 29
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 189
+      Top = 61
+      Width = 91
+      Height = 22
       GroupIndex = 1
       Caption = 'Phase Velocity'
       OnClick = BettaButtonClick
     end
     object LongtSectonButton: TSpeedButton
-      Left = 543
-      Top = 43
-      Width = 108
-      Height = 29
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 415
+      Top = 33
+      Width = 83
+      Height = 22
       GroupIndex = 1
       Caption = 'Longt. Section'
       OnClick = LongtSectonButtonClick
     end
     object MotionButton: TSpeedButton
-      Left = 543
-      Top = 80
-      Width = 108
-      Height = 29
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 415
+      Top = 61
+      Width = 83
+      Height = 22
       GroupIndex = 1
       Caption = 'Longt. Motion'
       OnClick = MotionButtonClick
     end
     object SlidingButton: TSpeedButton
-      Left = 679
-      Top = 81
-      Width = 108
-      Height = 29
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 519
+      Top = 62
+      Width = 83
+      Height = 22
       GroupIndex = 1
       Caption = 'Phase Sliding'
       OnClick = SlidingButtonClick
     end
     object AvRadiusButton: TSpeedButton
-      Left = 395
-      Top = 80
-      Width = 119
-      Height = 29
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 302
+      Top = 61
+      Width = 91
+      Height = 22
       GroupIndex = 1
       Caption = 'Beam Radius'
       OnClick = AvRadiusButtonClick
     end
     object TrackBox: TGroupBox
-      Left = 795
-      Top = 7
-      Width = 462
-      Height = 109
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 608
+      Top = 5
+      Width = 353
+      Height = 84
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Seek Position'
       TabOrder = 0
       DesignSize = (
-        462
-        109)
+        353
+        84)
       object PrevButton: TSpeedButton
-        Left = 55
-        Top = 61
-        Width = 30
-        Height = 29
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
+        Left = 42
+        Top = 47
+        Width = 23
+        Height = 22
         Caption = '<|'
         OnClick = PrevButtonClick
       end
       object FFButton: TSpeedButton
-        Left = 169
-        Top = 61
-        Width = 30
-        Height = 29
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
+        Left = 129
+        Top = 47
+        Width = 23
+        Height = 22
         Caption = '>>'
         OnClick = FFButtonClick
       end
       object RewButton: TSpeedButton
-        Left = 17
-        Top = 61
-        Width = 30
-        Height = 29
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
+        Left = 13
+        Top = 47
+        Width = 23
+        Height = 22
         Caption = '<<'
         OnClick = RewButtonClick
       end
       object PlayButton: TSpeedButton
-        Left = 93
-        Top = 61
-        Width = 30
-        Height = 29
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
+        Left = 71
+        Top = 47
+        Width = 23
+        Height = 22
         AllowAllUp = True
         GroupIndex = 2
         Caption = '>'
         OnClick = PlayButtonClick
       end
       object NextButton: TSpeedButton
-        Left = 131
-        Top = 61
-        Width = 30
-        Height = 29
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
+        Left = 100
+        Top = 47
+        Width = 23
+        Height = 22
         Caption = '|>'
         OnClick = NextButtonClick
       end
       object CellLabel: TLabel
-        Left = 378
-        Top = 61
-        Width = 58
-        Height = 17
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
+        Left = 289
+        Top = 47
+        Width = 46
+        Height = 13
         Anchors = [akTop, akRight]
         Caption = 'Cell #001'
       end
       object PositionLabel: TLabel
-        Left = 360
-        Top = 86
-        Width = 79
-        Height = 17
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
+        Left = 275
+        Top = 66
+        Width = 60
+        Height = 13
         Anchors = [akTop, akRight]
         Caption = 'z = 0.000cm'
       end
       object PositionTrackBar: TTrackBar
-        Left = 20
-        Top = 18
-        Width = 438
-        Height = 36
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
+        Left = 15
+        Top = 14
+        Width = 335
+        Height = 27
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 0
         OnChange = PositionTrackBarChange
@@ -812,38 +674,25 @@ object ResForm: TResForm
     end
   end
   object RightPanel: TPanel
-    Left = 1015
+    Left = 776
     Top = 0
-    Width = 242
-    Height = 699
-    Margins.Left = 4
-    Margins.Top = 4
-    Margins.Right = 4
-    Margins.Bottom = 4
+    Width = 185
+    Height = 535
     Align = alRight
     TabOrder = 2
-    ExplicitHeight = 758
     object GroupBox1: TGroupBox
       Left = 1
-      Top = 620
-      Width = 240
-      Height = 137
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Top = 429
+      Width = 183
+      Height = 105
       Align = alBottom
       Caption = 'Options'
       TabOrder = 0
       object EnvelopeCheck: TCheckBox
-        Left = 7
-        Top = 21
-        Width = 126
-        Height = 22
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
+        Left = 5
+        Top = 16
+        Width = 97
+        Height = 17
         Caption = 'Envelope'
         Checked = True
         State = cbChecked
@@ -851,14 +700,10 @@ object ResForm: TResForm
         OnClick = EnvelopeCheckClick
       end
       object ChartCheck: TCheckBox
-        Left = 7
-        Top = 51
-        Width = 126
-        Height = 22
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
+        Left = 5
+        Top = 39
+        Width = 97
+        Height = 17
         Caption = 'Chart'
         Checked = True
         State = cbChecked
@@ -866,28 +711,24 @@ object ResForm: TResForm
         OnClick = ChartCheckClick
       end
       object HorFitCheck: TCheckBox
-        Left = 7
-        Top = 109
-        Width = 126
-        Height = 22
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
+        Left = 5
+        Top = 83
+        Width = 97
+        Height = 17
         Caption = 'Fit Horizontally'
+        Checked = True
+        State = cbChecked
         TabOrder = 2
         OnClick = HorFitCheckClick
       end
       object VertFitCheck: TCheckBox
-        Left = 7
-        Top = 78
-        Width = 126
-        Height = 23
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
+        Left = 5
+        Top = 60
+        Width = 97
+        Height = 17
         Caption = 'Fit Vertically'
+        Checked = True
+        State = cbChecked
         TabOrder = 3
         OnClick = VertFitCheckClick
       end
@@ -895,24 +736,16 @@ object ResForm: TResForm
     object TableGroup: TGroupBox
       Left = 1
       Top = 1
-      Width = 240
-      Height = 619
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Width = 183
+      Height = 428
       Align = alClient
       Caption = 'Parameters'
       TabOrder = 1
       object Table: TStringGrid
         Left = 2
-        Top = 19
-        Width = 236
-        Height = 598
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
+        Top = 15
+        Width = 179
+        Height = 411
         Align = alClient
         ColCount = 2
         FixedCols = 0

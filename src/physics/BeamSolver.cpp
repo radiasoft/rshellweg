@@ -570,6 +570,8 @@ TInputLine *TBeamSolver::ParseFile(int& N)
     FILE *logFile;
     while (!fs.eof()){
 		S=GetWord(fs);   //Hid common actions inside the function
+		if (S=="")
+			continue;
 		if(IsKeyWord(S) || S[1]=='!')
             N++;
 /*        logFile=fopen("BeamSolver.log","a");
@@ -1590,11 +1592,11 @@ int TBeamSolver::CreateGeometry()
 	for (int i=0;i<Npoints;i++){
         //int s=0;
         double lmb=1;
-        lmb=Structure[i].lmb;
-        if (B_int[i]<1)
-            Structure[i].betta=B_int[i];
-        else
-            Structure[i].betta=0.999;
+		lmb=Structure[i].lmb;
+	   if (B_int[i]!=1)
+			Structure[i].betta=B_int[i];
+		else
+            Structure[i].betta=MeVToVelocity(EnergyLimit);
 
         Structure[i].E=E_int[i];
         Structure[i].A=Structure[i].P>0?E_int[i]*sqrt(Structure[i].P)/We0:0;

@@ -35,7 +35,7 @@ const double MinPhase=-MaxPhase;
 const int PointsNumber=1000;
 const int SeparatrixNumber=20;
 const double SpecLevel=0.5;
-const double EnergyLimit=1e6;// MeV
+const double EnergyLimit=1000;// MeV
 
 //COLORS
 #ifndef RSLINAC

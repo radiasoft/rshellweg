@@ -2273,19 +2273,19 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     Nliv=Beam[Npoints-1]->GetLivingNumber();
                      */
     OutputStrings->Clear();
-    OutputStrings->Add("==========================================");
+	OutputStrings->Add("========================================");
     OutputStrings->Add("INPUT DATA from:");
 	OutputStrings->Add(InputFile);
-    OutputStrings->Add("==========================================");
+	OutputStrings->Add("========================================");
 
   /*    TStringList *InputStrings;
     InputStrings= new TStringList;
     InputStrings->LoadFromFile(InputFile);    */
     OutputStrings->AddStrings(InputStrings);
 
-    OutputStrings->Add("==========================================");
+	OutputStrings->Add("========================================");
     OutputStrings->Add("RESULTS");
-    OutputStrings->Add("==========================================");
+	OutputStrings->Add("========================================");
     OutputStrings->Add("");
 
     double Ws=0;
@@ -2379,25 +2379,45 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	OutputStrings->Add(Line);
 	Line="epsilon = "+s.FormatFloat("#0.000000",Result.Emittance)+" cm*rad";
 	OutputStrings->Add(Line);
-	OutputStrings->Add("==========================================");
+	//OutputStrings->Add("========================================");
 
 	int Nsec=0;
+	double Pbeam0=0, Wb0=0;
+	double Ib=0, Wb=0, P0=0;
 	for (int i=0;i<=j;i++){
-		if (Structure[i].jump && !Structure[i].drift) {
+		if (Structure[i].jump && !Structure[i].drift || i==j) {
+			Ib=Beam[i]->Ib;
+			Wb=Beam[i]->GetAverageEnergy();
+
+			if (Nsec>0) {
+				double Pload=E!=0?1e-6*sqr(Structure[i-1].A*We0/E):0;
+				double Pbeam=Ib*Wb;
+
+				Line="===========Section #"+s.FormatFloat("#",Nsec)+" ======================";
+				OutputStrings->Add(Line);
+				Line="Input Power = "+s.FormatFloat("#0.0000",P0)+" MW";
+				OutputStrings->Add(Line);
+			   /*	Line="Beam Power = "+s.FormatFloat("#0.0000",Pbeam)+" MW";
+				OutputStrings->Add(Line);
+				Line="Beam Energy = "+s.FormatFloat("#0.0000",Wb)+" MeV";
+				OutputStrings->Add(Line);   */
+				Line="Beam Energy Gain = "+s.FormatFloat("#0.0000",Wb-Wb0)+" MeV";
+				OutputStrings->Add(Line);
+				Line="Beam Power Gain = "+s.FormatFloat("#0.0000",Pbeam-Pbeam0)+" MW";
+				OutputStrings->Add(Line);
+				Line="Load Power = "+s.FormatFloat("#0.0000",Pload)+" MW";
+				OutputStrings->Add(Line);
+				Line="Loss Power = "+s.FormatFloat("#0.0000",P0-(Pbeam-Pbeam0+Pload))+" MW";
+				OutputStrings->Add(Line);
+			}
+
+			Pbeam0=Ib*Wb;
+			P0=1e-6*Structure[i].P;
+			Wb0=Wb;
 			Nsec++;
-			Line="=======Section #"+s.FormatFloat("#",Nsec)+" ================";
-			OutputStrings->Add(Line);
 		}
 	}
-	Line="Beam Power = "+s.FormatFloat("#0.0000",Result.BeamPower)+" MW";
-	OutputStrings->Add(Line);
-	Line="Beam Power Gain = "+s.FormatFloat("#0.0000",Result.BeamPower-Pin)+" MW";
-	OutputStrings->Add(Line);
-    Line="Load Power = "+s.FormatFloat("#0.0000",Result.LoadPower)+" MW";
-    OutputStrings->Add(Line);
-    Line="Loss Power = "+s.FormatFloat("#0.0000",Pw)+" MW";
-	OutputStrings->Add(Line);
-	OutputStrings->Add("==========================================");
+	OutputStrings->Add("========================================");
 
 
     #ifndef RSLINAC
