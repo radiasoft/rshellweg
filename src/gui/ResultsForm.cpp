@@ -551,7 +551,7 @@ void TResForm::DrawLongtSpace()
 			}
 		}
 	}
-	//BeamChart->ExchangeSeries(1,0);
+	BeamChart->ExchangeSeries(1,0);
 
 }
 //---------------------------------------------------------------------------
