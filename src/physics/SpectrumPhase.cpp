@@ -120,8 +120,7 @@ void TSpectrumPhase::MakePhaseSpectrum()
 		xRMSold=SpectrumPhase[j].xRMS;
 		SpectrumPhase[j].xAv=(xAvOld*(SpectrumPhase[j].N-1)+r)/SpectrumPhase[j].N;
 		SpectrumPhase[j].xRMS=sqrt(((xRMSold*xRMSold+xAvOld*xAvOld)*(SpectrumPhase[j].N-1)+r*r-
-		                             SpectrumPhase[j].xAv*SpectrumPhase[j].xAv*SpectrumPhase[j].N)/
-								   SpectrumPhase[j].N);
+		                            SpectrumPhase[j].xAv*SpectrumPhase[j].xAv*SpectrumPhase[j].N)/SpectrumPhase[j].N);
     }
     for (int i=0;i<Nbars;i++)
         SpectrumPhase[i].P=1.0*SpectrumPhase[i].N/Nparticle;

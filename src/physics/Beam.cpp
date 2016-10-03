@@ -868,7 +868,7 @@ double TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, bool SpectrumO
 //	         fprintf(Fout,"          %d    %g     %d     %g       %g\n",
 //			         i,180/pi*SpectrumPhase[i].phase*lmb,SpectrumPhase[i].N,SpectrumPhase[i].xAv*lmb,SpectrumPhase[i].xRMS*lmb);
 //	    }
-//        fclose(Fout);  
+ //       fclose(Fout);  
 //	}
     delete[] SpectrumPhase;   
 
