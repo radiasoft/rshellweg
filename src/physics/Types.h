@@ -154,9 +154,14 @@ struct TSplineCoef
 struct TSpectrumBar
 {
     double x;
+    double phase;
     int N;
     double y;  //envelope
     double P;
+	double xAv;
+	double xRMS;
+	double yAv;
+	double yRMS;
 };
 struct TIntegration
 {

@@ -4,6 +4,7 @@
 #pragma hdrstop
 
 #include "BeamSolver.h"
+
 //---------------------------------------------------------------------------
 __fastcall TBeamSolver::TBeamSolver(AnsiString UserIniPath)
 {
@@ -1880,9 +1881,10 @@ void TBeamSolver::Abort()
 //---------------------------------------------------------------------------
 void TBeamSolver::Integrate(int Si, int Sj)
 {
+
     double Rb=0,Lb=0,Fb=0,gamma=1,Mr=0,phic=0,Icur=0;
     TParticle *Particle=Beam[Si]->Particle;
-
+	
     phic=Beam[Si]->iGetAveragePhase(Par[Sj],K[Sj]);
     Par[Sj].SumSin=0;
     Par[Sj].SumCos=0;
@@ -1892,9 +1894,24 @@ void TBeamSolver::Integrate(int Si, int Sj)
     gamma=Beam[Si]->iGetAverageEnergy(Par[Sj],K[Sj]);
     Par[Sj].gamma=gamma;
 
-    Lb=Beam[Si]->iGetBeamLength(Par[Sj],K[Sj])/2;
+//    if (((Si == 0) && (Sj == 0)) || ((Si == 1048) && (Sj == 0))) {
+//         Lb=Beam[Si]->iGetBeamLength(Par[Sj],K[Sj],true)/2;
+//	} else {
+         Lb=Beam[Si]->iGetBeamLength(Par[Sj],K[Sj],false)/2;
+//	}
     Fb=Lb*2*pi/lmb;
-    Rb=Beam[Si]->iGetBeamRadius(Par[Sj],K[Sj]);
+
+//    if (((Si == 0) && (Sj == 0)) || ((Si == 1048) && (Sj == 0))) {
+//        Rb=Beam[Si]->iGetBeamRadius(Par[Sj],K[Sj],true);
+//	} else{
+        Rb=Beam[Si]->iGetBeamRadius(Par[Sj],K[Sj],false);
+//	}
+//    FILE *F;
+//	if (Sj == 0) {
+//         F=fopen("yeDebug.log","a");
+//         fprintf(F,"Integration (after iGetBeamRadius): Si=%d, b(cm)=%g,  Fb=%g\n",Si,100*Rb,Fb);
+//         fclose(F); 
+//    }	
     
     Icur=I;//*Lb/lmb;   
 

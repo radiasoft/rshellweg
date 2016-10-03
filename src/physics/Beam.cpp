@@ -510,10 +510,16 @@ TSpectrumBar *TBeam::GetSpectrum(bool Smooth,double *X,double& Xav,double& dX,bo
     TSpectrum *Spectrum;
     Spectrum=new TSpectrum;
 
+	
     /*if (Nliv==997)
         Sleep(50);   */
+    
+	Spectrum->SetMesh(X,Nbars,Nliv);
+ //   FILE *F;
+ //   F=fopen("yeDebug.log","a");
+ //   fprintf(F,"GetSpectrum: Nbars=%d, Nliv=%d, width=%d\n",Nbars,Nliv,width);
+ //   fclose(F);  
 
-    Spectrum->SetMesh(X,Nbars,Nliv);
 
     //if (Xav!=NULL)
         Xav=Spectrum->GetAverage();
@@ -524,13 +530,56 @@ TSpectrumBar *TBeam::GetSpectrum(bool Smooth,double *X,double& Xav,double& dX,bo
 
     S=Spectrum->GetSpectrum(Smooth && dX!=0);
     SpectrumArray=new TSpectrumBar[Nbars];
-    for (int i=0;i<Nbars;i++)
-        SpectrumArray[i]=S[i];
+    for (int i=0;i<Nbars;i++) {
+         SpectrumArray[i]=S[i];
+//         F=fopen("yeDebug.log","a");
+//         fprintf(F,"Spectrum (i,S[i]): %d, %g\n",i,S[i]);
+//         fclose(F);  
+	}
 
     delete[] X;
     delete Spectrum;
 
     return SpectrumArray;
+}
+//---------------------------------------------------------------------------
+TSpectrumBar *TBeam::GetPhaseSpectrum(bool Smooth,double *Radius,double *Phase,double& FavPhase,double& dPhase,bool width)
+{
+    TSpectrumBar *Sphase,*SpectrumPhaseArray;
+    TSpectrumPhase *SpectrumPhase;
+    SpectrumPhase=new TSpectrumPhase;
+
+	
+    /*if (Nliv==997)
+        Sleep(50);   */
+    
+	SpectrumPhase->SetPhaseMesh(Radius,Phase,Nbars,Nliv);
+ //   FILE *F;
+ //   F=fopen("yeDebug.log","a");
+ //   fprintf(F,"GetSpectrum: Nbars=%d, Nliv=%d, width=%d\n",Nbars,Nliv,width);
+ //   fclose(F);  
+
+
+    //if (Xav!=NULL)
+        FavPhase=SpectrumPhase->GetPhaseAverage();
+    if (width)
+        dPhase=SpectrumPhase->GetPhaseWidth();
+    else
+        dPhase=SpectrumPhase->GetPhaseSquareDeviation();
+
+    Sphase=SpectrumPhase->GetPhaseSpectrum(Smooth && dPhase!=0);
+    SpectrumPhaseArray=new TSpectrumBar[Nbars];
+    for (int i=0;i<Nbars;i++) {
+         SpectrumPhaseArray[i]=Sphase[i];
+//         F=fopen("yeDebug.log","a");
+//         fprintf(F,"Spectrum (i,S[i]): %d, %g\n",i,S[i]);
+//         fclose(F);  
+	}
+
+    delete[] Phase;
+    delete SpectrumPhase;
+
+    return SpectrumPhaseArray;
 }
 //---------------------------------------------------------------------------
 TSpectrumBar *TBeam::GetEnergySpectrum(bool Smooth,double& Wav,double& dW)
@@ -667,7 +716,7 @@ double TBeam::GetBeamRadius()
         }
     }
 
-    Spectrum=GetSpectrum(false,R,Rav,dR,true);
+    Spectrum=GetSpectrum(false,R,Rav,dR,false);
     delete[] Spectrum;
  // delete[] R;
     return dR*lmb;
@@ -765,16 +814,20 @@ double TBeam::iGetAverageEnergy(TIntParameters& Par,TIntegration *I)
     return gamma;
 }
 //---------------------------------------------------------------------------
-double TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I)
+double TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, bool SpectrumOutput)
 {
     double L=1,Fmin=1e32,Fmax=-1e32;
     int j=0;
 
     double *F,Fav=0,dF=0;
-    TSpectrumBar *Spectrum;
+	double phi=0;
+	double *R;
+	double r=0;
+	double FavPhase=0,dPhase=0;
+    TSpectrumBar *SpectrumPhase;
     for (int i=0;i<Np;i++){
         if (Particle[i].lost==LIVE){
-            double phi=Particle[i].phi+I[i].phi*Par.h;
+            phi=Particle[i].phi+I[i].phi*Par.h;
            /*   if (phi<=HellwegTypes::DegToRad(MinPhase) || phi>=HellwegTypes::DegToRad(MaxPhase) )
                 Particle[i].lost=PHASE_LOST; */
         }
@@ -782,13 +835,16 @@ double TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I)
 
     CountLiving();
 
-    //F=new double[Nliv];
+    F=new double[Nliv];
+    R=new double[Nliv];
     for (int i=0;i<Np;i++){
         if (Particle[i].lost==LIVE){
-       /*       double phi=Particle[i].phi+I[i].phi*Par.h;
+            phi=Particle[i].phi+I[i].phi*Par.h;
+            r=Particle[i].x+I[i].r*Par.h;
             F[j]=phi;
-            j++; */
-            double phi=Particle[i].phi+I[i].phi*Par.h;
+			R[j]=r;
+            j++; 
+//            double phi=Particle[i].phi+I[i].phi*Par.h;
             if (phi>Fmax)
                 Fmax=phi;
             if (phi<Fmin)
@@ -801,6 +857,20 @@ double TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I)
     delete[] Spectrum;    */
     dF=mod(Fmax-Fmin);
     L=dF*lmb/(2*pi);
+	
+    SpectrumPhase=GetPhaseSpectrum(false,R,F,FavPhase,dPhase,false);
+//	if (SpectrumOutput) {
+//        FILE *Fout;
+//        Fout=fopen("yeDebug.log","a");
+//        fprintf(Fout,"After GetPhaseSpectrum: RavPhase=%g, dPhase=%g, lmb=%g\n             Phase Histogram:\n",
+//		        100*FavPhase, 100*dPhase,100*lmb);
+//        for (int i=0;i<100;i++){
+//	         fprintf(Fout,"          %d    %g     %d     %g       %g\n",
+//			         i,180/pi*SpectrumPhase[i].phase*lmb,SpectrumPhase[i].N,SpectrumPhase[i].xAv*lmb,SpectrumPhase[i].xRMS*lmb);
+//	    }
+//        fclose(Fout);  
+//	}
+    delete[] SpectrumPhase;   
 
     return L;
 }
@@ -835,7 +905,7 @@ double TBeam::iGetAveragePhase(TIntParameters& Par,TIntegration *I)
     return Fav;
 }
 //---------------------------------------------------------------------------
-double TBeam::iGetBeamRadius(TIntParameters& Par,TIntegration *I)
+double TBeam::iGetBeamRadius(TIntParameters& Par,TIntegration *I,bool SpectrumOutput)
 {
     double X=1;
     int j=0;
@@ -853,7 +923,17 @@ double TBeam::iGetBeamRadius(TIntParameters& Par,TIntegration *I)
         }
     }
 
-    Spectrum=GetSpectrum(false,R,Rav,dR);
+    Spectrum=GetSpectrum(false,R,Rav,dR,false);
+//    if (SpectrumOutput) {
+//        FILE *F;
+//        F=fopen("yeDebug.log","a");
+//        fprintf(F,"After GetSpectrum: Rav=%g, dR=%g, lmb=%g\n             Radius Histogram:\n",
+//		        100*Rav, 100*dR,100*lmb);
+//        for (int i=0;i<100;i++){
+//	         fprintf(F,"          %d    %g     %d\n",i,Spectrum[i].x*lmb,Spectrum[i].N);
+//	    }
+//        fclose(F);  
+//	}
     delete[] Spectrum;
 
     X=dR*lmb;

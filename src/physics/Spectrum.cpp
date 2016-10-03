@@ -72,6 +72,7 @@ void TSpectrum::SetMesh(double *X0,int Nb,int Ny)
     for (int i=0;i<Nbars;i++){
         Spectrum[i].x=Xmin+i*(Xmax-Xmin)/(Nbars-1);
         Spectrum[i].N=0;
+        Spectrum[i].P=0;
         Spectrum[i].y=0;
     }
 

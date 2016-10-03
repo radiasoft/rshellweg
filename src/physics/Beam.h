@@ -4,6 +4,7 @@
 #define BeamH
 
 #include "Spectrum.h"
+#include "SpectrumPhase.h"
 
 const int Ncoef=4;
 //---------------------------------------------------------------------------
@@ -16,6 +17,7 @@ private:
     void TwoRandomGauss(double& x1,double& x2);
     void SetParameters(double *X,TBeamParameter Par);
     TSpectrumBar *GetSpectrum(bool Smooth,double *X,double& Xav,double& dX,bool width=false);
+    TSpectrumBar *GetPhaseSpectrum(bool Smooth,double *Radius,double *Phase,double& FavPhase,double& dPhase,bool width=false);
 
 
     FILE *logFile;
@@ -54,8 +56,8 @@ public:
 	double GetMaxPhase();
 
     double iGetAverageEnergy(TIntParameters& Par,TIntegration *I);
-    double iGetBeamLength(TIntParameters& Par,TIntegration *I);
-    double iGetBeamRadius(TIntParameters& Par,TIntegration *I);
+    double iGetBeamLength(TIntParameters& Par,TIntegration *I, bool SpectrumOutput=false);
+    double iGetBeamRadius(TIntParameters& Par,TIntegration *I, bool SpectrumOutput=false);
     double iGetAveragePhase(TIntParameters& Par,TIntegration *I);
 
     double SinSum(TIntParameters& Par,TIntegration *I);
