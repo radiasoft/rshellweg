@@ -8,7 +8,10 @@
 __fastcall TSpectrumPhase::TSpectrumPhase()
 {
     Nparticle=1;
-    Nbars=1;
+//    FILE *F;
+//    F=fopen("yeDebug.log","a");
+//    fprintf(F,"__factcall TSpectrumPhase: Nslices=%d\n",Nslices);
+//    fclose(F);  
     MeshPhaseSet=false;
     SpectrumPhaseReady=false;
     AvPhaseReady=false;
@@ -19,7 +22,7 @@ __fastcall TSpectrumPhase::TSpectrumPhase()
     Dphase=0;
     Sphase=0;
 
-    SpectrumPhase=new TSpectrumBar[Nbars];
+    SpectrumPhase=new TSpectrumBar[Nslices];
 
     //logfile=fopen("spectrum.log","w");
 }
@@ -62,16 +65,24 @@ void TSpectrumPhase::SetPhaseMesh(double *R0,double *X0,int Nb,int Ny)
 {
 
     delete[] SpectrumPhase;
-    Nbars=Nb;
+    Nslices=Nb;
+//    FILE *Fout;
+//    Fout=fopen("yeDebug.log","a");
+//    fprintf(Fout,"            Nslices(SetPhaseMesh)=%d\n",Nslices);
+//    fclose(Fout); 
     Nparticle=Ny;
     Phase=X0;
 	Radius=R0;
 
-    SpectrumPhase=new TSpectrumBar[Nbars];
+    SpectrumPhase=new TSpectrumBar[Nslices];
     GetPhaseBoundaries();
 
-    for (int i=0;i<Nbars;i++){
-        SpectrumPhase[i].phase=PhaseMin+i*(PhaseMax-PhaseMin)/(Nbars-1);
+    for (int i=0;i<Nslices;i++){
+	    if (Nslices != 1) {
+            SpectrumPhase[i].phase=PhaseMin+i*(PhaseMax-PhaseMin)/(Nslices-1);
+	    } else {
+            SpectrumPhase[i].phase=PhaseMin;
+		}
         SpectrumPhase[i].N=0;
         SpectrumPhase[i].P=0;
         SpectrumPhase[i].xAv=0;
@@ -110,11 +121,15 @@ void TSpectrumPhase::MakePhaseSpectrum()
     for (int i=0;i<Nparticle;i++){
         phase=Phase[i];
 		r=Radius[i];
-        j=round((phase-PhaseMin)*(Nbars-1)/(PhaseMax-PhaseMin));
-        if (j>Nbars-1)
-            j=Nbars-1;
-        if (j<0)
-            j=0;
+		if (Nslices != 1) {
+            j=round((phase-PhaseMin)*(Nslices-1)/(PhaseMax-PhaseMin));
+            if (j>Nslices-1)
+                j=Nslices-1;
+            if (j<0)
+                j=0;
+	    } else {
+		    j=0;
+		}
         SpectrumPhase[j].N++;
 		xAvOld=SpectrumPhase[j].xAv;
 		xRMSold=SpectrumPhase[j].xRMS;
@@ -122,7 +137,7 @@ void TSpectrumPhase::MakePhaseSpectrum()
 		SpectrumPhase[j].xRMS=sqrt(((xRMSold*xRMSold+xAvOld*xAvOld)*(SpectrumPhase[j].N-1)+r*r-
 		                            SpectrumPhase[j].xAv*SpectrumPhase[j].xAv*SpectrumPhase[j].N)/SpectrumPhase[j].N);
     }
-    for (int i=0;i<Nbars;i++)
+    for (int i=0;i<Nslices;i++)
         SpectrumPhase[i].P=1.0*SpectrumPhase[i].N/Nparticle;
 
     SpectrumPhaseReady=true;
@@ -138,17 +153,17 @@ void TSpectrumPhase::MakePhaseEnvelope()
         MakePhaseSpectrum();
 
     if (!EnvelopePhaseReady){
-        for (int i=0;i<Nbars;i++)
+        for (int i=0;i<Nslices;i++)
             SpectrumPhase[i].y=SpectrumPhase[i].N;
 
         double *X_base=NULL,*Y_base=NULL,*W=NULL;      
 
-        X_base=new double[Nbars];
-        Y_base=new double[Nbars];
-        W=new double[Nbars];
+        X_base=new double[Nslices];
+        Y_base=new double[Nslices];
+        W=new double[Nslices];
 
 
-        for (int i=0;i<Nbars;i++){
+        for (int i=0;i<Nslices;i++){
             X_base[i]=SpectrumPhase[i].phase;
             Y_base[i]=SpectrumPhase[i].N;
             W[i]=SpectrumPhase[i].P+0.01;
@@ -158,9 +173,9 @@ void TSpectrumPhase::MakePhaseEnvelope()
         double p=0.8;
 
         Spline=new TSpline;
-        //Spline->MakeSmoothSpline(X_base,Y_base,Nbars,p,W);
-        Spline->MakeSmoothSpline(X_base,Y_base,Nbars,p,W);
-        for (int i=0;i<Nbars;i++){
+        //Spline->MakeSmoothSpline(X_base,Y_base,Nslices,p,W);
+        Spline->MakeSmoothSpline(X_base,Y_base,Nslices,p,W);
+        for (int i=0;i<Nslices;i++){
             //fprintf(logfile,"%f %f %f\n",Spectrum[i].x,Spectrum[i].y,Spline->F(i));
             SpectrumPhase[i].y=Spline->F(i);
         }
@@ -181,7 +196,7 @@ double TSpectrumPhase::GetPhaseAverage()
 
     if (!AvPhaseReady){
         Mphase=0;
-        for (int i=0;i<Nbars;i++)
+        for (int i=0;i<Nslices;i++)
             Mphase+=SpectrumPhase[i].P*SpectrumPhase[i].phase;
         AvPhaseReady=true;
     }
@@ -193,7 +208,7 @@ double TSpectrumPhase::GetPhaseDispersion()
     if (!DispPhaseReady){
         Dphase=0;
         GetPhaseAverage();
-        for (int i=0;i<Nbars;i++)
+        for (int i=0;i<Nslices;i++)
             Dphase+=SpectrumPhase[i].P*sqr(SpectrumPhase[i].phase-Mphase);
         DispPhaseReady=true;
     }
@@ -222,17 +237,17 @@ double TSpectrumPhase::GetPhaseWidth()
         double *X0,*Y0,Ymax=0;
         double x1=0,x2=0,y0=SpecLevel;
 
-        X0=new double [Nbars+2];
-        Y0=new double [Nbars+2];
+        X0=new double [Nslices+2];
+        Y0=new double [Nslices+2];
 
-        for (int i=0;i<Nbars;i++){
+        for (int i=0;i<Nslices;i++){
             if (SpectrumPhase[i].y>Ymax)
                 Ymax=SpectrumPhase[i].y;
         }
         if (Ymax==0)
             Ymax=1e-3;
 
-        for (int i=0;i<Nbars;i++){
+        for (int i=0;i<Nslices;i++){
             X0[i+1]=SpectrumPhase[i].phase;
             Y0[i+1]=SpectrumPhase[i].y/Ymax;
         }
@@ -240,15 +255,15 @@ double TSpectrumPhase::GetPhaseWidth()
         X0[0]=X0[1]-1e-3;
         Y0[0]=0;
 
-        X0[Nbars+1]=X0[Nbars]+1e-3;
-        Y0[Nbars+1]=0;
+        X0[Nslices+1]=X0[Nslices]+1e-3;
+        Y0[Nslices+1]=0;
 
-        for (int i=0;i<Nbars;i++){
+        for (int i=0;i<Nslices;i++){
             X0[i+1]=SpectrumPhase[i].phase;
             Y0[i+1]=SpectrumPhase[i].y/Ymax;
         }
 
-        for (int i=1;i<Nbars+2;i++){
+        for (int i=1;i<Nslices+2;i++){
             double u1=0,u2=0,w1=0,w2=0;
             if (Y0[i]>=y0){
                 u1=X0[i-1];
@@ -264,7 +279,7 @@ double TSpectrumPhase::GetPhaseWidth()
             }
         }
 
-        for (int i=Nbars+1;i>=0;i--){
+        for (int i=Nslices+1;i>=0;i--){
             double u1=0,u2=0,w1=0,w2=0;
             if (Y0[i]>=y0){
                 u1=X0[i+1];

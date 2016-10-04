@@ -17,7 +17,7 @@ private:
     void TwoRandomGauss(double& x1,double& x2);
     void SetParameters(double *X,TBeamParameter Par);
     TSpectrumBar *GetSpectrum(bool Smooth,double *X,double& Xav,double& dX,bool width=false);
-    TSpectrumBar *GetPhaseSpectrum(bool Smooth,double *Radius,double *Phase,double& FavPhase,double& dPhase,bool width=false);
+    TSpectrumBar *GetPhaseSpectrum(bool Smooth,double *Radius,double *Phase,double& FavPhase,double& dPhase, int Nslices, bool width=false);
 
 
     FILE *logFile;
@@ -56,7 +56,7 @@ public:
 	double GetMaxPhase();
 
     double iGetAverageEnergy(TIntParameters& Par,TIntegration *I);
-    double iGetBeamLength(TIntParameters& Par,TIntegration *I, bool SpectrumOutput=false);
+    double iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices, bool SpectrumOutput=false);
     double iGetBeamRadius(TIntParameters& Par,TIntegration *I, bool SpectrumOutput=false);
     double iGetAveragePhase(TIntParameters& Par,TIntegration *I);
 

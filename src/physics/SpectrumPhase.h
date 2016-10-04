@@ -12,7 +12,7 @@ class TSpectrumPhase
 private:
     FILE *logfile;
 
-    int Nbars,Nparticle;
+    int Nparticle;
     double PhaseMin,PhaseMax,*Phase,*Radius;
     double Mphase,Dphase,Sphase,dPhase;
     bool MeshPhaseSet;

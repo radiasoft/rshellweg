@@ -4,6 +4,7 @@
 #pragma hdrstop
 
 #include "Beam.h"
+// #include "Types.h"
 //---------------------------------------------------------------------------
 __fastcall TBeam::TBeam(int N)
 {
@@ -543,7 +544,7 @@ TSpectrumBar *TBeam::GetSpectrum(bool Smooth,double *X,double& Xav,double& dX,bo
     return SpectrumArray;
 }
 //---------------------------------------------------------------------------
-TSpectrumBar *TBeam::GetPhaseSpectrum(bool Smooth,double *Radius,double *Phase,double& FavPhase,double& dPhase,bool width)
+TSpectrumBar *TBeam::GetPhaseSpectrum(bool Smooth,double *Radius,double *Phase,double& FavPhase,double& dPhase,int Nslices, bool width)
 {
     TSpectrumBar *Sphase,*SpectrumPhaseArray;
     TSpectrumPhase *SpectrumPhase;
@@ -553,11 +554,11 @@ TSpectrumBar *TBeam::GetPhaseSpectrum(bool Smooth,double *Radius,double *Phase,d
     /*if (Nliv==997)
         Sleep(50);   */
     
-	SpectrumPhase->SetPhaseMesh(Radius,Phase,Nbars,Nliv);
- //   FILE *F;
- //   F=fopen("yeDebug.log","a");
- //   fprintf(F,"GetSpectrum: Nbars=%d, Nliv=%d, width=%d\n",Nbars,Nliv,width);
- //   fclose(F);  
+	SpectrumPhase->SetPhaseMesh(Radius,Phase,Nslices,Nliv);
+//    FILE *F;
+//    F=fopen("yeDebug.log","a");
+//    fprintf(F,"GetPhaseSpectrum: Nslices=%d, Nliv=%d, width=%d\n",Nslices,Nliv,width);
+//    fclose(F);  
 
 
     //if (Xav!=NULL)
@@ -568,8 +569,8 @@ TSpectrumBar *TBeam::GetPhaseSpectrum(bool Smooth,double *Radius,double *Phase,d
         dPhase=SpectrumPhase->GetPhaseSquareDeviation();
 
     Sphase=SpectrumPhase->GetPhaseSpectrum(Smooth && dPhase!=0);
-    SpectrumPhaseArray=new TSpectrumBar[Nbars];
-    for (int i=0;i<Nbars;i++) {
+    SpectrumPhaseArray=new TSpectrumBar[Nslices];
+    for (int i=0;i<Nslices;i++) {
          SpectrumPhaseArray[i]=Sphase[i];
 //         F=fopen("yeDebug.log","a");
 //         fprintf(F,"Spectrum (i,S[i]): %d, %g\n",i,S[i]);
@@ -814,7 +815,7 @@ double TBeam::iGetAverageEnergy(TIntParameters& Par,TIntegration *I)
     return gamma;
 }
 //---------------------------------------------------------------------------
-double TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, bool SpectrumOutput)
+double TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices, bool SpectrumOutput)
 {
     double L=1,Fmin=1e32,Fmax=-1e32;
     int j=0;
@@ -858,18 +859,18 @@ double TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, bool SpectrumO
     dF=mod(Fmax-Fmin);
     L=dF*lmb/(2*pi);
 	
-    SpectrumPhase=GetPhaseSpectrum(false,R,F,FavPhase,dPhase,false);
-//	if (SpectrumOutput) {
-//        FILE *Fout;
-//        Fout=fopen("yeDebug.log","a");
-//        fprintf(Fout,"After GetPhaseSpectrum: RavPhase=%g, dPhase=%g, lmb=%g\n             Phase Histogram:\n",
-//		        100*FavPhase, 100*dPhase,100*lmb);
-//        for (int i=0;i<100;i++){
-//	         fprintf(Fout,"          %d    %g     %d     %g       %g\n",
-//			         i,180/pi*SpectrumPhase[i].phase*lmb,SpectrumPhase[i].N,SpectrumPhase[i].xAv*lmb,SpectrumPhase[i].xRMS*lmb);
-//	    }
- //       fclose(Fout);  
-//	}
+    SpectrumPhase=GetPhaseSpectrum(false,R,F,FavPhase,dPhase,Nslices,false);
+	if (SpectrumOutput) {
+        FILE *Fout;
+        Fout=fopen("yeDebug.log","a");
+        fprintf(Fout,"After GetPhaseSpectrum: RavPhase=%g, dPhase=%g, lmb=%g\n             Phase Histogram:\n",
+		        100*FavPhase, 100*dPhase,100*lmb);
+        for (int i=0;i<Nslices;i++){
+	         fprintf(Fout,"          %d    %g     %d     %g       %g\n",
+			         i,180/pi*SpectrumPhase[i].phase*lmb,SpectrumPhase[i].N,SpectrumPhase[i].xAv*lmb,SpectrumPhase[i].xRMS*lmb);
+	    }
+        fclose(Fout);  
+	}
     delete[] SpectrumPhase;   
 
     return L;
@@ -929,7 +930,7 @@ double TBeam::iGetBeamRadius(TIntParameters& Par,TIntegration *I,bool SpectrumOu
 //        F=fopen("yeDebug.log","a");
 //        fprintf(F,"After GetSpectrum: Rav=%g, dR=%g, lmb=%g\n             Radius Histogram:\n",
 //		        100*Rav, 100*dR,100*lmb);
-//        for (int i=0;i<100;i++){
+//        for (int i=0;i<Nbars;i++){
 //	         fprintf(F,"          %d    %g     %d\n",i,Spectrum[i].x*lmb,Spectrum[i].N);
 //	    }
 //        fclose(F);  

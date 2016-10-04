@@ -1,9 +1,10 @@
 //---------------------------------------------------------------------------
 
-
+ 
 #pragma hdrstop
 
 #include "BeamSolver.h"
+// #include "Types.h"
 
 //---------------------------------------------------------------------------
 __fastcall TBeamSolver::TBeamSolver(AnsiString UserIniPath)
@@ -355,7 +356,8 @@ bool TBeamSolver::IsKeyWord(AnsiString& S)
         S=="CELL" ||
 		S=="CELLS" ||
 		S=="SAVE" ||
-        S=="OPTIONS"; 
+        S=="OPTIONS" ||
+		S=="SPCHARGE"; 
 	  //	S=="COMMENT";
 }
 //---------------------------------------------------------------------------
@@ -385,6 +387,8 @@ TInputParameter TBeamSolver::Parse(AnsiString& S)
 		P=OPTIONS;
 	else if (S=="SAVE")
 		P=DUMP;
+    else if (S=="SPCHARGE")
+		P=SPCHARGE;
     else if (S[1]=='!')
 		P=COMMENT;
 	return  P;
@@ -677,6 +681,21 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				}
 				ParsedStrings->Add(F);
 				break;
+			}
+			case SPCHARGE:{
+			    F="SPCHARGE ";
+				Coulomb=true;
+                if (Lines[k].N==1){
+					F=F+"\t"+Lines[k].S[0];
+//                    FILE *Fout;
+//                    Fout=fopen("yeDebug.log","a");
+//                    fprintf(Fout,"            Nslices(old)=%d\n",Nslices);
+ 				    Nslices=Lines[k].S[0].ToInt();
+//                     fprintf(Fout,"            Nslices(new)=%d\n",Nslices);
+//                  fclose(Fout); 
+				}
+				ParsedStrings->Add(F);
+				break;				
 			}
             case SOLENOID:{
                 if (Lines[k].N==3){
@@ -1894,10 +1913,14 @@ void TBeamSolver::Integrate(int Si, int Sj)
     gamma=Beam[Si]->iGetAverageEnergy(Par[Sj],K[Sj]);
     Par[Sj].gamma=gamma;
 
+//    FILE *F;
+//    F=fopen("yeDebug.log","a");
+//    fprintf(F,"Integration (before iGetBeamLength): Nslices=%d\n",Nslices);
+//    fclose(F); 
 //    if (((Si == 0) && (Sj == 0)) || ((Si == 1048) && (Sj == 0))) {
-//         Lb=Beam[Si]->iGetBeamLength(Par[Sj],K[Sj],true)/2;
+//         Lb=Beam[Si]->iGetBeamLength(Par[Sj],K[Sj],Nslices,true)/2;
 //	} else {
-         Lb=Beam[Si]->iGetBeamLength(Par[Sj],K[Sj],false)/2;
+         Lb=Beam[Si]->iGetBeamLength(Par[Sj],K[Sj],Nslices,false)/2;
 //	}
     Fb=Lb*2*pi/lmb;
 
