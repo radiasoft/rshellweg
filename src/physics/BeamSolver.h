@@ -36,7 +36,7 @@ private:
     double dh;
     int Mode_N,Mode_M,Np,MaxCells,Ncells,Nmesh,Npoints,Nlim;
     int Np_beam,Nstat,Ngraph,Nbars,Nav,Nliv;
-    bool Phi_Eq,W_Eq,Reverse,Coulomb,FSolenoid,Magnetized;
+    bool Phi_Eq,W_Eq,Reverse,SpCharge,Coulomb,GWmethod,FSolenoid,Magnetized;
     TBeamType BeamType;
     TSplineType SplineType;
     //STRUCTURE
@@ -61,7 +61,6 @@ private:
     double *LinearInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
     double *SplineInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
     double *SmoothInterpolation(double *x,double *X,double *Y,int Nbase,int Nint,double p0,double *W=NULL);
-
     void GetDimensions(TCell& Cell);
 
     void Step(int Si);
@@ -89,6 +88,7 @@ public:
 
     void Abort();
     bool Stop;
+	bool NpFromFile;
     
     TBeam **Beam;
     TStructure *Structure;
@@ -99,6 +99,7 @@ public:
 
     void AppendCells(TCell& iCell,int N=1);
     void AddCells(int N=1);
+    double GaussIntegration(double r,double z,double Rb,double Lb,int component);
     TCell LastCell();
     TCell GetCell(int j);
 

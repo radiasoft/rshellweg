@@ -121,7 +121,7 @@ void TSpectrumPhase::MakePhaseSpectrum()
     for (int i=0;i<Nparticle;i++){
         phase=Phase[i];
 		r=Radius[i];
-		if (Nslices != 1) {
+		if (Nslices > 1) {
             j=round((phase-PhaseMin)*(Nslices-1)/(PhaseMax-PhaseMin));
             if (j>Nslices-1)
                 j=Nslices-1;

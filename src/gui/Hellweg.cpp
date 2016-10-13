@@ -7,8 +7,8 @@
 USEFORM("MainUnit.cpp", MainForm);
 USEFORM("GeometryForm.cpp", GeomForm);
 USEFORM("ResultsForm.cpp", ResForm);
-USEFORM("OptimizerUnit.cpp", OptimizerForm);
 USEFORM("OptimizerResults.cpp", OptForm);
+USEFORM("OptimizerUnit.cpp", OptimizerForm);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int) {
 	try {
