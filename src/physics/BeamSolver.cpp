@@ -57,6 +57,7 @@ void TBeamSolver::Initialize()
     Npoints=1;
 
     Np=1;
+	NpEnergy=0;
 	Nlim=-1;
 
 	Magnetized=false;
@@ -650,6 +651,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 	FSolenoid=false;
 	SolenoidFile=Solenoid_File;
 	BeamFile=CST_FileX;
+	EnergyFile="";
 	TError Error=ERR_NO;
 
 	bool BeamDefined=false;
@@ -682,7 +684,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				}
 				SpCharge=false;
 				Coulomb=false;
-				GWmethod=false;
+//				GWmethod=false;
 				ParsedStrings->Add(F);
 				break;
 			}
@@ -704,7 +706,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 					if (Lines[k].S[0]=="GWMETHOD") {
 				        Coulomb=false;
 				        GWmethod=true;
-					    F=F+"\t"+Lines[k].S[0];
+//					    F=F+"\t"+Lines[k].S[0];
                     } 
 					if ((Lines[k].S[0]!="COULOMB") && ((Lines[k].S[0]!="GWMETHOD"))) {					
 						return ERR_SPCHARGE;
@@ -723,11 +725,6 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 					    F=F+"\t"+Lines[k].S[1];
 					}
 				}
-/*                FILE *Fout;
-                Fout=fopen("yeDebug.log","a");
-                fprintf(Fout,"SPCHARGE: SpCharge=%d, Coulomb=%d,  GWmethod=%d, Nslices=%d\n",
-				             SpCharge,Coulomb,GWmethod,Nslices);
-                fclose(Fout); */
 				ParsedStrings->Add(F);
 				break;				
 			}
@@ -759,21 +756,40 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 			}
 
 			case BEAM:{
-                if (Lines[k].N!=6){
+                if (Lines[k].N < 4 && Lines[k].N > 6){
 					return ERR_BEAM;
 				}
-				Phi0=Lines[k].S[0].ToDouble();
+ 				Phi0=Lines[k].S[0].ToDouble();
 				dPhi=Lines[k].S[1].ToDouble();
 				Phi_Eq=(Lines[k].S[2]!="NORM");
-				W0=Lines[k].S[3].ToDouble();
-                dW=Lines[k].S[4].ToDouble();
-                W_Eq=(Lines[k].S[5]!="NORM");
-
-                F="BEAM "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4]+"\t"+Lines[k].S[5];
-				ParsedStrings->Add(F);
-				BeamDefined=true;
-				break;
-            }
+                if (Lines[k].N == 6){
+				    W0=Lines[k].S[3].ToDouble();
+                    dW=Lines[k].S[4].ToDouble();
+                    W_Eq=(Lines[k].S[5]!="NORM");
+                    NpEnergy=0;
+                    F="BEAM "+Lines[k].S[0]+" \t"+Lines[k].S[1]+" \t"+Lines[k].S[2]+" \t"+Lines[k].S[3]+" \t"+Lines[k].S[4]+" \t"+Lines[k].S[5];
+				    ParsedStrings->Add(F);
+				    BeamDefined=true;
+				    break;
+				} else {
+					if (CheckFile(Lines[k].S[3])) {
+ 					    EnergyFile=Lines[k].S[3];
+                        F="BEAM "+Lines[k].S[0]+" \t"+Lines[k].S[1]+" \t"+Lines[k].S[2]+" \t"+Lines[k].S[3];
+						NpEnergy=NumPointsInFile(EnergyFile,2);
+                        if (Lines[k].N == 5){
+					        NpEnergy=Lines[k].S[4].ToInt();
+							F += " \t"+Lines[k].S[4];
+						}
+				        ParsedStrings->Add(F);
+						BeamDefined=true;
+						break;
+					} else {
+						S="ERROR: Format of the file "+Lines[k].S[1]+" is wrong!";
+						ShowError(S);
+						return ERR_BEAM;
+					}
+				}
+		    }
 
             case CURRENT:{
 				if (Lines[k].N!=5 && Lines[k].N!=2 && Lines[k].N!=3){
@@ -786,7 +802,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 					AlphaCS=Lines[k].S[2].ToDouble();
 					BettaCS=Lines[k].S[3].ToDouble();
 					EmittanceCS=Lines[k].S[4].ToDouble();
-					F+=Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4];
+					F+=Lines[k].S[2]+"\t"+Lines[k].S[3]+" \t"+Lines[k].S[4];
 				} else if (Lines[k].N==2){
 					if (Lines[k].S[1]=="CST_X" || Lines[k].S[1]=="CST")
 						BeamFile=CST_FileX;
@@ -802,11 +818,12 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 					}
 					BeamType=CST_X;
 					NpFromFile=true;
+					Np=NumPointsInFile(BeamFile,2);
 				} else if (Lines[k].N==3){
 					if (Lines[k].S[1]=="CST_X" || Lines[k].S[1]=="CST")
 						BeamFile=CST_FileX;
 					else
-						BeamFile=Lines[k].S[1];;
+						BeamFile=Lines[k].S[1];
 
 					if (CheckFile(BeamFile))
 						BeamType=CST_X;
@@ -820,9 +837,9 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 					NpFromFile=false;
 				}
 				if (BeamType!=RANDOM)
-					F="CURRENT "+Lines[k].S[0]+" "+Lines[k].S[1];
-
-				//F="CURRENT "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2]+"\t"+Lines[k].S[3]+"\t"+Lines[k].S[4];
+					F="CURRENT "+Lines[k].S[0]+" \t"+Lines[k].S[1];
+				if (!NpFromFile)
+					F+=" \t"+Lines[k].S[2];
 				ParsedStrings->Add(F);
 				CurrentDefined=true;
 				break;
@@ -946,7 +963,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				NewCell=true;
 				PowerDefined=false;
 
-				F="DRIFT "+Lines[k].S[0]+"\t"+Lines[k].S[1];
+				F="DRIFT "+Lines[k].S[0]+" \t"+Lines[k].S[1];
 				ParsedStrings->Add(F);
 
 				Ni++;
@@ -961,7 +978,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 					if(Lines[k].N==3)
 						dF=Lines[k].S[2].ToDouble();
 					NewCell=true;
-				}else{
+				} else {
 					return ERR_COUPLER;
 				}
 
@@ -1705,11 +1722,6 @@ int TBeamSolver::CreateBeam()
 
     //Npoints=Ncells*Nmesh;
 
-    for (int i=0;i<Np_beam;i++){
-        delete Beam[i];
-    }
-    delete[] Beam;
-
     if (BeamType!=RANDOM){
 	    if (NpFromFile)
 		    Np=Beam[0]->CountCSTParticles(BeamFile);
@@ -1717,6 +1729,17 @@ int TBeamSolver::CreateBeam()
             return ERR_CURRENT;
 		}
     }
+
+	if (NpEnergy != 0) {
+	    if (NpEnergy != Np) { 
+            return ERR_NUMBPARTICLE;
+		}
+	}
+
+   for (int i=0;i<Np_beam;i++){
+        delete Beam[i];
+    }
+    delete[] Beam;
 
     Beam=new TBeam*[Npoints];
     for (int i=0;i<Npoints;i++){
@@ -1740,38 +1763,36 @@ int TBeamSolver::CreateBeam()
     }
     Beam[0]->Ib=I0;
     Np_beam=Npoints;
-
     
     for (int i=0;i<Np;i++)
         Beam[0]->Particle[i].z=Structure[0].ksi*Structure[0].lmb;
 
    /*   b0=MeVToVelocity(W0);
     db=MeVToVelocity(dW);   */
-    if (W_Eq) {
-        Beam[0]->MakeEquiprobableDistribution(W0,dW,BETTA_PAR);
-    }
-    else {
-        Beam[0]->MakeGaussDistribution(W0,dW,BETTA_PAR);
-    }
+	if (NpEnergy == 0) {
+        if (W_Eq) {
+            Beam[0]->MakeEquiprobableDistribution(W0,dW,BETTA_PAR);
+        } else {
+            Beam[0]->MakeGaussDistribution(W0,dW,BETTA_PAR);
+        }
+	} else {
+		LoadEnergyFromFile(EnergyFile,NpEnergy);
+	}
 
     for (int i=0;i<Np;i++) {
         Beam[0]->Particle[i].betta=MeVToVelocity(Beam[0]->Particle[i].betta);
     }
 
-    if (Phi_Eq) {
+    if (Phi_Eq) { 
         Beam[0]->MakeEquiprobableDistribution(HellwegTypes::DegToRad(Phi0)-Structure[0].dF,HellwegTypes::DegToRad(dPhi),PHI_PAR);
-    }
-    else {
+    } else {
         Beam[0]->MakeGaussDistribution(HellwegTypes::DegToRad(Phi0)-Structure[0].dF,HellwegTypes::DegToRad(dPhi),PHI_PAR);
     }
 
     if (BeamType==RANDOM) {
         Beam[0]->MakeGaussEmittance(AlphaCS,BettaCS,EmittanceCS);
-    }
-    else {
-		if (!Beam[0]->ReadCSTEmittance(BeamFile,Np)) {
-            return ERR_CURRENT;
-		}
+    } else {
+		Beam[0]->ReadCSTEmittance(BeamFile,Np);
     }
 
    /* if (BeamType!=CST_Y) {  //not used yet
@@ -1796,6 +1817,42 @@ int TBeamSolver::CreateBeam()
        //   Beam[0]->Particle[i].betta=MeVToVelocity(0.05);
     }           */
     return ERR_NO;
+}
+//---------------------------------------------------------------------------
+bool TBeamSolver::LoadEnergyFromFile(AnsiString &F, int NpEnergy)
+{
+	std::ifstream fs(F.c_str());
+	float enrg=0;
+	int i=0, np=0;
+	bool Success=false;
+	AnsiString S,L;
+
+	while (!fs.eof()){
+		L=GetLine(fs);
+
+		if (NumWords(L)==2){       //Check if only two numbers in the line
+			try {                  //Check if the data is really a number
+				S=ReadWord(L,1);
+				np=S.ToInt();
+				S=ReadWord(L,2);
+				enrg=S.ToDouble();
+			}
+			catch (...){
+				continue;          //Skip incorrect line
+			}
+			if (i==NpEnergy){     //if there is more data than expected
+				i++;
+				break;
+			}
+			Beam[0]->Particle[i].betta=enrg;
+			i++;
+		}
+	}
+
+	fs.close();
+
+	Success=(i==NpEnergy);
+	return Success;
 }
 //---------------------------------------------------------------------------
 int TBeamSolver::GetSolenoidPoints()
@@ -1956,7 +2013,7 @@ void TBeamSolver::Integrate(int Si, int Sj)
     double Rb=0,Lb=0,Fb=0,gamma=1,Mr=0,phic=0,Icur=0;
 	int component=0;
     TParticle *Particle=Beam[Si]->Particle;
-	
+
     phic=Beam[Si]->iGetAveragePhase(Par[Sj],K[Sj]);
     Par[Sj].SumSin=0;
     Par[Sj].SumCos=0;
@@ -1966,28 +2023,10 @@ void TBeamSolver::Integrate(int Si, int Sj)
     gamma=Beam[Si]->iGetAverageEnergy(Par[Sj],K[Sj]);
     Par[Sj].gamma=gamma;
 
-//    FILE *F;
-//    F=fopen("yeDebug.log","a");
-//    fprintf(F,"Integration (before iGetBeamLength): Nslices=%d\n",Nslices);
-//    fclose(F); 
-//    if (((Si == 0) && (Sj == 0)) || ((Si == 1048) && (Sj == 0))) {
-//         Lb=Beam[Si]->iGetBeamLength(Par[Sj],K[Sj],Nslices,true)/2;
-//	} else {
-         Lb=Beam[Si]->iGetBeamLength(Par[Sj],K[Sj],Nslices,false)/2;
-//	}
+    Lb=Beam[Si]->iGetBeamLength(Par[Sj],K[Sj],Nslices,false)/2;
     Fb=Lb*2*pi/lmb;
 
-//    if (((Si == 0) && (Sj == 0)) || ((Si == 1048) && (Sj == 0))) {
-//        Rb=Beam[Si]->iGetBeamRadius(Par[Sj],K[Sj],true);
-//	} else{
-        Rb=Beam[Si]->iGetBeamRadius(Par[Sj],K[Sj],false);
-//	}
-//    FILE *F;
-//	if (Sj == 0) {
-//         F=fopen("yeDebug.log","a");
-//         fprintf(F,"Integration (after iGetBeamRadius): Si=%d, b(cm)=%g,  Fb=%g\n",Si,100*Rb,Fb);
-//         fclose(F); 
-//    }	
+    Rb=Beam[Si]->iGetBeamRadius(Par[Sj],K[Sj],false);
     
     Icur=I;//*Lb/lmb;   
 
@@ -2018,14 +2057,10 @@ void TBeamSolver::Integrate(int Si, int Sj)
             r=(Particle[i].x+K[Sj][i].r*Par[Sj].h)*lmb;
             double V=mod(sqr(Rb)*Lb);
             double z=(phi-phic)*lmb/(2*pi);            
-/*            FILE *Fout;
-            Fout=fopen("yeDebug.log","a");
-            fprintf(Fout,"            SpCharge=%d, Coulomb=%d, GWmethod=%d\n",SpCharge,Coulomb,GWmethod);
-            fclose(Fout); */
             if (Rb!=0 && Lb!=0 && SpCharge){
 			    if (Coulomb) {
 //                    Par[Sj].Aqz=3*lmb*Mr*(phi-phic)*(Icur/Ia)/(sqr(gamma)*sqr(Rb)*Fb);
-                    Par[Sj].Aqz[i]=kFc*(3*Icur*lmb)*(Mr*z/V);  //E
+                    Par[Sj].Aqz[i]=kFc*(3*Icur*lmb)*(Mr*z/V);  //Es
                     Par[Sj].Aqz[i]*=(lmb/We0);  //A
                         
 //                    Par[Sj].Aqr=sqr(lmb)*(1-Mr)*r*lmb*(Icur/Ia)/(sqr(gamma)*sqr(Rb)*Lb);
@@ -2033,11 +2068,11 @@ void TBeamSolver::Integrate(int Si, int Sj)
                     Par[Sj].Aqr[i]*=(lmb/We0);  //A
 //                    k1F[i]:=dF_dx(bv[j-1],Beam[i,5,j-1],A[j-1],Btmp,SinSum);
 				} 
-				if (GWmethod) {
-                    Par[Sj].Aqz[i]=GaussIntegration(r,z,Rb,Lb,3);  // E
+				if (GWmethod == 1) {
+                    Par[Sj].Aqz[i]=kFc*Icur*GaussIntegration(r,z,Rb,Lb,3);  // E
                     Par[Sj].Aqz[i]*=(lmb/We0);                     // A
                     Par[Sj].Aqr[i]=GaussIntegration(r,z,Rb,Lb,1);  // E
-                    Par[Sj].Aqr[i]*=(lmb/We0);                     // A
+                    Par[Sj].Aqr[i]*=kFc*Icur*(lmb/We0);                     // A
                 }
 			}
         }
@@ -2050,18 +2085,13 @@ void TBeamSolver::Integrate(int Si, int Sj)
 //---------------------------------------------------------------------------
  double TBeamSolver::GaussIntegration(double r,double z,double Rb,double Lb,int component)
 {
-//    double ksi[5]={-0.9061798,-0.5384093,0.0,0.5384093,0.9061798};
-//    double w[5]={0.2369269,0.4786287,0.5688889,0.4786287,0.2369269};
-    double ksi[6]={-0.9324695,-0.6612094,-0.2386192,0.2386192,0.6612094,0.9324695};
-    double w[6]={0.1713245,0.3607616,0.4679139,0.4679139,0.3607616,0.1713245};
+    double ksi5[5]={-0.9061798,-0.5384093,0.0,0.5384093,0.9061798};
+    double w5[5]={0.2369269,0.4786287,0.5688889,0.4786287,0.2369269};
+    double ksi6[6]={-0.9324695,-0.6612094,-0.2386192,0.2386192,0.6612094,0.9324695};
+    double w6[6]={0.1713245,0.3607616,0.4679139,0.4679139,0.3607616,0.1713245};
 	
 	double Rb2,Lb2,d,d2,s,t,pX,pY,pZ,func,GInt;
     int i;
-	
-//    FILE *Fout;
-//    Fout=fopen("yeDebug.log","a");
-//    fprintf(Fout,"GaussIntegration: ksi[0]=%e, sqrt(ksi[0])=%e\n",ksi[0],sqrt(abs(ksi[0])));
-//    fclose(Fout);  
 	
 	Rb2=sqr(Rb);
 	Lb2=sqr(Lb);
@@ -2069,13 +2099,13 @@ void TBeamSolver::Integrate(int Si, int Sj)
 	d2=sqr(d);
 	GInt=0;
 	for (int i=0;i<6;i++) {
-	    s=d2*(1/ksi[i]-1);
+	    s=d2*(1/ksi6[i]-1);
 	    t=sqr(r)/(Rb2+s)+sqr(z)/(Lb2+s);
 		if (t <= 5) {
-		   func=sqrt(abs(ksi[i]));
-		   pX=1/sqrt((Rb2/d2-1)*ksi[i]+1);
+		   func=sqrt(abs(ksi6[i]));
+		   pX=1/sqrt((Rb2/d2-1)*ksi6[i]+1);
 		   pY=pX;
-		   pZ=1/sqrt((Lb2/d2-1)*ksi[i]+1);
+		   pZ=1/sqrt((Lb2/d2-1)*ksi6[i]+1);
 		   func *= pX*pY*pZ;
 		   if (component < 3) {
 		        func *=r*sqr(pX);
@@ -2083,7 +2113,7 @@ void TBeamSolver::Integrate(int Si, int Sj)
 		   if (component == 3) {
 		        func *=z*sqr(pZ);
 		   }
-		   GInt += .5*func*w[i]; 
+		   GInt += .5*func*w6[i]; 
 		} 
 	} 
 	return GInt;

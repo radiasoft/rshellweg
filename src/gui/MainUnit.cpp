@@ -28,15 +28,21 @@ double Trim(double x,int N)
 void TMainForm::DisplayError()
 {
     switch (ERR) {
+	    case ERR_NO : break;
 		case ERR_NOFILE:ShowMessage("ERROR: No Input File Selected");   break;
 		case ERR_OPENFILE: ShowMessage("ERROR: File Read Error");   break;
+		case ERR_COUPLER : ShowMessage("ERROR: Input File: COUPLER should have format Power,Frequency");    break;
 		case ERR_SOLENOID : ShowMessage("ERROR: Input File: SOLENOID should have format Bz,L,Z0");  break;
-		case ERR_CELL : ShowMessage("ERROR: Input File: CELL should have format Mode,betta,Field and optional: Attenuation,Aperture");  break;
-		case ERR_CELLS : ShowMessage("ERROR: Input File: CELLS should have format N,Mode,betta,Field and optional: Attenuation,Aperture");  break;
 		case ERR_BEAM : ShowMessage("ERROR: Input File: BEAM should have format Phi0,dPhi,Type,W0,dW,Type");    break;
 		case ERR_CURRENT : ShowMessage("ERROR: Input File: CURRENT should have format I0,Np,alpha,betta,emittance");    break;
 		case ERR_DRIFT : ShowMessage("ERROR: Input File: DRIFT should have format Length,Radius");  break;
-		case ERR_COUPLER : ShowMessage("ERROR: Input File: COUPLER should have format Power,Frequency");    break;
+		case ERR_CELL : ShowMessage("ERROR: Input File: CELL should have format Mode,betta,Field and optional: Attenuation,Aperture");  break;
+		case ERR_CELLS : ShowMessage("ERROR: Input File: CELLS should have format N,Mode,betta,Field and optional: Attenuation,Aperture");  break;
+		case ERR_OPTIONS : ShowMessage("ERROR: card OPTIONS is incorrect!");  break;
+		case ERR_DUMP : ShowMessage("ERROR: card DUMP is incorrect!");  break;
+		case ERR_FORMAT : ShowMessage("ERROR: incorrect format od data");  break;
+		case ERR_SPCHARGE : ShowMessage("Undefined option for card SPCHARGE"); break;
+		case ERR_NUMBPARTICLE : ShowMessage("Inconsistency in the cards BEAM and CURRENT for the number of particles in the beam"); break;
         default:ShowMessage("ERROR: Input File has a wrong format!");   break;
     }
 }
@@ -150,13 +156,16 @@ void __fastcall TMainForm::FormCanResize(TObject *Sender, int &NewWidth,
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::SolveButtonClick(TObject *Sender)
 {
+    AnsiString s,str;
+//	int Np;
+	
     bool dataReady=LoadInputData(true);
     ResultsMemo->Visible=false;
     ResultsMemo->Clear();
     ViewButton->Enabled=false;
 
     if (!dataReady){
-        ShowMessage("Error occured while reading input file! Impossible to start solver.");
+        ShowMessage("Error occurred while reading input file! Impossible to start solver.");
         return;
     }
 //    static int cnt=0;
@@ -165,14 +174,20 @@ void __fastcall TMainForm::SolveButtonClick(TObject *Sender)
     try{
         Solver->CreateGeometry();
     } catch(...){
-        ShowMessage("Error occured while creating geometry. Check the values in input file!");
+        ShowMessage("Error occurred while creating geometry. Check the values in input file!");
         return;
     }
 
     try{
-        Solver->CreateBeam();
+        ERR=Solver->CreateBeam();
+        if (ERR!=ERR_NO) {
+		    DisplayError();
+            Solver->Abort();
+            Application->Terminate();
+			return;
+		}
     }  catch(...){
-        ShowMessage("Error occured while creating beam. Check the values in input file!");
+        ShowMessage("Error occurred while creating beam. Check the values in input file!");
         return;
     }
  ///    cnt++;
@@ -185,7 +200,7 @@ void __fastcall TMainForm::SolveButtonClick(TObject *Sender)
         ResultsMemo->Visible=true;
         ViewButton->Enabled=true;
     } catch(...){
-        ShowMessage("Error occured while solving the task. Check the values in input file!");
+        ShowMessage("Error occurred while solving the task. Check the values in input file!");
         return;
     }             
 
@@ -197,20 +212,21 @@ void __fastcall TMainForm::ViewBeamButtonClick(TObject *Sender)
     bool dataReady=LoadInputData(true);
 
     if (!dataReady){
-        ShowMessage("Error occured while reading input file! Impossible to create beam.");
+        ShowMessage("Error occurred while reading input file! Impossible to create beam.");
         return;
     }
 
     try{
         Solver->CreateGeometry();
     } catch(...){
-        ShowMessage("Error occured while creating geometry. Check the values in input file!");
+        ShowMessage("Error occurred while creating geometry. Check the values in input file!");
         return;
     }
     try{
+        ShowMessage("ViewBeamButtonClick: try CreateBeam");
         Solver->CreateBeam();
     }  catch(...){
-        ShowMessage("Error occured while creating beam. Check the values in input file!");
+        ShowMessage("Error occurred while creating beam. Check the values in input file!");
         return;
     }
 
@@ -225,20 +241,21 @@ void __fastcall TMainForm::ViewGeometryButtonClick(TObject *Sender)
     bool dataReady=LoadInputData(true);
 
     if (!dataReady){
-        ShowMessage("Error occured while reading input file! Impossible to create geomentry.");
+        ShowMessage("Error occurred while reading input file! Impossible to create geomentry.");
         return;
     }
   
     try{
         Solver->CreateGeometry();
     } catch(...){
-        ShowMessage("Error occured while creating geometry. Check the values in input file!");
+        ShowMessage("Error occurred while creating geometry. Check the values in input file!");
         return;
     }
 	try{
+        ShowMessage("ViewGeometryButtonClick: try CreateBeam");
         Solver->CreateBeam();
     }  catch(...){
-        ShowMessage("Error occured while creating beam. Check the values in input file!");
+        ShowMessage("Error occurred while creating beam. Check the values in input file!");
         return;
 	}
 

@@ -11,7 +11,7 @@ const int Ncoef=4;
 class TBeam
 {
 private:
-    int Np,Nliv,Nbars;
+    int Nliv,Nbars;
     double Kernel;
     void CountLiving();
     void TwoRandomGauss(double& x1,double& x2);
@@ -30,6 +30,7 @@ public:
     double lmb,h,Cmag;
     double Ib,I0;
     bool Reverse;
+	int Np;
     
     void SetKernel(double Ker);
     void SetBarsNumber(int N);

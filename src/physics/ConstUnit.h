@@ -52,6 +52,7 @@ const char CST_FileX[]="cst_x.txt";
 const char CST_FileY[]="cst_y.txt";
 const char CST_FileR[]="cst_r.txt";
 const char Solenoid_File[]="BFIELD.txt";
+const char Energy_File[]="ENERGY_FILE.txt";
 
 //TABLES
 const int Nb12=5;

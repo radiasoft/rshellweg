@@ -74,13 +74,14 @@ __published:    // IDE-managed Components
     void __fastcall LoadResultsButtonClick(TObject *Sender);
     void __fastcall OptButtonClick(TObject *Sender);
 private:    // User declarations
-    TBeamSolver *Solver;
+//    TBeamSolver *Solver;
     void DisplayError();
     void DisplayInputData();
     bool LoadInputData(bool display_err);
     TError ERR;
     AnsiString InputFileName;
 public:     // User declarations
+    TBeamSolver *Solver;
     __fastcall TMainForm(TComponent* Owner);
 };
 //---------------------------------------------------------------------------

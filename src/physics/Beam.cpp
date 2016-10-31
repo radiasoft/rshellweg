@@ -516,12 +516,6 @@ TSpectrumBar *TBeam::GetSpectrum(bool Smooth,double *X,double& Xav,double& dX,bo
         Sleep(50);   */
     
 	Spectrum->SetMesh(X,Nbars,Nliv);
- //   FILE *F;
- //   F=fopen("yeDebug.log","a");
- //   fprintf(F,"GetSpectrum: Nbars=%d, Nliv=%d, width=%d\n",Nbars,Nliv,width);
- //   fclose(F);  
-
-
     //if (Xav!=NULL)
         Xav=Spectrum->GetAverage();
     if (width)
@@ -533,9 +527,6 @@ TSpectrumBar *TBeam::GetSpectrum(bool Smooth,double *X,double& Xav,double& dX,bo
     SpectrumArray=new TSpectrumBar[Nbars];
     for (int i=0;i<Nbars;i++) {
          SpectrumArray[i]=S[i];
-//         F=fopen("yeDebug.log","a");
-//         fprintf(F,"Spectrum (i,S[i]): %d, %g\n",i,S[i]);
-//         fclose(F);  
 	}
 
     delete[] X;
@@ -555,12 +546,6 @@ TSpectrumBar *TBeam::GetPhaseSpectrum(bool Smooth,double *Radius,double *Phase,d
         Sleep(50);   */
     
 	SpectrumPhase->SetPhaseMesh(Radius,Phase,Nslices,Nliv);
-//    FILE *F;
-//    F=fopen("yeDebug.log","a");
-//    fprintf(F,"GetPhaseSpectrum: Nslices=%d, Nliv=%d, width=%d\n",Nslices,Nliv,width);
-//    fclose(F);  
-
-
     //if (Xav!=NULL)
         FavPhase=SpectrumPhase->GetPhaseAverage();
     if (width)
@@ -572,9 +557,6 @@ TSpectrumBar *TBeam::GetPhaseSpectrum(bool Smooth,double *Radius,double *Phase,d
     SpectrumPhaseArray=new TSpectrumBar[Nslices];
     for (int i=0;i<Nslices;i++) {
          SpectrumPhaseArray[i]=Sphase[i];
-//         F=fopen("yeDebug.log","a");
-//         fprintf(F,"Spectrum (i,S[i]): %d, %g\n",i,S[i]);
-//         fclose(F);  
 	}
 
     delete[] Phase;
@@ -860,20 +842,9 @@ double TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices, b
     L=dF*lmb/(2*pi);
 	
     SpectrumPhase=GetPhaseSpectrum(false,R,F,FavPhase,dPhase,Nslices,false);
-	if (SpectrumOutput) {
-        FILE *Fout;
-        Fout=fopen("yeDebug.log","a");
-        fprintf(Fout,"After GetPhaseSpectrum: RavPhase=%g, dPhase=%g, lmb=%g\n             Phase Histogram:\n",
-		        100*FavPhase, 100*dPhase,100*lmb);
-        for (int i=0;i<Nslices;i++){
-	         fprintf(Fout,"          %d    %g     %d     %g       %g\n",
-			         i,180/pi*SpectrumPhase[i].phase*lmb,SpectrumPhase[i].N,SpectrumPhase[i].xAv*lmb,SpectrumPhase[i].xRMS*lmb);
-	    }
-        fclose(Fout);  
-	}
     delete[] SpectrumPhase;   
 
-    return L;
+    return L; 
 }
 //---------------------------------------------------------------------------
 double TBeam::iGetAveragePhase(TIntParameters& Par,TIntegration *I)
@@ -925,16 +896,6 @@ double TBeam::iGetBeamRadius(TIntParameters& Par,TIntegration *I,bool SpectrumOu
     }
 
     Spectrum=GetSpectrum(false,R,Rav,dR,false);
-//    if (SpectrumOutput) {
-//        FILE *F;
-//        F=fopen("yeDebug.log","a");
-//        fprintf(F,"After GetSpectrum: Rav=%g, dR=%g, lmb=%g\n             Radius Histogram:\n",
-//		        100*Rav, 100*dR,100*lmb);
-//        for (int i=0;i<Nbars;i++){
-//	         fprintf(F,"          %d    %g     %d\n",i,Spectrum[i].x*lmb,Spectrum[i].N);
-//	    }
-//        fclose(F);  
-//	}
     delete[] Spectrum;
 
     X=dR*lmb;
@@ -950,7 +911,8 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
     double r=0,r0=0,phi=0,bx=0,bth=0;
     double s=-1;
     double rev=1;
-    if (Reverse)
+	
+		if (Reverse)
         rev=-1;
 
     Sj=(Si+1<Ncoef)?Si+1:0;

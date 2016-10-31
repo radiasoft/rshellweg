@@ -25,7 +25,7 @@ class TBeamSolver
 private:
     //FLAGS
     bool DataReady;
-    AnsiString UserIniPath,SolenoidFile,BeamFile;
+    AnsiString UserIniPath,SolenoidFile,BeamFile,EnergyFile;
     //INITIAL PARAMETERS
     double F0,P0,I0,lmb;
     double B0,Lmag,Zmag;  //Lmag - length, Zmag -position
@@ -34,7 +34,7 @@ private:
     double Kernel,Smooth;
     double AngErr;
     double dh;
-    int Mode_N,Mode_M,Np,MaxCells,Ncells,Nmesh,Npoints,Nlim;
+    int Mode_N,Mode_M,MaxCells,Ncells,Nmesh,Npoints,Nlim;
     int Np_beam,Nstat,Ngraph,Nbars,Nav,Nliv;
     bool Phi_Eq,W_Eq,Reverse,SpCharge,Coulomb,GWmethod,FSolenoid,Magnetized;
     TBeamType BeamType;
@@ -89,6 +89,7 @@ public:
     void Abort();
     bool Stop;
 	bool NpFromFile;
+	int Np,NpEnergy;
     
     TBeam **Beam;
     TStructure *Structure;
@@ -105,6 +106,7 @@ public:
 
     void SaveToFile(AnsiString& Fname);
     bool LoadFromFile(AnsiString& Fname);
+    bool LoadEnergyFromFile(AnsiString& Fname, int NpEnergy);
 
     int CreateBeam();
     int CreateGeometry();
