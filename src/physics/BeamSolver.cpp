@@ -2059,20 +2059,36 @@ void TBeamSolver::Integrate(int Si, int Sj)
             double z=(phi-phic)*lmb/(2*pi);            
             if (Rb!=0 && Lb!=0 && SpCharge){
 			    if (Coulomb) {
-//                    Par[Sj].Aqz=3*lmb*Mr*(phi-phic)*(Icur/Ia)/(sqr(gamma)*sqr(Rb)*Fb);
-                    Par[Sj].Aqz[i]=kFc*(3*Icur*lmb)*(Mr*z/V);  //Es
+//                    Par[Sj].Aqz=3*lmb*Mr*(phi-phic)*(Icur/Ia)/(sqr(gamma)*sqr(Rb)*Fb);     // old expression
+//                    Par[Sj].Aqz[i]=kFc*(3*Icur*lmb)*(Mr*z/V);                              // Es; original Hellweg expression
+                    Par[Sj].Aqz[i]=(-2)*2*kFc*(3*Icur*lmb)*(Mr*z/V);                         // Es; corrected (YuE) expression
                     Par[Sj].Aqz[i]*=(lmb/We0);  //A
                         
-//                    Par[Sj].Aqr=sqr(lmb)*(1-Mr)*r*lmb*(Icur/Ia)/(sqr(gamma)*sqr(Rb)*Lb);
-                    Par[Sj].Aqr[i]=kFc*(3*Icur*lmb/sqr(gamma))*(0.5*(1-Mr)*r/V);  //E
+//                    Par[Sj].Aqr=sqr(lmb)*(1-Mr)*r*lmb*(Icur/Ia)/(sqr(gamma)*sqr(Rb)*Lb);   // old expression
+//                    Par[Sj].Aqr[i]=kFc*(3*Icur*lmb/sqr(gamma))*(0.5*(1-Mr)*r/V);           // E; original Hellweg expression
+                    Par[Sj].Aqr[i]=2*kFc*(3*Icur*lmb)/gamma*(0.5*(1+Mr)*r/V);                // E; corrected (YuE) expression
                     Par[Sj].Aqr[i]*=(lmb/We0);  //A
+/*                    FILE *Fout;
+					if ((i == 0) || (i == 999)) {
+					    Fout=fopen("yeDebug_SK.log","a");
+					    fprintf(Fout,"TBeamSolver::Integrate (Coulomb): i=%d, Si=%d, Sj=%d, Rb=%g, Lb=%g, r=%g, z=%g, Aqz[i]=%g, Aqr[i]=%g\n",
+					            i,Si,Sj,Rb,Lb,r,z,Par[Sj].Aqz[i],Par[Sj].Aqr[i]);
+					    fclose(Fout);  
+				    } */
 //                    k1F[i]:=dF_dx(bv[j-1],Beam[i,5,j-1],A[j-1],Btmp,SinSum);
 				} 
-				if (GWmethod == 1) {
-                    Par[Sj].Aqz[i]=kFc*Icur*GaussIntegration(r,z,Rb,Lb,3);  // E
+				if (GWmethod == true) {
+                    Par[Sj].Aqz[i]=kFc*Icur*lmb*GaussIntegration(r,z,Rb,Lb,3);  // E;  (YuE) expression
                     Par[Sj].Aqz[i]*=(lmb/We0);                     // A
-                    Par[Sj].Aqr[i]=GaussIntegration(r,z,Rb,Lb,1);  // E
-                    Par[Sj].Aqr[i]*=kFc*Icur*(lmb/We0);                     // A
+                    Par[Sj].Aqr[i]=kFc*Icur*lmb*GaussIntegration(r,z,Rb,Lb,1);  // E;  (YuE) expression
+                    Par[Sj].Aqr[i]*=(lmb/We0);                     // A
+/*                    FILE *Fout;
+					if ((i == 0) || (i == 999)) {
+					    Fout=fopen("yeDebug_GW.log","a");
+					    fprintf(Fout,"TBeamSolver::Integrate (GWmethod): i=%d, Si=%d, Sj=%d, Rb=%g, Lb=%g, r=%g, z=%g, Aqz[i]=%g, Aqr[i]=%g\n",
+					            i,Si,Sj,Rb,Lb,r,z,Par[Sj].Aqz[i],Par[Sj].Aqr[i]);
+					    fclose(Fout);  
+				    }  */
                 }
 			}
         }
@@ -2085,12 +2101,35 @@ void TBeamSolver::Integrate(int Si, int Sj)
 //---------------------------------------------------------------------------
  double TBeamSolver::GaussIntegration(double r,double z,double Rb,double Lb,int component)
 {
-    double ksi5[5]={-0.9061798,-0.5384093,0.0,0.5384093,0.9061798};
-    double w5[5]={0.2369269,0.4786287,0.5688889,0.4786287,0.2369269};
-    double ksi6[6]={-0.9324695,-0.6612094,-0.2386192,0.2386192,0.6612094,0.9324695};
-    double w6[6]={0.1713245,0.3607616,0.4679139,0.4679139,0.3607616,0.1713245};
+/*    double psi5[5]  ={-0.9061798,-0.5384093,0.0,0.5384093,0.9061798};
+    double w5[5]    ={0.2369269,0.4786287,0.5688889,0.4786287,0.2369269};
+    double psi6[6]  ={-0.9324695,-0.6612094,-0.2386192,0.2386192,0.6612094,0.9324695};
+    double w6[6]    ={0.1713245,0.3607616,0.4679139,0.4679139,0.3607616,0.1713245};
+    double psi7[7]  ={-0.9491079,-0.7415312,-0.4058452,0.0,      0.4058452,0.7415312,0.9491079};
+    double w7[7]    ={ 0.1294850, 0.2797054, 0.3818301,0.4179592,0.3818301,0.2797054,0.1294850};
+    double psi8[8]  ={-0.9602899,-0.7966665,-0.5255324,-0.1834346,0.1834346,0.5255324,0.7966665,0.9602899};
+    double w8[8]    ={ 0.1012285, 0.2223810, 0.3137066, 0.3626838,0.3626838,0.3137066,0.2223810,0.1012285};
+    double psi9[9]  ={-0.9681602,-0.8360311,-0.6133714,-0.3242534,0.0,      0.3242534,0.6133714,0.8360311,0.9681602};
+    double w9[9]    ={ 0.0812744, 0.1806482, 0.2606107, 0.3123471,0.3302394,0.3123471,0.2606107,0.1806482,0.0812744};
+    double psi10[10]={-0.9739065,-0.8650634,-0.6794096,-0.4333954,-0.1488743,0.1488743,0.4333954,0.6794096,0.8650634,0.9739065};
+    double w10[10]  ={ 0.0666713, 0.1494513, 0.2190864, 0.2692602, 0.2955242,0.2955242,0.2692602,0.2190864,0.1494513,0.0666713};
+    double psi11[11]={-0.9782287,-0.8870626,-0.7301520,-0.5190961,-0.2695432,0.0,
+                       0.2695432, 0.5190961, 0.7301520, 0.8870626, 0.9782287};
+    double w11[11]  ={ 0.0556686, 0.1255804, 0.1862902, 0.2551938, 0.2628045,0.2729251,
+                       0.2628045, 0.2331938, 0.1862902, 0.1255804, 0.0556686};
+*/
+	double psi12[12]={-0.9815606,-0.9041173,-0.7699027,-0.5873180,-0.3678315,-0.1253334,
+                       0.1253334, 0.3678315, 0.5873180, 0.7699027, 0.9041173, 0.9815606};
+    double w12[12]  ={ 0.0471753, 0.1069393, 0.1600783, 0.2031674, 0.2334925, 0.2491470,
+                       0.2491470, 0.2334925, 0.2031674, 0.1600783, 0.1069393, 0.0471753};
+/*					   
+    double psi16[16]={-0.9894009,-0.9445750,-0.8656312,-0.7554044,-0.6178762,-0.4580168,-0.2816036,-0.0950125,
+                       0.0950125, 0.2816036, 0.4580168, 0.6178762, 0.7554044, 0.8656312, 0.9445750, 0.9894009};
+    double w16[16]  ={ 0.0271525, 0.0622535, 0.0951585, 0.1246290, 0.1495960, 0.1691565, 0.1826034, 0.1894506,
+                       0.1894506, 0.1826034, 0.1691565, 0.1495960, 0.1246290, 0.0951585, 0.0622535, 0.0271525};
+*/
 	
-	double Rb2,Lb2,d,d2,s,t,pX,pY,pZ,func,GInt;
+	double Rb2,Lb2,d,d2,ksi,s,t,func,GInt;
     int i;
 	
 	Rb2=sqr(Rb);
@@ -2098,22 +2137,21 @@ void TBeamSolver::Integrate(int Si, int Sj)
 	d=pow(Rb2*Lb,1/3);
 	d2=sqr(d);
 	GInt=0;
-	for (int i=0;i<6;i++) {
-	    s=d2*(1/ksi6[i]-1);
+	for (int i=0;i<11;i++) {
+	    ksi=.5*(psi12[i]+1);
+	    s=d2*(1/ksi-1);
 	    t=sqr(r)/(Rb2+s)+sqr(z)/(Lb2+s);
 		if (t <= 5) {
-		   func=sqrt(abs(ksi6[i]));
-		   pX=1/sqrt((Rb2/d2-1)*ksi6[i]+1);
-		   pY=pX;
-		   pZ=1/sqrt((Lb2/d2-1)*ksi6[i]+1);
-		   func *= pX*pY*pZ;
+//           func=sqrt(ksi/((Lb2/d2-1)*ksi+1))/abs(((Rb2/d2-1)*ksi+1));
+           func=sqrt(ksi/((Lb2/d2-1)*ksi+1))/((Rb2/d2-1)*ksi+1);
 		   if (component < 3) {
-		        func *=r*sqr(pX);
+//		        GInt +=.5*r*w12[i]*func/abs(((Rb2/d2-1)*ksi+1));
+		        GInt +=.5*r*w12[i]*func/((Rb2/d2-1)*ksi+1);
 		   }
 		   if (component == 3) {
-		        func *=z*sqr(pZ);
+//		        GInt +=.5*z*w12[i]*func/abs(((Lb2/d2-1)*ksi+1));
+		        GInt +=.5*z*w12[i]*func/((Lb2/d2-1)*ksi+1);
 		   }
-		   GInt += .5*func*w6[i]; 
 		} 
 	} 
 	return GInt;
