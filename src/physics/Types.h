@@ -72,7 +72,7 @@ struct TGauss{
 struct TSphere{
 	double Rcath;
 	double Rsph;
-	double sigma;
+	double kT;
 };
 
 struct TEllipse{
@@ -430,6 +430,20 @@ double RandomRayleigh()
 		Ran1=1e-5;
 
 	xx=sqrt(-2*ln(1-Ran1));
+
+	return xx;
+}
+//---------------------------------------------------------------------------
+double RandomCos()
+{
+	double Ran1=0,xx=0;
+
+	Ran1=((double)rand() / ((double)RAND_MAX + 1));
+
+	if (Ran1<1e-5)
+		Ran1=1e-5;
+
+	xx=asin(sqrt(Ran1));
 
 	return xx;
 }

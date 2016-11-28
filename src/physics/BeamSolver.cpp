@@ -821,7 +821,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				        Coulomb=false;
 				        GWmethod=true;
 						Nslices=Lines[k].S[1].ToInt();
-						F+=AddLines(Lines,0,1);
+						F+=AddLines(&Lines[k],0,1);
 					  /*  F=F+"\t"+Lines[k].S[0];
 						F=F+"\t"+Lines[k].S[1];     */
 					}
@@ -835,7 +835,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                     Lmag=Lines[k].S[1].ToDouble();
                     Zmag=Lines[k].S[2].ToDouble();
 					F="SOLENOID";
-					F+=AddLines(Lines,0,2);
+					F+=AddLines(&Lines[k],0,2);
 				   //	+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2];
                     ParsedStrings->Add(F);
 				}else if (Lines[k].N==1) {
@@ -885,7 +885,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
                             	AnsiString FileName=Lines[k].S[1];
 								if (CheckFile(FileName)) {
 									BeamPar.RFile=FileName;
-									F+=AddLines(Lines,0,1);
+									F+=AddLines(&Lines[k],0,1);
 								   //	F="BEAM "+KeyWord+" \t"+FileName;
 									BeamPar.ZFile=FileName;
 									BeamPar.ZBeamType=NORM_1D;
@@ -893,7 +893,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 									if (Lines[k].N > 3) {
 										BeamPar.ZNorm.mean=DegreeToRad(Lines[k].S[2].ToDouble());
 										BeamPar.ZNorm.limit=DegreeToRad(Lines[k].S[3].ToDouble());
-										F+=AddLines(Lines,2,3);
+										F+=AddLines(&Lines[k],2,3);
 									  //	F+=" \t"+Lines[k].S[2]+" \t"+Lines[k].S[3];
 										if (Lines[k].N > 4) {
 											BeamPar.ZNorm.sigma=DegreeToRad(Lines[k].S[4].ToDouble());
@@ -921,7 +921,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 								BeamPar.ZFile=FileName;
 
 								//F="BEAM "+KeyWord+" \t"+FileName;
-								F+=AddLines(Lines,0,1);
+								F+=AddLines(&Lines[k],0,1);
 
 								if (Lines[k].N == 3){
 									if (Lines[k].S[2]=="COMPRESS") {
@@ -989,7 +989,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 							if (CheckFile(FileName)) {
 								BeamPar.RFile=FileName;
 								//F="BEAM "+KeyWord+" \t"+FileName+" \t";
-								F+=AddLines(Lines,0,1);
+								F+=AddLines(&Lines[k],0,1);
 							} else {
 								S="ERROR: The file "+FileName+" is missing!";
 								ShowError(S);
@@ -1022,7 +1022,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 								BeamPar.YTwiss=BeamPar.XTwiss;
 							 //	Zpos=4;
 								//F="BEAM";
-								F+=AddLines(Lines,0,3);
+								F+=AddLines(&Lines[k],0,3);
 								//+Lines[k].S[0]+" \t"+Lines[k].S[1]+" \t"+Lines[k].S[2]+" \t"+Lines[k].S[3]+" \t";
 							}
 							break;
@@ -1041,36 +1041,36 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 								BeamPar.YTwiss.beta=Lines[k].S[5].ToDouble();
 								BeamPar.YTwiss.epsilon=Lines[k].S[6].ToDouble();
 								Zpos=7;
-								F+=AddLines(Lines,0,6);
+								F+=AddLines(&Lines[k],0,6);
 								//F="BEAM "+Lines[k].S[0]+" \t"+Lines[k].S[1]+" \t"+Lines[k].S[2]+" \t"+Lines[k].S[3]+" \t"+Lines[k].S[4]+" \t"+Lines[k].S[5]+" \t"+Lines[k].S[6]+" \t";
 							}
 							break;
 						}
 						case SPH_2D: {
-							if (Nr>2){
+							if (Nr>3){
 								S="Too many Spherical parameters in BEAM line!";
 								ShowError(S);
 								return ERR_BEAM;
 							}
 							else{
 								BeamPar.Sph.Rcath=Lines[k].S[1].ToDouble()/100; //Rcath
-								F+=AddLines(Lines,0,1);
+								F+=AddLines(&Lines[k],0,1);
 								//F="BEAM "+Lines[k].S[0]+" \t"+Lines[k].S[1];
 							   //	Zpos=2;
 								if (Nr>1) {
 									BeamPar.Sph.Rsph=Lines[k].S[2].ToDouble()/100;  //Rsph
 									F+=" \t"+Lines[k].S[1];
 									//Zpos=3;
-								  /*	if (Nr>2){
-										BeamPar.Sph.sigma=Lines[k].S[3].ToDouble()/100; //not related
+									if (Nr>2){
+										BeamPar.Sph.kT=Lines[k].S[3].ToDouble(); //kT
 										F+=" \t"+Lines[k].S[1];
 									 //	Zpos=4;
 									 } else
-										BeamPar.Sph.sigma=100*BeamPar.Sph.Rcath;   */
+										BeamPar.Sph.kT=0;
 								} else {
 									 BeamPar.Sph.Rsph=0;
-									 BeamPar.Sph.sigma=100*BeamPar.Sph.Rcath;
-                                }
+									 BeamPar.Sph.kT=0;
+								}
 							   //	BeamPar.YNorm=BeamPar.XNorm;
 							}
 							break;
@@ -1083,12 +1083,12 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 							}
 							else{
 								BeamPar.Ell.ax=Lines[k].S[1].ToDouble()/100; //x
-								F+=AddLines(Lines,0,1);
+								F+=AddLines(&Lines[k],0,1);
 								if (Nr>1) {
 									BeamPar.Ell.by=Lines[k].S[2].ToDouble()/100; //y
 									F+=" \t"+Lines[k].S[2];
 									if (Nr>2){
-										BeamPar.Ell.phi=-DegreeToRad(Lines[k].S[3].ToDouble()); //phi
+										BeamPar.Ell.phi=DegreeToRad(Lines[k].S[3].ToDouble()); //phi
 										F+=" \t"+Lines[k].S[3];
 										if (Nr>3){
 											BeamPar.Ell.h=Lines[k].S[4].ToDouble(); //h
@@ -1130,7 +1130,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 								AnsiString FileName=Lines[k].S[Zpos+1];
 								if (CheckFile(FileName)) {
 									BeamPar.ZFile=FileName;
-									F+=AddLines(Lines,Zpos,Zpos+1);
+									F+=AddLines(&Lines[k],Zpos,Zpos+1);
 								   //	F+=KeyWord+" \t"+FileName+" \t";
 							   //	BeamDefined=true;
 								} else {
@@ -1140,7 +1140,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 								}
 								BeamPar.ZNorm.mean=DegreeToRad(Lines[k].S[Zpos+2].ToDouble());
 								BeamPar.ZNorm.limit=DegreeToRad(Lines[k].S[Zpos+3].ToDouble());
-								F+=AddLines(Lines,Zpos+2,Zpos+3);
+								F+=AddLines(&Lines[k],Zpos+2,Zpos+3);
 								//F+=Lines[k].S[Zpos+2]+" \t"+Lines[k].S[Zpos+3];
 								if (Nz == 3) {
 									BeamPar.ZNorm.sigma=100*BeamPar.ZNorm.limit;
@@ -1160,7 +1160,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 								AnsiString FileName=Lines[k].S[Zpos+1];
 								if (CheckFile(FileName)) {
 									BeamPar.ZFile=FileName;
-									F+=AddLines(Lines,Zpos,Zpos+1);
+									F+=AddLines(&Lines[k],Zpos,Zpos+1);
 								   //	F+=KeyWord+" \t"+FileName;
 							   //	BeamDefined=true;
 								} else {
@@ -1183,7 +1183,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 										BeamPar.ZNorm.mean=DegreeToRad(Lines[k].S[Zpos+3].ToDouble());
 										BeamPar.ZNorm.limit=DegreeToRad(Lines[k].S[Zpos+4].ToDouble());
 										BeamPar.ZNorm.sigma=100*BeamPar.ZNorm.limit;
-										F+=AddLines(Lines,Zpos,Zpos+4);
+										F+=AddLines(&Lines[k],Zpos,Zpos+4);
 									   //	F+=Lines[k].S[Zpos]+" \t"+Lines[k].S[Zpos+1]+" \t"+Lines[k].S[Zpos+2]+" \t"+Lines[k].S[Zpos+3]+" \t"+Lines[k].S[Zpos+4];
 
 									} else  if (Nz == 6) {
@@ -1193,7 +1193,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 										BeamPar.ZNorm.mean=DegreeToRad(Lines[k].S[Zpos+4].ToDouble());
 										BeamPar.ZNorm.limit=DegreeToRad(Lines[k].S[Zpos+5].ToDouble());
 										BeamPar.ZNorm.sigma=DegreeToRad(Lines[k].S[Zpos+6].ToDouble());
-										F+=AddLines(Lines,Zpos,Zpos+6);
+										F+=AddLines(&Lines[k],Zpos,Zpos+6);
 									   //	F+=Lines[k].S[Zpos]+" \t"+Lines[k].S[Zpos+1]+" \t"+Lines[k].S[Zpos+2]+" \t"+Lines[k].S[Zpos+3]+" \t"+Lines[k].S[Zpos+4]+" \t"+Lines[k].S[Zpos+5]+" \t"+Lines[k].S[Zpos+6];
 									}
 								}

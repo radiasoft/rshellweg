@@ -22,8 +22,6 @@ const double eps0=8.85418782e-12;
 const double myu0=1.25663706e-6;
 const double kF=1/(4*pi*eps0);
 const double kFc=1/(4*pi*eps0*c);
-const double qe=1.60217711444647E-19;
-const double me=9.10938344542608E-31;
 
 //OPTIMIZER
 const double RS=0.61803399;
