@@ -2,12 +2,12 @@ object GeomForm: TGeomForm
   Left = 0
   Top = 0
   Caption = 'View Geometry'
-  ClientHeight = 681
-  ClientWidth = 921
+  ClientHeight = 521
+  ClientWidth = 704
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -14
+  Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
   Menu = MainMenu1
@@ -15,28 +15,20 @@ object GeomForm: TGeomForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PixelsPerInch = 120
-  TextHeight = 17
+  PixelsPerInch = 96
+  TextHeight = 13
   object BottomPanel: TPanel
     Left = 0
-    Top = 544
-    Width = 921
-    Height = 137
-    Margins.Left = 4
-    Margins.Top = 4
-    Margins.Right = 4
-    Margins.Bottom = 4
+    Top = 416
+    Width = 704
+    Height = 105
     Align = alBottom
     TabOrder = 0
     object ChartGroup: TRadioGroup
       Left = 1
       Top = 1
-      Width = 366
-      Height = 135
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Width = 280
+      Height = 103
       Align = alLeft
       Caption = 'Geometry Chart Data'
       Columns = 2
@@ -53,14 +45,10 @@ object GeomForm: TGeomForm
       OnClick = ChartGroupClick
     end
     object BeamGroup: TRadioGroup
-      Left = 367
+      Left = 281
       Top = 1
-      Width = 303
-      Height = 135
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Width = 231
+      Height = 103
       Align = alLeft
       Caption = 'Beam Chart Data'
       Columns = 2
@@ -76,28 +64,20 @@ object GeomForm: TGeomForm
       OnClick = BeamGroupClick
     end
     object EnvelopeCB: TCheckBox
-      Left = 677
-      Top = 105
-      Width = 127
-      Height = 22
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 518
+      Top = 80
+      Width = 97
+      Height = 17
       Caption = 'Envelope'
       Checked = True
       State = cbChecked
       TabOrder = 2
     end
     object BeamBox: TCheckBox
-      Left = 677
-      Top = 84
-      Width = 127
-      Height = 22
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 518
+      Top = 64
+      Width = 97
+      Height = 17
       Caption = 'Particles'
       Checked = True
       State = cbChecked
@@ -107,89 +87,57 @@ object GeomForm: TGeomForm
   object WorkPanel: TPanel
     Left = 0
     Top = 0
-    Width = 921
-    Height = 544
-    Margins.Left = 4
-    Margins.Top = 4
-    Margins.Right = 4
-    Margins.Bottom = 4
+    Width = 704
+    Height = 416
     Align = alClient
     TabOrder = 1
     object RightPanel: TPanel
-      Left = 678
+      Left = 517
       Top = 1
-      Width = 242
-      Height = 542
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Width = 186
+      Height = 414
       Align = alRight
       TabOrder = 0
       object CompBox1: TGroupBox
         Left = 1
         Top = 1
-        Width = 240
-        Height = 105
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
+        Width = 184
+        Height = 80
         Align = alTop
         Caption = 'Comparison Data 1'
         TabOrder = 0
         object LineColor1: TShape
-          Left = 7
-          Top = 80
-          Width = 85
-          Height = 15
-          Margins.Left = 4
-          Margins.Top = 4
-          Margins.Right = 4
-          Margins.Bottom = 4
+          Left = 5
+          Top = 61
+          Width = 65
+          Height = 12
           Brush.Color = clBlue
         end
         object OpenButton1: TButton
-          Left = 166
-          Top = 42
-          Width = 34
-          Height = 33
-          Margins.Left = 4
-          Margins.Top = 4
-          Margins.Right = 4
-          Margins.Bottom = 4
+          Left = 127
+          Top = 32
+          Width = 26
+          Height = 25
           Caption = '...'
           TabOrder = 0
           OnClick = OpenButton1Click
         end
         object FileEdit1: TLabeledEdit
-          Left = 69
-          Top = 44
-          Width = 89
-          Height = 25
-          Margins.Left = 4
-          Margins.Top = 4
-          Margins.Right = 4
-          Margins.Bottom = 4
-          EditLabel.Width = 55
-          EditLabel.Height = 17
-          EditLabel.Margins.Left = 4
-          EditLabel.Margins.Top = 4
-          EditLabel.Margins.Right = 4
-          EditLabel.Margins.Bottom = 4
+          Left = 53
+          Top = 34
+          Width = 68
+          Height = 21
+          EditLabel.Width = 45
+          EditLabel.Height = 13
           EditLabel.Caption = 'Input File'
           LabelPosition = lpLeft
           TabOrder = 1
         end
         object Compare1: TCheckBox
-          Left = 7
-          Top = 21
-          Width = 126
-          Height = 22
-          Margins.Left = 4
-          Margins.Top = 4
-          Margins.Right = 4
-          Margins.Bottom = 4
+          Left = 5
+          Top = 16
+          Width = 97
+          Height = 17
           Caption = 'Compare'
           TabOrder = 2
           OnClick = Compare1Click
@@ -197,102 +145,66 @@ object GeomForm: TGeomForm
       end
       object ParametersGroup: TGroupBox
         Left = 1
-        Top = 346
-        Width = 240
-        Height = 195
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
+        Top = 264
+        Width = 184
+        Height = 149
         Align = alBottom
         Caption = 'Parameters'
         TabOrder = 1
         object aParLabel: TLabel
-          Left = 7
-          Top = 21
-          Width = 42
-          Height = 17
-          Margins.Left = 4
-          Margins.Top = 4
-          Margins.Right = 4
-          Margins.Bottom = 4
+          Left = 5
+          Top = 16
+          Width = 34
+          Height = 13
           Caption = 'alpha='
         end
         object bParLabel: TLabel
-          Left = 7
-          Top = 42
-          Width = 42
-          Height = 17
-          Margins.Left = 4
-          Margins.Top = 4
-          Margins.Right = 4
-          Margins.Bottom = 4
+          Left = 5
+          Top = 32
+          Width = 34
+          Height = 13
           Caption = 'betta='
         end
         object eParLabel: TLabel
-          Left = 7
-          Top = 63
-          Width = 51
-          Height = 17
-          Margins.Left = 4
-          Margins.Top = 4
-          Margins.Right = 4
-          Margins.Bottom = 4
+          Left = 5
+          Top = 48
+          Width = 41
+          Height = 13
           Caption = 'epsilon='
         end
         object WavParLabel: TLabel
-          Left = 7
-          Top = 84
-          Width = 39
-          Height = 17
-          Margins.Left = 4
-          Margins.Top = 4
-          Margins.Right = 4
-          Margins.Bottom = 4
+          Left = 5
+          Top = 64
+          Width = 30
+          Height = 13
           Caption = 'Wav='
         end
         object dWParLabel: TLabel
-          Left = 7
-          Top = 105
-          Width = 32
-          Height = 17
-          Margins.Left = 4
-          Margins.Top = 4
-          Margins.Right = 4
-          Margins.Bottom = 4
+          Left = 5
+          Top = 80
+          Width = 24
+          Height = 13
           Caption = 'dW='
         end
         object FavParLabel: TLabel
-          Left = 7
-          Top = 126
-          Width = 47
-          Height = 17
-          Margins.Left = 4
-          Margins.Top = 4
-          Margins.Right = 4
-          Margins.Bottom = 4
+          Left = 5
+          Top = 96
+          Width = 37
+          Height = 13
           Caption = 'Phi av='
         end
         object dFParLabel: TLabel
-          Left = 7
-          Top = 146
-          Width = 36
-          Height = 17
-          Margins.Left = 4
-          Margins.Top = 4
-          Margins.Right = 4
-          Margins.Bottom = 4
+          Left = 5
+          Top = 112
+          Width = 28
+          Height = 13
           Caption = 'dPhi='
         end
         object rParLabel: TLabel
-          Left = 7
-          Top = 171
-          Width = 27
-          Height = 17
-          Margins.Left = 4
-          Margins.Top = 4
-          Margins.Right = 4
-          Margins.Bottom = 4
+          Left = 5
+          Top = 131
+          Width = 21
+          Height = 13
           Caption = 'Rb='
         end
       end
@@ -300,23 +212,15 @@ object GeomForm: TGeomForm
     object GraphPanel: TPanel
       Left = 1
       Top = 1
-      Width = 677
-      Height = 542
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Width = 516
+      Height = 414
       Align = alClient
       TabOrder = 1
       object GChart: TChart
         Left = 1
         Top = 1
-        Width = 675
-        Height = 540
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
+        Width = 514
+        Height = 412
         AllowPanning = pmNone
         Legend.Visible = False
         Title.Font.Height = -32
@@ -456,7 +360,7 @@ object GeomForm: TGeomForm
     object File1: TMenuItem
       Caption = 'File'
       object Exit1: TMenuItem
-        Caption = 'Colse'
+        Caption = 'Close'
         OnClick = Exit1Click
       end
     end

@@ -35,7 +35,7 @@ namespace HellwegTypes {
 enum TError {ERR_NO,ERR_NOFILE,ERR_OPENFILE,ERR_COUPLER,ERR_SOLENOID,ERR_BEAM,
 				ERR_CURRENT,ERR_DRIFT,ERR_CELL,ERR_CELLS,ERR_OPTIONS,ERR_DUMP,ERR_FORMAT,ERR_IMPORT,ERR_SPCHARGE};
 
-enum TBeamParameter {X_PAR,TH_PAR,BX_PAR,BTH_PAR,BZ_PAR,PHI_PAR,BETA_PAR} ;     //R_PAR
+enum TBeamParameter {X_PAR,TH_PAR,BX_PAR,BTH_PAR,BZ_PAR,PHI_PAR,BETA_PAR} ;
 enum TStructureParameter {KSI_PAR,Z_PAR,A_PAR,RP_PAR,B_PAR,ALPHA_PAR,BETTA_F_PAR,RA_PAR,B_EXT_PAR,NUM_PAR} ;
 enum TSplineType {ZSPLINE,LSPLINE,CSPLINE,SSPLINE};
 enum TChartType {CH_EMITTANCE,CH_SECTION,CH_PORTRAIT,CH_PHASE,CH_ENERGY,CH_BETTA,CH_A,CH_B,CH_ELP,CH_ATT,CH_APP,CH_BEXT,CH_CLEAR};
@@ -45,7 +45,7 @@ enum TTrig {SIN,COS,TG,CTG,SEC,CSC};
 enum TLoss {LIVE,RADIUS_LOST,PHASE_LOST,BZ_LOST,BX_LOST,B_LOST,STEP_LOST};
 enum TGraphType {TRANS_SEC,LONGT_SEC,TRANS_SPACE,LONGT_SPACE,LONGT_MOTION,PHASE_SLID,W_SPEC,F_SPEC,F_NONE};
 enum TOptType {BUNCHER,ACCELERATOR};
-enum TBeamType {NOBEAM,CST_PID,CST_PIT,TWISS_2D,TWISS_4D,SPH_2D,ELL_2D,FILE_1D,FILE_2D,TWO_FILES_2D,FILE_4D,NORM_1D,NORM_2D};
+enum TBeamType {NOBEAM,CST_PID,CST_PIT,TWISS_2D,TWISS_4D,SPH_2D,ELL_2D,FILE_1D,FILE_2D,FILE_4D,NORM_1D,NORM_2D};
 
 const int MaxParameters=14;  //Maximum number of parameters after a keyword. Currently: BEAM
 const int NumBessel=6;
@@ -311,14 +311,6 @@ inline double MeVToVelocity(double W){
     return EnergyToVelocity(MeVToGamma(W));
 }
 //---------------------------------------------------------------------------
-double BzFromOther(double beta,double beta_x,double beta_y){
-	double beta_r2=sqr(beta_x)+sqr(beta_y);
-	if (sqr(beta)>beta_r2)
-		return sqrt(sqr(beta)-beta_r2);
-	else
-		return -1;
-}
-//---------------------------------------------------------------------------
 inline double RadToDeg(double a){     //Should be romved from the code!
     return a*180/pi;
 }
@@ -384,7 +376,7 @@ inline double Ib0(double x){
 }
 //---------------------------------------------------------------------------
 inline double Ib1(double x){
-	double f=0;
+    double f=0;
 
     for (int k=0;k<=NumBessel;k++)
         f+=Pow(x/2,2*k+1)/(Fact(k)*Fact(k+1));
@@ -408,8 +400,8 @@ void TwoRandomGauss(double& x1,double& x2)
 
 	TwoRandom(Ran1,Ran2);
 
-	x1=sqrt(-2*ln(Ran1))*cos(2*pi*Ran2);
-	x2=sqrt(-2*ln(Ran1))*sin(2*pi*Ran2);
+    x1=sqrt(-2*ln(Ran1))*cos(2*pi*Ran2);
+    x2=sqrt(-2*ln(Ran1))*sin(2*pi*Ran2);
 }
 //---------------------------------------------------------------------------
 double RandomGauss()
@@ -417,20 +409,6 @@ double RandomGauss()
 	double Ran1=0,Ran2=0,xx=0;
 	TwoRandom(Ran1,Ran2);
 	xx=sqrt(-2*ln(Ran1))*cos(2*pi*Ran2);
-	return xx;
-}
-//---------------------------------------------------------------------------
-double RandomRayleigh()
-{
-	double Ran1=0,xx=0;
-
-	Ran1=((double)rand() / ((double)RAND_MAX + 1));
-
-	if (Ran1<1e-5)
-		Ran1=1e-5;
-
-	xx=sqrt(-2*ln(1-Ran1));
-
 	return xx;
 }
 //---------------------------------------------------------------------------
@@ -535,13 +513,9 @@ TPhaseSpace CartesianToCylinrical(TPhaseSpace R)
 	return CartesianToCylinrical(R.x,R.y,R.px,R.py);
 }
 //---------------------------------------------------------------------------
-double **DeleteDoubleArray(double **X,int Nx)
+double **DeleteDoubleArray(double **X,int Nx, int Ny)
 {
-	for (int j = 0; j < Nx; j++)
-			delete[] X[j];
-	delete[] X;
-	X=NULL;
-	return X;
+
 }
 //---------------------------------------------------------------------------
 //--------------------TEXT FILES---------------------------------------------

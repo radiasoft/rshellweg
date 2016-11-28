@@ -122,7 +122,7 @@ public:
 
     void SaveToFile(AnsiString& Fname);
     bool LoadFromFile(AnsiString& Fname);
-   // bool LoadEnergyFromFile(AnsiString& Fname, int NpEnergy);     move to beam.h
+    bool LoadEnergyFromFile(AnsiString& Fname, int NpEnergy);
 
     TError CreateBeam();
     int CreateGeometry();

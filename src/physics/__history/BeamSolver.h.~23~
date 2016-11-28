@@ -66,11 +66,9 @@ private:
 	int ChangeCells(int N);
 
     TInputLine *ParseFile(int& N);
-	TError ParseLines(TInputLine *Lines,int N,bool OnlyParameters=false);
-	AnsiString AddLines(TInputLine *Lines,int N1, int N2);
-
+    TError ParseLines(TInputLine *Lines,int N,bool OnlyParameters=false);
 	//INTERPOLATION
-	double *LinearInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
+    double *LinearInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
     double *SplineInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
     double *SmoothInterpolation(double *x,double *X,double *Y,int Nbase,int Nint,double p0,double *W=NULL);
     void GetDimensions(TCell& Cell);
@@ -122,7 +120,7 @@ public:
 
     void SaveToFile(AnsiString& Fname);
     bool LoadFromFile(AnsiString& Fname);
-   // bool LoadEnergyFromFile(AnsiString& Fname, int NpEnergy);     move to beam.h
+    bool LoadEnergyFromFile(AnsiString& Fname, int NpEnergy);
 
     TError CreateBeam();
     int CreateGeometry();

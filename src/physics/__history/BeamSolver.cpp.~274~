@@ -1047,26 +1047,26 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 							break;
 						}
 						case SPH_2D: {
-							if (Nr>2){
+							if (Nr>3){
 								S="Too many Spherical parameters in BEAM line!";
 								ShowError(S);
 								return ERR_BEAM;
 							}
 							else{
-								BeamPar.Sph.Rcath=Lines[k].S[1].ToDouble()/100; //Rcath
+								BeamPar.Sph.Rcath=Lines[k].S[1].ToDouble(); //Rcath
 								F+=AddLines(Lines,0,1);
 								//F="BEAM "+Lines[k].S[0]+" \t"+Lines[k].S[1];
 							   //	Zpos=2;
 								if (Nr>1) {
-									BeamPar.Sph.Rsph=Lines[k].S[2].ToDouble()/100;  //Rsph
+									BeamPar.Sph.Rsph=Lines[k].S[2].ToDouble();  //Rsph
 									F+=" \t"+Lines[k].S[1];
 									//Zpos=3;
-								  /*	if (Nr>2){
-										BeamPar.Sph.sigma=Lines[k].S[3].ToDouble()/100; //not related
+									if (Nr>2){
+										BeamPar.Sph.sigma=Lines[k].S[3].ToDouble(); //Sigma_R
 										F+=" \t"+Lines[k].S[1];
 									 //	Zpos=4;
 									 } else
-										BeamPar.Sph.sigma=100*BeamPar.Sph.Rcath;   */
+                                     	BeamPar.Sph.sigma=100*BeamPar.Sph.Rcath;
 								} else {
 									 BeamPar.Sph.Rsph=0;
 									 BeamPar.Sph.sigma=100*BeamPar.Sph.Rcath;
@@ -1082,27 +1082,27 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 								return ERR_BEAM;
 							}
 							else{
-								BeamPar.Ell.ax=Lines[k].S[1].ToDouble()/100; //x
+								BeamPar.Ell.ax=Lines[k].S[1].ToDouble(); //x
 								F+=AddLines(Lines,0,1);
 								if (Nr>1) {
-									BeamPar.Ell.by=Lines[k].S[2].ToDouble()/100; //y
+									BeamPar.Ell.by=Lines[k].S[2].ToDouble(); //y
 									F+=" \t"+Lines[k].S[2];
 									if (Nr>2){
-										BeamPar.Ell.phi=-DegreeToRad(Lines[k].S[3].ToDouble()); //phi
+										BeamPar.Ell.phi=Lines[k].S[3].ToDouble(); //phi
 										F+=" \t"+Lines[k].S[3];
 										if (Nr>3){
 											BeamPar.Ell.h=Lines[k].S[4].ToDouble(); //h
 											F+=" \t"+Lines[k].S[4];
 										} else
-											BeamPar.Ell.h=1e-6;
+											BeamPar.Ell.h=0;
 									} else {
 										BeamPar.Ell.phi=0;
-										BeamPar.Ell.h=1e-6;
+										BeamPar.Ell.h=0;
 									}
 								} else {
 									BeamPar.Ell.by=BeamPar.Ell.ax; //y
 									BeamPar.Ell.phi=0;
-									BeamPar.Ell.h=1e-6;
+									BeamPar.Ell.h=0;
 								}
 							}
 							break;
@@ -2397,7 +2397,7 @@ TError TBeamSolver::CreateBeam()
 			break;
 		}
 		case ELL_2D:{
-			Beam[0]->BeamFromEllipse(&BeamPar);
+			//Beam[0]->BeamFromEllipse(&BeamPar);
 			return ERR_BEAM;
 			break;
 		}

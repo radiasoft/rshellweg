@@ -21,9 +21,6 @@ private:
     TSpectrumBar *GetPhaseSpectrum(bool Smooth,double *Radius,double *Phase,double& FavPhase,double& dPhase, int Nslices, bool width=false);
 
 	//DISTRIBUTIONS
-	double *MakeRayleighDistribution(TGauss G);
-	double *MakeRayleighDistribution(double Xav,double sX);
-	double *MakeRayleighDistribution(double Xav,double sX,double Xlim);
 	double *MakeGaussDistribution(TGauss G);
 	double *MakeGaussDistribution(double Xav,double sX);
 	double *MakeGaussDistribution(double Xav,double sX,double Xlim);
@@ -58,7 +55,6 @@ public:
 	bool BeamFromTwiss(TBeamInput *BeamPar);
 	bool BeamFromFile(TBeamInput *BeamPar);
 	bool BeamFromSphere(TBeamInput *BeamPar);
-	bool BeamFromEllipse(TBeamInput *BeamPar);
 	void GenerateEnergy(TGauss G);
 	void GeneratePhase(TGauss G);
 	void GenerateAzimuth(TGauss G);

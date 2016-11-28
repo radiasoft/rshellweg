@@ -384,7 +384,7 @@ inline double Ib0(double x){
 }
 //---------------------------------------------------------------------------
 inline double Ib1(double x){
-	double f=0;
+    double f=0;
 
     for (int k=0;k<=NumBessel;k++)
         f+=Pow(x/2,2*k+1)/(Fact(k)*Fact(k+1));
@@ -408,8 +408,8 @@ void TwoRandomGauss(double& x1,double& x2)
 
 	TwoRandom(Ran1,Ran2);
 
-	x1=sqrt(-2*ln(Ran1))*cos(2*pi*Ran2);
-	x2=sqrt(-2*ln(Ran1))*sin(2*pi*Ran2);
+    x1=sqrt(-2*ln(Ran1))*cos(2*pi*Ran2);
+    x2=sqrt(-2*ln(Ran1))*sin(2*pi*Ran2);
 }
 //---------------------------------------------------------------------------
 double RandomGauss()
@@ -417,20 +417,6 @@ double RandomGauss()
 	double Ran1=0,Ran2=0,xx=0;
 	TwoRandom(Ran1,Ran2);
 	xx=sqrt(-2*ln(Ran1))*cos(2*pi*Ran2);
-	return xx;
-}
-//---------------------------------------------------------------------------
-double RandomRayleigh()
-{
-	double Ran1=0,xx=0;
-
-	Ran1=((double)rand() / ((double)RAND_MAX + 1));
-
-	if (Ran1<1e-5)
-		Ran1=1e-5;
-
-	xx=sqrt(-2*ln(1-Ran1));
-
 	return xx;
 }
 //---------------------------------------------------------------------------

@@ -220,7 +220,7 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
             SignChart(CH_EMITTANCE);
             Solver->GetBeamParameters(0,X0,X_PAR);
             Solver->GetBeamParameters(0,Y0,BX_PAR);
-            Solver->GetBeamParameters(0,Z0,BETTA_PAR);
+			Solver->GetBeamParameters(0,Z0,BETA_PAR);
             for (int i=0;i<Np;i++){
                 double x=X0[i];
                 double bx=Y0[i];
@@ -234,7 +234,7 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
         case (portrait_chart):{
             SignChart(CH_PORTRAIT);
             Solver->GetBeamParameters(0,X0,PHI_PAR);
-            Solver->GetBeamParameters(0,Y0,BETTA_PAR);
+            Solver->GetBeamParameters(0,Y0,BETA_PAR);
             for (int i=0;i<Np;i++){
                 X0[i]=HellwegTypes::RadToDeg(X0[i]);
                 Y0[i]=VelocityToMeV(Y0[i]);

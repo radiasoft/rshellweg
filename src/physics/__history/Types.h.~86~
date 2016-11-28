@@ -420,7 +420,7 @@ double RandomGauss()
 	return xx;
 }
 //---------------------------------------------------------------------------
-double RandomRayleigh()
+double RandomRaleygh()
 {
 	double Ran1=0,xx=0;
 
@@ -431,7 +431,7 @@ double RandomRayleigh()
 
 	xx=sqrt(-2*ln(1-Ran1));
 
-	return xx;
+	return xx=0;
 }
 //---------------------------------------------------------------------------
 inline double FormFactor(double p){

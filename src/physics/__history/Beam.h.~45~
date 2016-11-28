@@ -58,7 +58,6 @@ public:
 	bool BeamFromTwiss(TBeamInput *BeamPar);
 	bool BeamFromFile(TBeamInput *BeamPar);
 	bool BeamFromSphere(TBeamInput *BeamPar);
-	bool BeamFromEllipse(TBeamInput *BeamPar);
 	void GenerateEnergy(TGauss G);
 	void GeneratePhase(TGauss G);
 	void GenerateAzimuth(TGauss G);

@@ -67,7 +67,7 @@ private:
 
     TInputLine *ParseFile(int& N);
 	TError ParseLines(TInputLine *Lines,int N,bool OnlyParameters=false);
-	AnsiString AddLines(TInputLine *Lines,int N1, int N2);
+	void AddLines(AnsiString &S,TInputLine *Lines,int N1, int N2);
 
 	//INTERPOLATION
 	double *LinearInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
@@ -122,7 +122,7 @@ public:
 
     void SaveToFile(AnsiString& Fname);
     bool LoadFromFile(AnsiString& Fname);
-   // bool LoadEnergyFromFile(AnsiString& Fname, int NpEnergy);     move to beam.h
+    bool LoadEnergyFromFile(AnsiString& Fname, int NpEnergy);
 
     TError CreateBeam();
     int CreateGeometry();

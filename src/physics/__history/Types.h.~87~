@@ -420,7 +420,7 @@ double RandomGauss()
 	return xx;
 }
 //---------------------------------------------------------------------------
-double RandomRayleigh()
+double RandomRaleygh()
 {
 	double Ran1=0,xx=0;
 

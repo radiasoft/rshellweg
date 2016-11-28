@@ -77,7 +77,7 @@ private:    // User declarations
 //    TBeamSolver *Solver;
     void DisplayError();
     void DisplayInputData();
-    bool LoadInputData(bool display_err);
+    bool LoadInputData(bool display_err=true);
     TError ERR;
     AnsiString InputFileName;
 public:     // User declarations

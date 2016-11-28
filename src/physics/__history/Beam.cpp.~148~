@@ -380,7 +380,7 @@ bool TBeam::BeamFromSphere(TBeamInput *BeamPar)
 
 	Gx.mean=0;
 	Gx.limit=BeamPar->Sph.Rcath;
-	Gx.sigma=BeamPar->Sph.Rcath;
+	Gx.sigma=BeamPar->Sph.sigma;
 	Gy.mean=0;
 	Gy.limit=pi;
 	Gy.sigma=100*pi;
@@ -409,45 +409,36 @@ bool TBeam::BeamFromSphere(TBeamInput *BeamPar)
 //---------------------------------------------------------------------------
 bool TBeam::BeamFromEllipse(TBeamInput *BeamPar)
 {
-	double sx=0,sy=0,r=0,th=0,x=0,y=0;
-	double a=0,b=0,phi=0;
+	double *X, *Y;
+	double r=0,th=0,pr=0;
+	TGauss Gx, Gy;
 	TPhaseSpace C;
 
-	phi=BeamPar->Ell.phi;
-	b=BeamPar->Ell.by;
-	a=BeamPar->Ell.ax;
+	Gx.mean=0;
+	Gx.limit=BeamPar->Sph.Rcath;
+	Gx.sigma=BeamPar->Sph.sigma;
+	Gy.mean=0;
+	Gy.limit=pi;
+	Gy.sigma=100*pi;
 
-	sx=a/BeamPar->Ell.h;
-	sy=b/BeamPar->Ell.h;
+	X=MakeRayleighDistribution(Gx);
+	Y=MakeGaussDistribution(Gy);
 
-	double xx=0,yy=0,Rc=0,Ran1=0,Ran2=0,Myx=0,Dyx=0;
-	double Mx=0; //x0
-	double My=0; //y0
+	for (int i=0; i < Np; i++) {
+		r=X[i];
+		th=Y[i];
 
-	for (int i=0;i<Np;i++){
-		do{
-			TwoRandomGauss(Ran1,Ran2);
-			xx=Mx+Ran1*sx;
-			Myx=My+Rc*sy*(xx-Mx)/sx; //ellitic distribution
-			Dyx=sqr(sy)*(1-sqr(Rc)); //dispersion
-			yy=Myx+Ran2*sqrt(Dyx);
-
-		} while (sqr(xx/a)+sqr(yy/b)>1);
-
-		x=xx*cos(phi)-yy*sin(phi);
-		y=xx*sin(phi)+yy*cos(phi);
-
-		C=CartesianToCylinrical(x,y,0,0);
-
-		r=C.x;
-		th=C.y;
+		pr=BeamPar->Sph.Rsph==0?0:-sin(r/BeamPar->Sph.Rsph);
 
 		Particle[i].x=r/lmb;
-		Particle[i].Bx=0;
+		Particle[i].Bx=pr*Particle[i].betta;
 		Particle[i].Th=th;
 		Particle[i].Bth=0;
 		Particle[i].Bz=BzFromOther(Particle[i].betta,Particle[i].Bx,0);//double-check!!!
-	}
+    }
+
+	delete[] X;
+	delete[] Y;
 
 	return true;
 }
@@ -709,7 +700,7 @@ double *TBeam::MakeGaussDistribution(double Xav,double sX,double Xlim)
 		for (int i=0;i<Np;i++){
 			do {
 				xx=RandomGauss()*sX/h;
-			} while (mod(xx)>Xlim);
+			} while (xx<-Xlim || xx>Xlim);
 			Xi[i]=Xav+xx;
 		}
 	}
@@ -730,7 +721,7 @@ double *TBeam::MakeRayleighDistribution(double Xav,double sX,double Xlim)
 		for (int i=0;i<Np;i++){
 			do {
 				xx=RandomRayleigh()*sX;
-			} while (mod(xx)>Xlim);
+			} while (xx<0 || xx>Xlim);
 			Xi[i]=Xav+xx;
 		}
 	}

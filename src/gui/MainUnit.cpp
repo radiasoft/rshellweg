@@ -33,16 +33,16 @@ void TMainForm::DisplayError()
 		case ERR_OPENFILE: ShowMessage("ERROR: File Read Error");   break;
 		case ERR_COUPLER : ShowMessage("ERROR: Input File: COUPLER should have format Power,Frequency");    break;
 		case ERR_SOLENOID : ShowMessage("ERROR: Input File: SOLENOID should have format Bz,L,Z0");  break;
-		case ERR_BEAM : ShowMessage("ERROR: Input File: BEAM should have format Phi0,dPhi,Type,W0,dW,Type");    break;
-		case ERR_CURRENT : ShowMessage("ERROR: Input File: CURRENT should have format I0,Np,alpha,betta,emittance");    break;
+		case ERR_BEAM : ShowMessage("ERROR: Input File: Check BEAM line format!");    break;
+		case ERR_CURRENT : ShowMessage("ERROR: Input File: CURRENT should have format I0,Np");    break;
 		case ERR_DRIFT : ShowMessage("ERROR: Input File: DRIFT should have format Length,Radius");  break;
 		case ERR_CELL : ShowMessage("ERROR: Input File: CELL should have format Mode,betta,Field and optional: Attenuation,Aperture");  break;
 		case ERR_CELLS : ShowMessage("ERROR: Input File: CELLS should have format N,Mode,betta,Field and optional: Attenuation,Aperture");  break;
-		case ERR_OPTIONS : ShowMessage("ERROR: card OPTIONS is incorrect!");  break;
-		case ERR_DUMP : ShowMessage("ERROR: card DUMP is incorrect!");  break;
-		case ERR_FORMAT : ShowMessage("ERROR: incorrect format od data");  break;
+		case ERR_OPTIONS : ShowMessage("ERROR: Input File: OPTIONS format is incorrect!");  break;
+		case ERR_DUMP : ShowMessage("ERROR:  Input File: SAVE formal is incorrect!");  break;
+		case ERR_IMPORT : ShowMessage("ERROR:  Particles import failed!");  break;
+		case ERR_FORMAT : ShowMessage("ERROR: incorrect format of data");  break;
 		case ERR_SPCHARGE : ShowMessage("Undefined option for card SPCHARGE"); break;
-		case ERR_NUMBPARTICLE : ShowMessage("Inconsistency in the cards BEAM and CURRENT for the number of particles in the beam"); break;
         default:ShowMessage("ERROR: Input File has a wrong format!");   break;
     }
 }
@@ -133,7 +133,7 @@ void __fastcall TMainForm::FormCreate(TObject *Sender)
     Solver->AssignSolverPanel(SolverGroup);
 
     InputFileName="INPUT.txt";
-    LoadInputData(false);
+    LoadInputData(true);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormDestroy(TObject *Sender)

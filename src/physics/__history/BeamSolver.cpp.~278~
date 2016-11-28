@@ -1088,21 +1088,21 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 									BeamPar.Ell.by=Lines[k].S[2].ToDouble()/100; //y
 									F+=" \t"+Lines[k].S[2];
 									if (Nr>2){
-										BeamPar.Ell.phi=-DegreeToRad(Lines[k].S[3].ToDouble()); //phi
+										BeamPar.Ell.phi=DegreeToRad(Lines[k].S[3].ToDouble()); //phi
 										F+=" \t"+Lines[k].S[3];
 										if (Nr>3){
 											BeamPar.Ell.h=Lines[k].S[4].ToDouble(); //h
 											F+=" \t"+Lines[k].S[4];
 										} else
-											BeamPar.Ell.h=1e-6;
+											BeamPar.Ell.h=0;
 									} else {
 										BeamPar.Ell.phi=0;
-										BeamPar.Ell.h=1e-6;
+										BeamPar.Ell.h=01;
 									}
 								} else {
 									BeamPar.Ell.by=BeamPar.Ell.ax; //y
 									BeamPar.Ell.phi=0;
-									BeamPar.Ell.h=1e-6;
+									BeamPar.Ell.h=0;
 								}
 							}
 							break;

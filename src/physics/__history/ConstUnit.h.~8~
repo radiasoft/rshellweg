@@ -7,11 +7,7 @@
 #include <Graphics.hpp>
 #endif
 //SYSTEM
-const int MAX_DIGITS=6;
-const int DigitConst=1e6;
 const int MAX_CHAR=256;
-const int PIT_LENGTH=10;
-const int PID_LENGTH=9;
 
 //PHYSICAL
 const double c=2.99792458e8;

@@ -432,7 +432,7 @@ bool TBeam::BeamFromEllipse(TBeamInput *BeamPar)
 			Dyx=sqr(sy)*(1-sqr(Rc)); //dispersion
 			yy=Myx+Ran2*sqrt(Dyx);
 
-		} while (sqr(xx/a)+sqr(yy/b)>1);
+		} while (mod(xx)>a || mod(yy)>b);
 
 		x=xx*cos(phi)-yy*sin(phi);
 		y=xx*sin(phi)+yy*cos(phi);
