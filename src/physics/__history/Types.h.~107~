@@ -47,6 +47,8 @@ enum TGraphType {TRANS_SEC,LONGT_SEC,TRANS_SPACE,LONGT_SPACE,LONGT_MOTION,PHASE_
 enum TOptType {BUNCHER,ACCELERATOR};
 enum TBeamType {NOBEAM,CST_PID,CST_PIT,TWISS_2D,TWISS_4D,SPH_2D,ELL_2D,FILE_1D,FILE_2D,TWO_FILES_2D,FILE_4D,NORM_1D,NORM_2D};
 
+enum TEelementType {NO_SOLENOID,ANALYTIC_0D,IMPORT_1D};
+
 const int MaxParameters=14;  //Maximum number of parameters after a keyword. Currently: BEAM
 const int NumBessel=6;
 int Nslices=1;
@@ -82,7 +84,8 @@ struct TEllipse{
 	double phi;
 };
 
-struct TBeamInput{
+struct TBeamInput
+{
 	TBeamType RBeamType;
 	TBeamType ZBeamType;
 	AnsiString RFile;
@@ -99,6 +102,7 @@ struct TBeamInput{
 	double Current;
 	int NParticles;
 	bool ZCompress;
+	bool Magnetized;
 };
 
 struct TParticle
@@ -171,6 +175,35 @@ struct TStructure
 	bool Dump;
 	TDump DumpParameters;
 };
+
+struct TSolenoidParameters
+{
+	TEelementType SolenoidType;
+	double BField;
+	double StartPos;
+	double Length;
+	AnsiString File;
+};
+
+struct TSectionParameters
+{
+	double Frequency;
+	//double Wavelength;
+	double Power;
+	double NCells;
+};
+
+struct TStructureInput
+{
+	int NSections;
+	int NElements;
+	int ElementsLimit;
+	TSectionParameters *Sections;
+	TCell *Cells;
+	TSolenoidParameters SolenoidPar;
+	bool Reverse;
+};
+
 struct TResult
 {
     double Length;
@@ -443,7 +476,7 @@ double RandomCos()
 	if (Ran1<1e-5)
 		Ran1=1e-5;
 
-	xx=arcsin(sqrt(Ran1));
+	xx=asin(sqrt(Ran1));
 
 	return xx;
 }

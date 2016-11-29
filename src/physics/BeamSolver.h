@@ -25,10 +25,7 @@ class TBeamSolver
 private:
     //FLAGS
     bool DataReady;
-    AnsiString UserIniPath,SolenoidFile,BeamFile,EnergyFile;
-    //INITIAL PARAMETERS
-    double F0,P0,lmb;
-	double B0,Lmag,Zmag;  //Lmag - length, Zmag -position
+	AnsiString UserIniPath/*,SolenoidFile,BeamFile,EnergyFile*/;
 
 	//BEAM
 	TBeamInput BeamPar;
@@ -44,28 +41,42 @@ private:
 	double Kernel,Smooth;
 	double AngErr;
 	double dh;
-	int Mode_N,Mode_M,MaxCells,Ncells,Nmesh,Npoints,Nlim;
+
 	int Np_beam,Nstat,Ngraph,Nbars,Nav,Nliv;
-	bool Reverse,SpCharge,Coulomb,GWmethod,FSolenoid,Magnetized;
+	double I;
+   //	bool Magnetized; //move to BeamPar
+   //	bool SpCharge,Coulomb,GWmethod; //move to BeamPar
 
-    TSplineType SplineType;
-    //STRUCTURE
-    TCell *Cells;
-    TStringList *InputStrings,*ParsedStrings;
+	TSplineType SplineType;
+	//STRUCTURE
+	//TCell *Cells; //move to StructPar
+	TStringList *InputStrings,*ParsedStrings;
+	TStructureInput StructPar;
 
-    double I,Rb,Lb,phi0,dphi,w,betta0;
-    TIntegration **K;
-    TIntParameters *Par;
-    
+	void ResetStructure();
+
+	//double F0,P0,lmb;
+	//double B0,Lmag,Zmag;  //Lmag - length, Zmag -position
+	int Mode_N,Mode_M,MaxCells,Nmesh,Npoints;//,Ncells,Nlim;
+	double Rb,Lb,phi0,dphi,w,betta0; //create new structure TStructure
+   //	bool Reverse,FSolenoid;
+
+	int GetSolenoidPoints();
+	bool ReadSolenoid(int Nz,double *Z,double* B);
+
+	//OTHER
     #ifndef RSLINAC 
     TSmartProgress *SmartProgress;
-    #endif
-    //INITIALIZATION
+	#endif
+
+	//INITIALIZATION & PARSING
     void Initialize();
     void LoadIniConstants();
 	int ChangeCells(int N);
 
-    TInputLine *ParseFile(int& N);
+	TInputLine *ParseFile(int& N);
+	TError ParseOptions (TInputLine *Line);
+	TError ParseSpaceCharge (TInputLine *Line);
 	TError ParseLines(TInputLine *Lines,int N,bool OnlyParameters=false);
 	AnsiString AddLines(TInputLine *Lines,int N1, int N2);
 
@@ -75,17 +86,19 @@ private:
     double *SmoothInterpolation(double *x,double *X,double *Y,int Nbase,int Nint,double p0,double *W=NULL);
     void GetDimensions(TCell& Cell);
 
+	//INTEGRATION
     void Step(int Si);
     void Integrate(int Si, int Sj);
     void CountLiving(int Si);
+	TIntegration **K;
+	TIntParameters *Par;
 
-    int GetSolenoidPoints();
-    bool ReadSolenoid(int Nz,double *Z,double* B);
-
-    bool IsKeyWord(AnsiString &S);
+	//TYPE CHECKS
+	bool IsKeyWord(AnsiString &S);
 	TInputParameter Parse(AnsiString &S);
 
 	TBeamType ParseDistribution(AnsiString &S);
+	TSpaceChargeType ParseSpchType(AnsiString &S);
 	bool IsFullFileKeyWord(TBeamType D);
 	bool IsTransverseKeyWord(TBeamType D);
 	bool IsLongitudinalKeyWord(TBeamType D);
@@ -111,7 +124,7 @@ public:
     TStructure *Structure;
     AnsiString InputFile;
 
-    TError LoadData(int Nl=-1);
+    TError LoadData(int Nlim=-1);
     TError MakeBuncher(TCell& iCell);
 
     void AppendCells(TCell& iCell,int N=1);
@@ -141,6 +154,7 @@ public:
     double GetPower();
     double GetInputCurrent();
    //   double GetMode(int *N=NULL,int *M=NULL);
+
     double GetSolenoidField();
     double GetSolenoidLength();
     double GetSolenoidPosition();
@@ -150,25 +164,26 @@ public:
     double GetInputPhaseDeviation();
     double GetInputAlpha();
     double GetInputBetta();
-    double GetInputEpsilon();
-    bool IsCoulombAccounted();
-    bool IsWaveReversed();
-    bool IsEnergyEquiprobable();
-    bool IsPhaseEquiprobable();
-    //GET OUTPUT PARAMETERS
-    void GetCourantSneider(int Nknot, double& alpha,double& betta, double& epsilon);
-    void GetEllipticParameters(int Nknot, double& x0,double& y0, double& a,double& b,double& phi,double &Rx,double& Ry);
-    TSpectrumBar *GetEnergySpectrum(int Nknot,double& Wav,double& dW);
-    TSpectrumBar *GetPhaseSpectrum(int Nknot,double& Fav,double& dF);
-    TSpectrumBar *GetEnergySpectrum(int Nknot,bool Env,double& Wav,double& dW);
-    TSpectrumBar *GetPhaseSpectrum(int Nknot,bool Env,double& Fav,double& dF);
-    void GetBeamParameters(int Nknot,double *X,TBeamParameter Par);
-    void GetStructureParameters(double *X,TStructureParameter Par);
-    double GetKernel();
+	double GetInputEpsilon();
 
-    void Solve();
-    #ifndef RSLINAC
-    TResult Output(AnsiString& FileName,TMemo *Memo=NULL);
+	bool CheckMagnetization();
+	bool CheckReverse();
+	TSpaceCharge GetSpaceChargeInfo();
+
+	//GET OUTPUT PARAMETERS
+	void GetCourantSneider(int Nknot, double& alpha,double& betta, double& epsilon);
+	void GetEllipticParameters(int Nknot, double& x0,double& y0, double& a,double& b,double& phi,double &Rx,double& Ry);
+	TSpectrumBar *GetEnergySpectrum(int Nknot,double& Wav,double& dW);
+	TSpectrumBar *GetPhaseSpectrum(int Nknot,double& Fav,double& dF);
+	TSpectrumBar *GetEnergySpectrum(int Nknot,bool Env,double& Wav,double& dW);
+	TSpectrumBar *GetPhaseSpectrum(int Nknot,bool Env,double& Fav,double& dF);
+	void GetBeamParameters(int Nknot,double *X,TBeamParameter Par);
+	void GetStructureParameters(double *X,TStructureParameter Par);
+	double GetKernel();
+
+	void Solve();
+	#ifndef RSLINAC
+	TResult Output(AnsiString& FileName,TMemo *Memo=NULL);
     #else
     TResult Output(AnsiString& FileName);
     #endif

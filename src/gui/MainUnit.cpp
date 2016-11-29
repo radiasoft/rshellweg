@@ -61,61 +61,69 @@ bool TMainForm::LoadInputData(bool display_err)
 //---------------------------------------------------------------------------
 void TMainForm::DisplayInputData()
 {
-    AnsiString s;
+	AnsiString s,L;
 
-    Label_P0->Caption="Input Power = "+s.FormatFloat("#0.00",Solver->GetPower())+" MW";
-    Label_I0->Caption="Input Current = "+s.FormatFloat("#0.000",Solver->GetInputCurrent())+" A";
-    Label_F0->Caption="Operating Frequency = "+s.FormatFloat("#0.00",Solver->GetFrequency())+" MHz";
+	//POWER SOURCE
+	Label_P0->Caption="Input Power = "+s.FormatFloat("#0.00",Solver->GetPower())+" MW";
+	Label_F0->Caption="Frequency = "+s.FormatFloat("#0.00",Solver->GetFrequency())+" MHz";
 
-    int Nth,Mth;
-    /*Solver->GetMode(&Nth,&Mth);
+	//SOLENOID
+	if (true) {
 
-    if (Nth%Mth==0)
-        Label_Mode->Caption="Mode = "+s.FormatFloat("0 pi",Nth/Mth);
-    else
-        Label_Mode->Caption="Mode = "+s.FormatFloat("0*pi/",Nth)+s.FormatFloat("0",Mth);
-    */
-    Label_Np->Caption="Number of Particles = "+s.FormatFloat("#0",Solver->GetNumberOfParticles());
-    Label_B0->Caption="Solenoid Field = "+s.FormatFloat("#0.00",Solver->GetSolenoidField())+" Tl";
-    Label_Length->Caption="Solenoid Length = "+s.FormatFloat("#0.00",Solver->GetSolenoidLength())+" m";
-    Label_Position->Caption="Solenoid Position = "+s.FormatFloat("#0.00",Solver->GetSolenoidPosition())+" m";
+	} else {
+		Label_B0->Caption="Solenoid Field = "+s.FormatFloat("#0.00",Solver->GetSolenoidField())+" Tl";
+		Label_Length->Caption="Solenoid Length = "+s.FormatFloat("#0.00",Solver->GetSolenoidLength())+" m";
+		Label_Position->Caption="Solenoid Position = "+s.FormatFloat("#0.00",Solver->GetSolenoidPosition())+" m";
+	}
 
-    Label_W0->Caption="Average Energy = "+s.FormatFloat("#0.000",Solver->GetInputAverageEnergy())+" MeV";
+	Label_I0->Caption="Input Current = "+s.FormatFloat("#0.000",Solver->GetInputCurrent())+" A";
+	int Nth,Mth;
+	/*Solver->GetMode(&Nth,&Mth);
+
+	if (Nth%Mth==0)
+		Label_Mode->Caption="Mode = "+s.FormatFloat("0 pi",Nth/Mth);
+	else
+		Label_Mode->Caption="Mode = "+s.FormatFloat("0*pi/",Nth)+s.FormatFloat("0",Mth);
+	*/
+	Label_Np->Caption="Number of Particles = "+s.FormatFloat("#0",Solver->GetNumberOfParticles());
+
+
+	Label_W0->Caption="Average Energy = "+s.FormatFloat("#0.000",Solver->GetInputAverageEnergy())+" MeV";
     Label_Phi0->Caption="Average Phase = "+s.FormatFloat("#0.00",Solver->GetInputAveragePhase())+" deg";
     Label_dW->Caption="dW = "+s.FormatFloat("#0.000#",Solver->GetInputEnergyDeviation())+" MeV";
     Label_dPhi->Caption="dPhi = "+s.FormatFloat("#0.00",Solver->GetInputPhaseDeviation())+" deg";
 
-    Label_Alpha->Caption="Alpha = "+s.FormatFloat("#0.000##",Solver->GetInputAlpha())+"";
+   /* Label_Alpha->Caption="Alpha = "+s.FormatFloat("#0.000##",Solver->GetInputAlpha())+"";
     Label_Betta->Caption="Betta = "+s.FormatFloat("#0.000##",Solver->GetInputBetta())+" cm/rad";
-    Label_Emittance->Caption="Emittance = "+s.FormatFloat("#0.000##",Solver->GetInputEpsilon())+" cm*rad";
+	Label_Emittance->Caption="Emittance = "+s.FormatFloat("#0.000##",Solver->GetInputEpsilon())+" cm*rad";
+	*/
+		Label_Cells->Caption=s.FormatFloat("#0",Solver->GetNumberOfCells())+" Cells Uploaded";
 
-    bool Coulomb=Solver->IsCoulombAccounted();
-    bool Reverse=Solver->IsWaveReversed();
-    bool WDist=Solver->IsEnergyEquiprobable();
-    bool PhiDist=Solver->IsPhaseEquiprobable();
+	//SPACE CHARGE
+	L="NONE";
+	TSpaceCharge Spch=Solver->GetSpaceChargeInfo();
+	switch (Spch.Type) {
+		case SPCH_ELL: {
+			Label_Spch->Caption="Elliptical Model";
+			break;
+		}
+		case SPCH_GW: {
+			Label_Spch->Caption="Garnett-Wangler Model";
+			L=s.FormatFloat("#0 slices ",Spch.NSlices);
+			break;
+		}
+		case SPCH_NO: {}
+		default: {
+			Label_Spch->Caption="Not Considered";
+		};
+	}
 
-    if (!Coulomb)
-        s=" NOT ";
-    else
-        s=" ";
-    Label_Coulomb->Caption="Coulomb Charge is"+s+"Considered";
+	if (Solver->CheckMagnetization())
+		L+="MAGNETIZED ";
+	if (Solver->CheckReverse())
+		L+="REVERSE ";
 
-    if (Reverse)
-        Label_Wave->Caption="Reverse Wave";
-    else
-        Label_Wave->Caption="Forward Wave";
-
-    if (!WDist)
-        Label_WDist->Caption="Energy Distribution: Normal";
-    else
-        Label_WDist->Caption="Energy Distribution: Equiprobable";
-
-    if (!PhiDist)
-        Label_PhiDist->Caption="Phase Distribution: Normal";
-    else
-        Label_PhiDist->Caption="Phase Distribution: Equiprobable";
-
-    Label_Cells->Caption=s.FormatFloat("#0",Solver->GetNumberOfCells())+" Cells Uploaded";
+	Label_SpchPar->Caption=L;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ExitButtonClick(TObject *Sender)
@@ -291,5 +299,7 @@ void __fastcall TMainForm::OptButtonClick(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
+
+
 
 
