@@ -46,7 +46,7 @@ public:
     __fastcall ~TBeam();
     TParticle *Particle;
     double lmb,h,Cmag;
-    double Ib,I0;
+    double Ib,I0; //beam current
     bool Reverse;
 	int Np;
     

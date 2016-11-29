@@ -27,19 +27,19 @@ private:
     bool DataReady;
     AnsiString UserIniPath,SolenoidFile,BeamFile,EnergyFile;
     //INITIAL PARAMETERS
-    double F0,P0,I0,lmb;
+    double F0,P0,lmb;
 	double B0,Lmag,Zmag;  //Lmag - length, Zmag -position
 
 	//BEAM
 	TBeamInput BeamPar;
 
 	//These should be removed
-    double W0,Phi0,dW,dPhi;
+   /* double W0,Phi0,dW,dPhi,I0;
 	double AlphaCS,BettaCS,EmittanceCS;
    	bool NpFromFile;
 	int Np,NpEnergy;
 	bool Phi_Eq,W_Eq;
-	TBeamType BeamType;
+	TBeamType BeamType;    */
 
 	double Kernel,Smooth;
 	double AngErr;
