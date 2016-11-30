@@ -277,6 +277,7 @@ double TBeamSolver::GetFrequency()
 {
 	return -1;
 }
+
 //---------------------------------------------------------------------------
 double TBeamSolver::GetPower()
 {
@@ -288,48 +289,14 @@ double TBeamSolver::GetInputCurrent()
 	return BeamPar.Current;
 }
 //---------------------------------------------------------------------------
-double TBeamSolver::GetSolenoidField()
+TGauss TBeamSolver::GetInputEnergy()
 {
-	return -1;
+	return Beam[0]->GetEnergyDistribution(D_RMS);
 }
 //---------------------------------------------------------------------------
-double TBeamSolver::GetSolenoidPosition()
+TGauss TBeamSolver::GetInputPhase()
 {
-	return -1;
-}
-//---------------------------------------------------------------------------
-double TBeamSolver::GetSolenoidLength()
-{
-    return -1;
-}
-/*//---------------------------------------------------------------------------
-double TBeamSolver::GetMode(int *N,int *M)
-{
-    if (M!=NULL)
-        *M=Mode_M;
-    if (N!=NULL)
-        *N=Mode_N;
-    return Mode_N*pi/Mode_M;
-}     */
-//---------------------------------------------------------------------------
-double TBeamSolver::GetInputAverageEnergy()
-{
-	return Beam[0]->GetAverageEnergy();
-}
-//---------------------------------------------------------------------------
-double TBeamSolver::GetInputEnergyDeviation()
-{
-	return -1;
-}
-//---------------------------------------------------------------------------
-double TBeamSolver::GetInputAveragePhase()
-{
-	return Beam[0]->GetAveragePhase();
-}
-//---------------------------------------------------------------------------
-double TBeamSolver::GetInputPhaseDeviation()
-{
-	return -1;
+	return Beam[0]->GetPhaseDistribution(D_RMS);
 }
 //---------------------------------------------------------------------------
 double TBeamSolver::GetInputAlpha()
@@ -360,6 +327,11 @@ bool TBeamSolver::CheckReverse()
 TSpaceCharge TBeamSolver::GetSpaceChargeInfo()
 {
 	return BeamPar.SpaceCharge;
+}
+//---------------------------------------------------------------------------
+TMagnetParameters TBeamSolver::GetSolenoidInfo()
+{
+	return StructPar.SolenoidPar;
 }
 //---------------------------------------------------------------------------
 bool TBeamSolver::IsKeyWord(AnsiString &S)
@@ -763,6 +735,295 @@ AnsiString TBeamSolver::AddLines(TInputLine *Lines,int N1,int N2)
 	return S;
 }
 //---------------------------------------------------------------------------
+TError TBeamSolver::ParsePID(TInputLine *Line, AnsiString &F)
+{
+	AnsiString S;
+
+	if (Line->N == 3){
+		return ERR_BEAM;
+	} else {
+		AnsiString FileName=Line->S[1];
+		if (CheckFile(FileName)) {
+			BeamPar.RFile=FileName;
+			F+=AddLines(Line,0,1);
+			BeamPar.ZFile=FileName;
+			BeamPar.ZBeamType=NORM_1D;
+
+			if (Line->N > 3) {
+				BeamPar.ZNorm.mean=DegreeToRad(Line->S[2].ToDouble());
+				BeamPar.ZNorm.limit=DegreeToRad(Line->S[3].ToDouble());
+				F+=AddLines(Line,2,3);
+
+				if (Line->N > 4) {
+					BeamPar.ZNorm.sigma=DegreeToRad(Line->S[4].ToDouble());
+					F+=" \t"+Line->S[4];
+				} else {
+					BeamPar.ZNorm.sigma=100*BeamPar.ZNorm.limit;
+				}
+			} else {
+				BeamPar.ZNorm.mean=pi;
+				BeamPar.ZNorm.limit=pi;
+				BeamPar.ZNorm.sigma=100*pi;
+			}
+		} else {
+			S="ERROR: The file "+FileName+" is missing!";
+			ShowError(S);
+			return ERR_BEAM;
+		}
+	}
+
+	return ERR_NO;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParsePIT(TInputLine *Line, AnsiString &F)
+{
+	AnsiString FileName=Line->S[1],S;
+
+	if (CheckFile(FileName)) {
+		BeamPar.ZBeamType=BeamPar.RBeamType;
+		BeamPar.RFile=FileName;
+		BeamPar.ZFile=FileName;
+
+		F+=AddLines(Line,0,1);
+
+		if (Line->N == 3){
+			if (Line->S[2]=="COMPRESS") {
+				BeamPar.ZCompress=true;
+				F+=" COMPRESS";
+			} else {
+				S="ERROR: Wrong keyword "+Line->S[2]+" in BEAM line";
+				ShowError(S);
+				return ERR_BEAM;
+			}
+		}
+	} else {
+		S="ERROR: The file "+FileName+" is missing!";
+		ShowError(S);
+		return ERR_BEAM;
+	}
+
+	return ERR_NO;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseFile2R(TInputLine *Line, AnsiString &F, int Nr)
+{
+	AnsiString FileName=Line->S[1],S;
+
+	if (CheckFile(FileName)) {
+		BeamPar.RFile=FileName;
+		F+=AddLines(Line,0,1);
+	} else {
+		S="ERROR: The file "+FileName+" is missing!";
+		ShowError(S);
+		return ERR_BEAM;
+	}
+
+	if (Nr==2){
+		FileName=Line->S[2];
+		if (CheckFile(FileName)) {
+			BeamPar.YFile=FileName;
+			F+=" \t"+FileName;
+			BeamPar.RBeamType=TWO_FILES_2D;
+		} else {
+			S="ERROR: The file "+FileName+" is missing!";
+			ShowError(S);
+			return ERR_BEAM;
+		}
+	}
+	return ERR_NO;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseTwiss2D(TInputLine *Line, AnsiString &F, int Nr)
+{
+	AnsiString S;
+
+	if (Nr != 3){
+		S="ERROR: Wrong number of Twiss parameters in BEAM line!";
+		ShowError(S);
+		return ERR_BEAM;
+	}else{
+		BeamPar.XTwiss.alpha=Line->S[1].ToDouble();
+		BeamPar.XTwiss.beta=Line->S[2].ToDouble();
+		BeamPar.XTwiss.epsilon=Line->S[3].ToDouble();
+		BeamPar.YTwiss=BeamPar.XTwiss;
+		F+=AddLines(Line,0,3);
+	}
+	return ERR_NO;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseTwiss4D(TInputLine *Line, AnsiString &F, int Nr)
+{
+	AnsiString S;
+
+	if (Nr != 6){
+		S="ERROR: Wrong number of Twiss parameters in BEAM line!";
+		ShowError(S);
+		return ERR_BEAM;
+	}
+	else{
+		BeamPar.XTwiss.alpha=Line->S[1].ToDouble();
+		BeamPar.XTwiss.beta=Line->S[2].ToDouble();
+		BeamPar.XTwiss.epsilon=Line->S[3].ToDouble();
+		BeamPar.YTwiss.alpha=Line->S[4].ToDouble();
+		BeamPar.YTwiss.beta=Line->S[5].ToDouble();
+		BeamPar.YTwiss.epsilon=Line->S[6].ToDouble();
+		F+=AddLines(Line,0,6);
+	}
+
+	return ERR_NO;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseSPH(TInputLine *Line, AnsiString &F, int Nr)
+{
+	AnsiString S;
+
+    if (Nr>3){
+		S="ERROR: Too many Spherical parameters in BEAM line!";
+		ShowError(S);
+		return ERR_BEAM;
+	} else{
+		BeamPar.Sph.Rcath=Line->S[1].ToDouble()/100; //Rcath cm
+		F+=AddLines(Line,0,1);
+		if (Nr>1) {
+			BeamPar.Sph.Rsph=Line->S[2].ToDouble()/100;  //Rsph cm
+			F+=" \t"+Line->S[1];
+			if (Nr>2){
+				BeamPar.Sph.kT=Line->S[3].ToDouble(); //kT
+				F+=" \t"+Line->S[1];
+			} else
+				BeamPar.Sph.kT=0;
+		} else {
+			BeamPar.Sph.Rsph=0;
+			BeamPar.Sph.kT=0;
+		}
+	}
+
+	return ERR_NO;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseELL(TInputLine *Line, AnsiString &F, int Nr)
+{
+	AnsiString S;
+
+	if (Nr>4){
+		S="ERROR: Too many Elliptical parameters in BEAM line!";
+		ShowError(S);
+		return ERR_BEAM;
+	}else{
+		BeamPar.Ell.ax=Line->S[1].ToDouble()/100; //x cm
+		F+=AddLines(Line,0,1);
+		if (Nr>1) {
+			BeamPar.Ell.by=Line->S[2].ToDouble()/100; //y cm
+			F+=" \t"+Line->S[2];
+			if (Nr>2){
+				BeamPar.Ell.phi=DegreeToRad(Line->S[3].ToDouble()); //phi
+				F+=" \t"+Line->S[3];
+				if (Nr>3){
+					BeamPar.Ell.h=Line->S[4].ToDouble(); //h
+					F+=" \t"+Line->S[4];
+				} else
+					BeamPar.Ell.h=1;
+			} else {
+				BeamPar.Ell.phi=0;
+				BeamPar.Ell.h=1;
+			}
+		} else {
+			BeamPar.Ell.by=BeamPar.Ell.ax; //y
+			BeamPar.Ell.phi=0;
+		 	BeamPar.Ell.h=1;
+		}
+	}
+	return ERR_NO;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseFile1Z(TInputLine *Line, AnsiString &F, int Nz,int Zpos)
+{
+	AnsiString S;
+
+	if (Nz != 3 && Nz != 4){
+		S="ERROR: Wrong number of Import File (Z) or Phase Distribution parameters in BEAM line!";
+		ShowError(S);
+		return ERR_BEAM;
+	}
+
+	AnsiString FileName=Line->S[Zpos+1];
+	if (CheckFile(FileName)) {
+		BeamPar.ZFile=FileName;
+		F+=AddLines(Line,Zpos,Zpos+1);
+	} else {
+		S="ERROR: The file "+FileName+" is missing!";
+		ShowError(S);
+		return ERR_BEAM;
+	}
+
+	BeamPar.ZNorm.mean=DegreeToRad(Line->S[Zpos+2].ToDouble());
+	BeamPar.ZNorm.limit=DegreeToRad(Line->S[Zpos+3].ToDouble());
+	F+=AddLines(Line,Zpos+2,Zpos+3);
+
+	if (Nz == 3) {
+		BeamPar.ZNorm.sigma=100*BeamPar.ZNorm.limit;
+	} else  if (Nz == 4) {
+		BeamPar.ZNorm.sigma=DegreeToRad(Line->S[Zpos+4].ToDouble());
+		F+=Line->S[Zpos+4];
+	}
+
+	return ERR_NO;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseFile2Z(TInputLine *Line, AnsiString &F, int Nz,int Zpos)
+{
+	AnsiString S;
+
+	if (Nz != 1){
+		S="ERROR: Too many Import File (Z) parameters in BEAM line!";
+		ShowError(S);
+		return ERR_BEAM;
+	}
+
+	AnsiString FileName=Line->S[Zpos+1];
+	if (CheckFile(FileName)) {
+		BeamPar.ZFile=FileName;
+		F+=AddLines(Line,Zpos,Zpos+1);
+	} else {
+		S="ERROR: The file "+FileName+" is missing!";
+		ShowError(S);
+		return ERR_BEAM;
+	}
+
+	return ERR_NO;
+}
+ //---------------------------------------------------------------------------
+TError TBeamSolver::ParseNorm(TInputLine *Line, AnsiString &F, int Nz,int Zpos)
+{
+	AnsiString S;
+
+	if (Nz != 4 && Nz != 6){
+		S="Wrong number of Longitudinal Distribution parameters in BEAM line!";
+		ShowError(S);
+		return ERR_BEAM;
+	}else{
+		if (Nz == 4) {
+			BeamPar.WNorm.mean=Line->S[Zpos+1].ToDouble();
+			BeamPar.WNorm.limit=Line->S[Zpos+2].ToDouble();
+			BeamPar.WNorm.sigma=100*BeamPar.WNorm.limit;
+			BeamPar.ZNorm.mean=DegreeToRad(Line->S[Zpos+3].ToDouble());
+			BeamPar.ZNorm.limit=DegreeToRad(Line->S[Zpos+4].ToDouble());
+			BeamPar.ZNorm.sigma=100*BeamPar.ZNorm.limit;
+			F+=AddLines(Line,Zpos,Zpos+4);
+		} else  if (Nz == 6) {
+			BeamPar.WNorm.mean=Line->S[Zpos+1].ToDouble();
+			BeamPar.WNorm.limit=Line->S[Zpos+2].ToDouble();
+			BeamPar.WNorm.sigma=Line->S[Zpos+3].ToDouble();
+			BeamPar.ZNorm.mean=DegreeToRad(Line->S[Zpos+4].ToDouble());
+			BeamPar.ZNorm.limit=DegreeToRad(Line->S[Zpos+5].ToDouble());
+			BeamPar.ZNorm.sigma=DegreeToRad(Line->S[Zpos+6].ToDouble());
+			F+=AddLines(Line,Zpos,Zpos+6);
+		}
+	}
+
+	return ERR_NO;
+}
+//---------------------------------------------------------------------------
 TError TBeamSolver::ParseOptions(TInputLine *Line)
 {
 	TError Error=ERR_NO;
@@ -779,12 +1040,11 @@ TError TBeamSolver::ParseOptions(TInputLine *Line)
 	}
 	ParsedStrings->Add(F);
 
-	return Error;
+	return ERR_NO;
 }
 //---------------------------------------------------------------------------
 TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 {
-	TError Error=ERR_NO;
 	AnsiString F="SPCHARGE ",S;
 	BeamPar.SpaceCharge.Type=SPCH_NO;
 	BeamPar.SpaceCharge.NSlices=1;
@@ -815,7 +1075,289 @@ TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 	}
 
 	ParsedStrings->Add(F);
-	return Error;
+	return ERR_NO;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseSolenoid(TInputLine *Line)
+{
+	AnsiString F="SOLENOID",SolenoidFile,S;
+
+	if (Line->N==3){
+		StructPar.SolenoidPar.ImportType=ANALYTIC_0D;
+		StructPar.SolenoidPar.BField=Line->S[0].ToDouble()/10000; //[Gs]
+		StructPar.SolenoidPar.Length=Line->S[1].ToDouble()/100; //[cm]
+		StructPar.SolenoidPar.StartPos=Line->S[2].ToDouble()/100; //[cm]
+
+		F+=AddLines(Line,0,2);
+		ParsedStrings->Add(F);
+	}else if (Line->N==1) {
+		SolenoidFile=Line->S[0];
+		F+="\t"+SolenoidFile;
+		if (CheckFile(SolenoidFile)){
+			StructPar.SolenoidPar.ImportType=IMPORT_1D;
+			StructPar.SolenoidPar.File=SolenoidFile;
+			ParsedStrings->Add(F);
+		}else{
+			S="ERROR: The file "+SolenoidFile+" is missing!";
+			ShowError(S);
+			return ERR_SOLENOID;
+		}
+	}else
+		return ERR_SOLENOID;
+
+	return ERR_NO;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseBeam(TInputLine *Line)
+{
+	TError Error=ERR_NO;
+	AnsiString F="BEAM",S;
+
+	if (Line->N < 1)
+		return ERR_BEAM;
+
+	AnsiString KeyWord=Line->S[0];
+	BeamPar.RBeamType=ParseDistribution(KeyWord);
+	BeamPar.ZCompress=false;
+
+	if (BeamPar.RBeamType==NOBEAM) {
+		S="ERROR: Wrong KEYWORD in BEAM line";
+		ShowError(S);
+		return ERR_BEAM;
+	 }
+
+	 if (IsFullFileKeyWord(BeamPar.RBeamType)) {
+		if (Line->N < 2 || Line->N >5)
+			return ERR_BEAM;
+
+			switch (BeamPar.RBeamType) {
+				case CST_PID: {
+					Error=ParsePID(Line,F);
+					break;
+				}
+				case CST_PIT: {
+					Error=ParsePIT(Line,F);
+					break;
+				}
+				default: {
+					S="ERROR: Unexpected Input File Type";
+					ShowError(S);
+					return ERR_BEAM;
+				}
+			}
+	 } else if (IsTransverseKeyWord(BeamPar.RBeamType)) {
+		int Zpos=0;
+		for (int j=1; j < Line->N; j++) {
+			if (IsLongitudinalKeyWord(ParseDistribution(Line->S[j]))) {
+				Zpos=j;
+				break;
+			}
+		}
+		if (Zpos==0) {
+			S="Longitudinal Distribution Type is not defined in BEAM line";
+			ShowError(S);
+			return ERR_BEAM;
+		}
+		int Nr=Zpos-1; // Number of R-parameters
+		int Nz=Line->N-Zpos-1; //Number of Z-parameters
+
+		if (Nr==0 || Nz==0) {
+			S="Too few parametes in BEAM line!";
+			ShowError(S);
+			return ERR_BEAM;
+		}
+
+		switch (BeamPar.RBeamType) {
+			case FILE_4D: {
+				if (Nr!=1){
+					S="Too many Import File (R) parameters in BEAM line!";
+					ShowError(S);
+					return ERR_BEAM;
+				}
+			}
+			case FILE_2D: {
+				if (Nr>2){
+					S="Too many Import File (R) parameters in BEAM line!";
+					ShowError(S);
+					return ERR_BEAM;
+				}
+				Error=ParseFile2R(Line,F,Nr);
+				break;
+			}
+			case TWISS_2D: {
+				Error=ParseTwiss2D(Line,F,Nr);
+				break;
+			}
+			case TWISS_4D: {
+				Error=ParseTwiss4D(Line,F,Nr);
+				break;
+			}
+			case SPH_2D: {
+				Error=ParseSPH(Line,F,Nr);
+				break;
+			}
+			case ELL_2D: {
+				Error=ParseELL(Line,F,Nr);
+				break;
+			}
+			default: {
+				S="Unexpected BEAM Transversal Distribution Type";
+				ShowError(S);
+				return ERR_BEAM;
+			}
+		}
+		KeyWord=Line->S[Zpos];
+		BeamPar.ZBeamType=ParseDistribution(KeyWord);
+
+		if (IsLongitudinalKeyWord(BeamPar.ZBeamType)) {
+			switch (BeamPar.ZBeamType) {
+				case FILE_1D: {
+					Error=ParseFile1Z(Line,F,Nz,Zpos);
+					break;
+				}
+				case FILE_2D: {
+					Error=ParseFile2Z(Line,F,Nz,Zpos);
+					break;
+				}
+				case NORM_2D: {
+					Error=ParseNorm(Line,F,Nz,Zpos);
+					break;
+				}
+				default: {
+					S="ERROR:Unexpected BEAM Longitudinal Distribution Type";
+					ShowError(S);
+					return ERR_BEAM;
+				}
+			}
+		} else{
+			S="ERROR: Unexpected BEAM Longitudinal Distribution Type";
+			ShowError(S);
+			return ERR_BEAM;
+		}
+	 }  else  {
+		S="ERROR: Wrong Format of BEAM line";
+		ShowError(S);
+		return ERR_BEAM;
+	 }
+	 ParsedStrings->Add(F);
+
+	 return Error;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseCurrent(TInputLine *Line)
+{
+	AnsiString F="CURRENT",S;
+	if (Line->N<1 || Line->N>2){
+		return ERR_CURRENT;
+	}  else {
+		BeamPar.Current=Line->S[0].ToDouble();
+		F+="\t"+Line->S[0];
+		if (!IsFileKeyWord(BeamPar.RBeamType) && !IsFileKeyWord(BeamPar.ZBeamType)) {
+			if (Line->N!=2){
+				S="ERROR: Number of particles is not defined!";
+				ShowError(S);
+				return ERR_CURRENT;
+			} else {
+				BeamPar.NParticles=Line->S[1].ToInt();
+				F+="\t"+Line->S[1];
+			}
+		} else {
+			int Nr=0, Ny=0, Nz=0, Np=0;
+
+			if (IsFullFileKeyWord(BeamPar.RBeamType)){
+				switch (BeamPar.RBeamType) {
+					case CST_PID:{
+						Nr=NumPointsInFile(BeamPar.RFile,PID_LENGTH);
+						break;
+					}
+					case CST_PIT:{
+						Nr=NumPointsInFile(BeamPar.RFile,PIT_LENGTH);
+						break;
+					}
+					default:  {
+						S="ERROR: Unexpected BEAM File Format!";
+						ShowError(S);
+						return ERR_IMPORT;
+					}
+				}
+
+				Nz=Nr;
+			} else {
+				switch (BeamPar.RBeamType) {
+					case FILE_2D: {
+						Nr=NumPointsInFile(BeamPar.RFile,2);
+						break;
+					}
+					case TWO_FILES_2D: {
+						Nr=NumPointsInFile(BeamPar.RFile,2);
+						Ny=NumPointsInFile(BeamPar.YFile,2);
+						if (Nr!=Ny) {
+							S="ERROR: The numbers of imported particles from two Transverse Beam Files don't match!";
+							ShowError(S);
+							return ERR_IMPORT;
+						}
+						break;
+					}
+					case FILE_4D: {
+						Nr=NumPointsInFile(BeamPar.RFile,4);
+						break;
+					}
+					default:  {
+						Nr=-1;
+						break;
+					}
+				}
+
+				switch (BeamPar.ZBeamType) {
+					case FILE_1D: {
+						Nz=NumPointsInFile(BeamPar.ZFile,1);
+						break;
+					}
+					case FILE_2D: {
+						Nz=NumPointsInFile(BeamPar.ZFile,2);
+						break;
+					}
+					default:  {
+						Nz=Nr;
+						break;
+					}
+				}
+
+				if (Nr==-1)
+					Nr=Nz;
+
+
+			}
+			//check Np mismatch
+			if (IsFileKeyWord(BeamPar.RBeamType) && IsFileKeyWord(BeamPar.ZBeamType)){
+				if (Nr!=Nz) {
+					S="ERROR: The number of imported particles from Longintudinal Beam File doesn't match with the number of particles imported from Transversal Beam File!";
+					ShowError(S);
+					return ERR_IMPORT;
+				}
+			}
+
+			//check Np overrride
+			if (Line->N==2) {
+				Np=Line->S[1].ToInt();
+
+				if (Np>Nr) {
+					S="WARNING: The number of defined particles exceeds the number of imported particles, and will be ignored!";
+					ShowError(S);
+				}  else if (Np<Nr) {
+					S="WARNING: The number of defined particles is less than the number of imported particles! Only the first "+Line->S[1]+" particles will be simulated";
+					ShowError(S);
+					Nr=Np;
+				}
+				F+=" "+Line->S[1];
+			}
+			BeamPar.NParticles=Nr;
+		}
+	}
+
+	ParsedStrings->Add(F);
+
+	return ERR_NO;
 }
 //---------------------------------------------------------------------------
 TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
@@ -824,649 +1366,49 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 	double dF=0;
 	double F_last=0, P_last=0;
 
-   // Coulomb=false;
-   // SpCharge=false;
-   //	GWmethod=false;
-   // Reverse=false;
-   //	Magnetized=false;
-	//BeamType=RANDOM;
-   //	FSolenoid=false;
-	//SolenoidFile=Solenoid_File;
-	//BeamFile=CST_FileX;
-	//EnergyFile="";
 	TError Error=ERR_NO;
 
 	bool BeamDefined=false;
 	bool CurrentDefined=false;
 	bool CellDefined=false;
 	bool PowerDefined=false;
-   //	bool NpFromFile=false;
 
 	bool NewCell=true;
 	AnsiString F,S,s;
     ParsedStrings->Clear();
 
    // FILE *logFile;
-    for (int k=0;k<N;k++){
+	for (int k=0;k<N;k++){
 	 /*   logFile=fopen("BeamSolver.log","a");
         fprintf(logFile,"ParseLines: Line %i \n",k);
 		fclose(logFile);     */
-	switch (Lines[k].P) {
+		switch (Lines[k].P) {
 			case UNDEFINED: {
 				throw std::logic_error("Unhandled TInputParameter UNDEFINED in TBeamSolver::ParseLines");
 			}
 			case OPTIONS:{
 				Error=ParseOptions(&Lines[k]);
-				break;
+								break;
 			}
 			case SPCHARGE:{
 				Error=ParseSpaceCharge(&Lines[k]);
-				break;				
+				break;
 			}
-            case SOLENOID:{
-				if (Lines[k].N==3){
-					StructPar.SolenoidPar.SolenoidType=ANALYTIC_0D;
-					StructPar.SolenoidPar.BField=Lines[k].S[0].ToDouble();
-					StructPar.SolenoidPar.Length=Lines[k].S[1].ToDouble();;
-					StructPar.SolenoidPar.StartPos=Lines[k].S[2].ToDouble();
-						/* OLD CODE
-						B0=Lines[k].S[0].ToDouble();
-						Lmag=Lines[k].S[1].ToDouble();
-						Zmag=Lines[k].S[2].ToDouble(); */
-					F="SOLENOID";
-					F+=AddLines(&Lines[k],0,2);
-				   //	+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+Lines[k].S[2];
-                    ParsedStrings->Add(F);
-				}else if (Lines[k].N==1) {
-				   /*	if (Lines[k].S[0]=="BFILE")
-						F="SOLENOID BFILE";
-					else {   */
-					AnsiString SolenoidFile=Lines[k].S[0];
-					F="SOLENOID "+SolenoidFile;
-				   //	}
-					if (CheckFile(SolenoidFile)){
-						StructPar.SolenoidPar.SolenoidType=IMPORT_1D;
-						StructPar.SolenoidPar.File=SolenoidFile;
-						//FSolenoid=true;
-						ParsedStrings->Add(F);
-					}else{
-						S="ERROR: The file "+SolenoidFile+" is missing!";
-						ShowError(S);
-						return ERR_SOLENOID;
-					}
-				}else
-					return ERR_SOLENOID;
-                break;
+			case SOLENOID:{
+				Error=ParseSolenoid(&Lines[k]);
+				break;
 			}
-
 			case BEAM:{
-				if (Lines[k].N < 1)
-					return ERR_BEAM;
-
-				F="BEAM";
-				AnsiString KeyWord=Lines[k].S[0];
-				BeamPar.RBeamType=ParseDistribution(KeyWord);
-				BeamPar.ZCompress=false;
-
-				if (BeamPar.RBeamType==NOBEAM) {
-					S="ERROR: Wrong KEYWORD in BEAM line";
-					ShowError(S);
-					return ERR_BEAM;
-				}
-
-				if (IsFullFileKeyWord(BeamPar.RBeamType)) {
-					if (Lines[k].N < 2 || Lines[k].N >5)
-						return ERR_BEAM;
-
-					switch (BeamPar.RBeamType) {
-						case CST_PID: {
-							if (Lines[k].N == 3){
-								return ERR_BEAM;
-							} else {
-                            	AnsiString FileName=Lines[k].S[1];
-								if (CheckFile(FileName)) {
-									BeamPar.RFile=FileName;
-									F+=AddLines(&Lines[k],0,1);
-								   //	F="BEAM "+KeyWord+" \t"+FileName;
-									BeamPar.ZFile=FileName;
-									BeamPar.ZBeamType=NORM_1D;
-
-									if (Lines[k].N > 3) {
-										BeamPar.ZNorm.mean=DegreeToRad(Lines[k].S[2].ToDouble());
-										BeamPar.ZNorm.limit=DegreeToRad(Lines[k].S[3].ToDouble());
-										F+=AddLines(&Lines[k],2,3);
-									  //	F+=" \t"+Lines[k].S[2]+" \t"+Lines[k].S[3];
-										if (Lines[k].N > 4) {
-											BeamPar.ZNorm.sigma=DegreeToRad(Lines[k].S[4].ToDouble());
-											F+=" \t"+Lines[k].S[4];
-										} else {
-											BeamPar.ZNorm.sigma=100*BeamPar.ZNorm.limit;
-										}
-									}
-									else {
-										BeamPar.ZNorm.mean=pi;
-										BeamPar.ZNorm.limit=pi;
-										BeamPar.ZNorm.sigma=100*pi;
-                                    }
-								}
-								BeamDefined=true;
-								ParsedStrings->Add(F);
-                            }
-							break;
-						}
-						case CST_PIT: {
-							AnsiString FileName=Lines[k].S[1];
-							if (CheckFile(FileName)) {
-								BeamPar.ZBeamType=BeamPar.RBeamType;
-								BeamPar.RFile=FileName;
-								BeamPar.ZFile=FileName;
-
-								//F="BEAM "+KeyWord+" \t"+FileName;
-								F+=AddLines(&Lines[k],0,1);
-
-								if (Lines[k].N == 3){
-									if (Lines[k].S[2]=="COMPRESS") {
-										BeamPar.ZCompress=true;
-										F+=" COMPRESS";
-									} else {
-										S="ERROR: Wrong keyword "+Lines[k].S[2]+" in BEAM line";
-										ShowError(S);
-										return ERR_BEAM;
-                                    }
-								}
-
-								BeamDefined=true;
-								ParsedStrings->Add(F);
-							} else {
-								S="ERROR: The file "+FileName+" is missing!";
-								ShowError(S);
-								return ERR_BEAM;
-							}
-							break;
-						}
-						default: {
-							S="Unexpected Input File Type";
-							ShowError(S);
-							return ERR_BEAM;
-						}
-					}
-				} else if (IsTransverseKeyWord(BeamPar.RBeamType)) {
-					int Zpos=0;
-					for (int j=1; j < Lines[k].N; j++) {
-						if (IsLongitudinalKeyWord(ParseDistribution(Lines[k].S[j]))) {
-							Zpos=j;
-							break;
-						}
-					}
-					if (Zpos==0) {
-						S="Longitudinal Distribution Type is not defined in BEAM line";
-						ShowError(S);
-						return ERR_BEAM;
-					}
-					int Nr=Zpos-1; // Number of R-parameters
-					int Nz=Lines[k].N-Zpos-1; //Number of Z-parameters
-
-					if (Nr==0 || Nz==0) {
-						S="Too few parametes in BEAM line!";
-						ShowError(S);
-						return ERR_BEAM;
-					}
-
-					switch (BeamPar.RBeamType) {
-						case FILE_4D: {
-							if (Nr!=1){
-								S="Too many Import File (R) parameters in BEAM line!";
-								ShowError(S);
-								return ERR_BEAM;
-							}
-						}
-						case FILE_2D: {
-							if (Nr>2){
-								S="Too many Import File (R) parameters in BEAM line!";
-								ShowError(S);
-								return ERR_BEAM;
-							}
-							AnsiString FileName=Lines[k].S[1];
-							if (CheckFile(FileName)) {
-								BeamPar.RFile=FileName;
-								//F="BEAM "+KeyWord+" \t"+FileName+" \t";
-								F+=AddLines(&Lines[k],0,1);
-							} else {
-								S="ERROR: The file "+FileName+" is missing!";
-								ShowError(S);
-								return ERR_BEAM;
-							}
-							if (Nr==2){
-								FileName=Lines[k].S[2];
-								if (CheckFile(FileName)) {
-									BeamPar.YFile=FileName;
-									F+=" \t"+FileName;
-									BeamPar.RBeamType=TWO_FILES_2D;
-								} else {
-									S="ERROR: The file "+FileName+" is missing!";
-									ShowError(S);
-									return ERR_BEAM;
-								}
-							}
-							break;
-						}
-
-						case TWISS_2D: {
-							if (Nr != 3){
-								S="Wrong number of Twiss parameters in BEAM line!";
-								ShowError(S);
-								return ERR_BEAM;
-							}else{
-								BeamPar.XTwiss.alpha=Lines[k].S[1].ToDouble();
-								BeamPar.XTwiss.beta=Lines[k].S[2].ToDouble();
-								BeamPar.XTwiss.epsilon=Lines[k].S[3].ToDouble();
-								BeamPar.YTwiss=BeamPar.XTwiss;
-							 //	Zpos=4;
-								//F="BEAM";
-								F+=AddLines(&Lines[k],0,3);
-								//+Lines[k].S[0]+" \t"+Lines[k].S[1]+" \t"+Lines[k].S[2]+" \t"+Lines[k].S[3]+" \t";
-							}
-							break;
-						}
-						case TWISS_4D: {
-							if (Nr != 6){
-								S="Wrong number of Twiss parameters in BEAM line!";
-								ShowError(S);
-								return ERR_BEAM;
-							}
-							else{
-								BeamPar.XTwiss.alpha=Lines[k].S[1].ToDouble();
-								BeamPar.XTwiss.beta=Lines[k].S[2].ToDouble();
-								BeamPar.XTwiss.epsilon=Lines[k].S[3].ToDouble();
-								BeamPar.YTwiss.alpha=Lines[k].S[4].ToDouble();
-								BeamPar.YTwiss.beta=Lines[k].S[5].ToDouble();
-								BeamPar.YTwiss.epsilon=Lines[k].S[6].ToDouble();
-								Zpos=7;
-								F+=AddLines(&Lines[k],0,6);
-								//F="BEAM "+Lines[k].S[0]+" \t"+Lines[k].S[1]+" \t"+Lines[k].S[2]+" \t"+Lines[k].S[3]+" \t"+Lines[k].S[4]+" \t"+Lines[k].S[5]+" \t"+Lines[k].S[6]+" \t";
-							}
-							break;
-						}
-						case SPH_2D: {
-							if (Nr>3){
-								S="Too many Spherical parameters in BEAM line!";
-								ShowError(S);
-								return ERR_BEAM;
-							}
-							else{
-								BeamPar.Sph.Rcath=Lines[k].S[1].ToDouble()/100; //Rcath
-								F+=AddLines(&Lines[k],0,1);
-								//F="BEAM "+Lines[k].S[0]+" \t"+Lines[k].S[1];
-							   //	Zpos=2;
-								if (Nr>1) {
-									BeamPar.Sph.Rsph=Lines[k].S[2].ToDouble()/100;  //Rsph
-									F+=" \t"+Lines[k].S[1];
-									//Zpos=3;
-									if (Nr>2){
-										BeamPar.Sph.kT=Lines[k].S[3].ToDouble(); //kT
-										F+=" \t"+Lines[k].S[1];
-									 //	Zpos=4;
-									 } else
-										BeamPar.Sph.kT=0;
-								} else {
-									 BeamPar.Sph.Rsph=0;
-									 BeamPar.Sph.kT=0;
-								}
-							   //	BeamPar.YNorm=BeamPar.XNorm;
-							}
-							break;
-						}
-						case ELL_2D: {
-							if (Nr>4){
-								S="Too many Elliptical parameters in BEAM line!";
-								ShowError(S);
-								return ERR_BEAM;
-							}
-							else{
-								BeamPar.Ell.ax=Lines[k].S[1].ToDouble()/100; //x
-								F+=AddLines(&Lines[k],0,1);
-								if (Nr>1) {
-									BeamPar.Ell.by=Lines[k].S[2].ToDouble()/100; //y
-									F+=" \t"+Lines[k].S[2];
-									if (Nr>2){
-										BeamPar.Ell.phi=DegreeToRad(Lines[k].S[3].ToDouble()); //phi
-										F+=" \t"+Lines[k].S[3];
-										if (Nr>3){
-											BeamPar.Ell.h=Lines[k].S[4].ToDouble(); //h
-											F+=" \t"+Lines[k].S[4];
-										} else
-											BeamPar.Ell.h=1e-6;
-									} else {
-										BeamPar.Ell.phi=0;
-										BeamPar.Ell.h=1e-6;
-									}
-								} else {
-									BeamPar.Ell.by=BeamPar.Ell.ax; //y
-									BeamPar.Ell.phi=0;
-									BeamPar.Ell.h=1e-6;
-								}
-							}
-							break;
-						}
-						default: {
-							S="Unexpected BEAM Transversal Distribution Type";
-							ShowError(S);
-							return ERR_BEAM;
-						}
-					}
-				   /*	if (Lines[k].N < Zpos+1)
-						return ERR_BEAM;    */
-
-					KeyWord=Lines[k].S[Zpos];
-					BeamPar.ZBeamType=ParseDistribution(KeyWord);
-
-					if (IsLongitudinalKeyWord(BeamPar.ZBeamType)) {
-						switch (BeamPar.ZBeamType) {
-							case FILE_1D: {
-								if (Nz != 3 && Nz != 4){
-									S="Wrong number of Import File (Z) or Phase Distribution parameters in BEAM line!";
-									ShowError(S);
-									return ERR_BEAM;
-								}
-								AnsiString FileName=Lines[k].S[Zpos+1];
-								if (CheckFile(FileName)) {
-									BeamPar.ZFile=FileName;
-									F+=AddLines(&Lines[k],Zpos,Zpos+1);
-								   //	F+=KeyWord+" \t"+FileName+" \t";
-							   //	BeamDefined=true;
-								} else {
-									S="ERROR: The file "+FileName+" is missing!";
-									ShowError(S);
-									return ERR_BEAM;
-								}
-								BeamPar.ZNorm.mean=DegreeToRad(Lines[k].S[Zpos+2].ToDouble());
-								BeamPar.ZNorm.limit=DegreeToRad(Lines[k].S[Zpos+3].ToDouble());
-								F+=AddLines(&Lines[k],Zpos+2,Zpos+3);
-								//F+=Lines[k].S[Zpos+2]+" \t"+Lines[k].S[Zpos+3];
-								if (Nz == 3) {
-									BeamPar.ZNorm.sigma=100*BeamPar.ZNorm.limit;
-								} else  if (Nz == 4) {
-									BeamPar.ZNorm.sigma=DegreeToRad(Lines[k].S[Zpos+4].ToDouble());
-									F+=Lines[k].S[Zpos+4];
-								}
-                                break;
-                            }
-							case FILE_2D: {
-								if (Nz != 1){
-									S="Too many Import File (Z) parameters in BEAM line!";
-									ShowError(S);
-									return ERR_BEAM;
-								}
-
-								AnsiString FileName=Lines[k].S[Zpos+1];
-								if (CheckFile(FileName)) {
-									BeamPar.ZFile=FileName;
-									F+=AddLines(&Lines[k],Zpos,Zpos+1);
-								   //	F+=KeyWord+" \t"+FileName;
-							   //	BeamDefined=true;
-								} else {
-									S="ERROR: The file "+FileName+" is missing!";
-									ShowError(S);
-									return ERR_BEAM;
-								}
-								break;
-							}
-							case NORM_2D: {
-								if (Nz != 4 && Nz != 6){
-									S="Wrong number of Longitudinal Distribution parameters in BEAM line!";
-									ShowError(S);
-									return ERR_BEAM;
-								}else{
-									if (Nz == 4) {
-										BeamPar.WNorm.mean=Lines[k].S[Zpos+1].ToDouble();
-										BeamPar.WNorm.limit=Lines[k].S[Zpos+2].ToDouble();
-										BeamPar.WNorm.sigma=100*BeamPar.WNorm.limit;
-										BeamPar.ZNorm.mean=DegreeToRad(Lines[k].S[Zpos+3].ToDouble());
-										BeamPar.ZNorm.limit=DegreeToRad(Lines[k].S[Zpos+4].ToDouble());
-										BeamPar.ZNorm.sigma=100*BeamPar.ZNorm.limit;
-										F+=AddLines(&Lines[k],Zpos,Zpos+4);
-									   //	F+=Lines[k].S[Zpos]+" \t"+Lines[k].S[Zpos+1]+" \t"+Lines[k].S[Zpos+2]+" \t"+Lines[k].S[Zpos+3]+" \t"+Lines[k].S[Zpos+4];
-
-									} else  if (Nz == 6) {
-										BeamPar.WNorm.mean=Lines[k].S[Zpos+1].ToDouble();
-										BeamPar.WNorm.limit=Lines[k].S[Zpos+2].ToDouble();
-										BeamPar.WNorm.sigma=Lines[k].S[Zpos+3].ToDouble();
-										BeamPar.ZNorm.mean=DegreeToRad(Lines[k].S[Zpos+4].ToDouble());
-										BeamPar.ZNorm.limit=DegreeToRad(Lines[k].S[Zpos+5].ToDouble());
-										BeamPar.ZNorm.sigma=DegreeToRad(Lines[k].S[Zpos+6].ToDouble());
-										F+=AddLines(&Lines[k],Zpos,Zpos+6);
-									   //	F+=Lines[k].S[Zpos]+" \t"+Lines[k].S[Zpos+1]+" \t"+Lines[k].S[Zpos+2]+" \t"+Lines[k].S[Zpos+3]+" \t"+Lines[k].S[Zpos+4]+" \t"+Lines[k].S[Zpos+5]+" \t"+Lines[k].S[Zpos+6];
-									}
-								}
-								break;
-							}
-							default: {
-								S="Unexpected BEAM Longitudinal Distribution Type";
-								ShowError(S);
-								return ERR_BEAM;
-							}
-						}
-					}
-					else{
-						S="Unexpected BEAM Longitudinal Distribution Type";
-						ShowError(S);
-						return ERR_BEAM;
-					}
-                    BeamDefined=true;
-					ParsedStrings->Add(F);
-				}  else  {
-					S="Wrong Format of BEAM line";
-					ShowError(S);
-					return ERR_BEAM;
-
-				}
-
-			// OLD CODE
-			  /*  if (Lines[k].N < 4 && Lines[k].N > 6){
-					return ERR_BEAM;
-				}
-				Phi0=Lines[k].S[0].ToDouble();
-				dPhi=Lines[k].S[1].ToDouble();
-				Phi_Eq=(Lines[k].S[2]!="NORM");
-                if (Lines[k].N == 6){
-				    W0=Lines[k].S[3].ToDouble();
-                    dW=Lines[k].S[4].ToDouble();
-                    W_Eq=(Lines[k].S[5]!="NORM");
-					NpEnergy=0;
-					F="BEAM "+Lines[k].S[0]+" \t"+Lines[k].S[1]+" \t"+Lines[k].S[2]+" \t"+Lines[k].S[3]+" \t"+Lines[k].S[4]+" \t"+Lines[k].S[5];
-				    ParsedStrings->Add(F);
-				    BeamDefined=true;
-				    break;
-				} else {
-					if (CheckFile(Lines[k].S[3])) {
- 					    EnergyFile=Lines[k].S[3];
-                        F="BEAM "+Lines[k].S[0]+" \t"+Lines[k].S[1]+" \t"+Lines[k].S[2]+" \t"+Lines[k].S[3];
-						NpEnergy=NumPointsInFile(EnergyFile,2);
-                        if (Lines[k].N == 5){
-					        NpEnergy=Lines[k].S[4].ToInt();
-							F += " \t"+Lines[k].S[4];
-						}
-						ParsedStrings->Add(F);
-						BeamDefined=true;
-						break;
-					} else {
-						S="ERROR: Format of the file "+Lines[k].S[1]+" is wrong!";
-						ShowError(S);
-						return ERR_BEAM;
-					}
-				}       */
+				Error=ParseBeam(&Lines[k]);
+				BeamDefined=Error==ERR_NO;
 				break;
 			}
-
 			case CURRENT:{
-				if (Lines[k].N<1 || Lines[k].N>2){
-					return ERR_CURRENT;
-				}  else {
-					BeamPar.Current=Lines[k].S[0].ToDouble();
-					F="CURRENT "+Lines[k].S[0];
-
-					if (!IsFileKeyWord(BeamPar.RBeamType) && !IsFileKeyWord(BeamPar.ZBeamType)) {
-						if (Lines[k].N!=2){
-							S="ERROR: Number of particles is not defined!";
-							ShowError(S);
-							return ERR_CURRENT;
-						} else {
-							BeamPar.NParticles=Lines[k].S[1].ToInt();
-							F+=" "+Lines[k].S[1];
-							CurrentDefined=true;
-						}
-					} else {
-						int Nr=0;
-						int Ny=0;
-						int Nz=0;
-						int Np=0;
-						if (IsFullFileKeyWord(BeamPar.RBeamType)){
-							switch (BeamPar.RBeamType) {
-								case CST_PID:{
-									Nr=NumPointsInFile(BeamPar.RFile,PID_LENGTH);
-									break;
-								}
-								case CST_PIT:{
-									Nr=NumPointsInFile(BeamPar.RFile,PIT_LENGTH);
-									break;
-								}
-								default:  {
-									S="ERROR: Unexpected BEAM File Format!";
-									ShowError(S);
-									return ERR_IMPORT;
-								}
-							}
-
-							Nz=Nr;
-						} else {
-							switch (BeamPar.RBeamType) {
-								case FILE_2D: {
-									Nr=NumPointsInFile(BeamPar.RFile,2);
-									break;
-								}
-								case TWO_FILES_2D: {
-									Nr=NumPointsInFile(BeamPar.RFile,2);
-									Ny=NumPointsInFile(BeamPar.YFile,2);
-									if (Nr!=Ny) {
-										S="ERROR: The numbers of imported particles from two Transverse Beam Files don't match!";
-										ShowError(S);
-										return ERR_IMPORT;
-									}
-									break;
-								}
-								case FILE_4D: {
-									Nr=NumPointsInFile(BeamPar.RFile,4);
-									break;
-                                }
-								default:  {
-									Nr=-1;
-								/*	S="ERROR: Unexpected BEAM Transversal Distribution File Format!";
-									ShowError(S);
-									return ERR_CURRENT;  */
-								}
-							}
-
-							switch (BeamPar.ZBeamType) {
-								case FILE_1D: {
-									Nz=NumPointsInFile(BeamPar.ZFile,1);
-									break;
-								}
-								case FILE_2D: {
-									Nz=NumPointsInFile(BeamPar.ZFile,2);
-									break;
-                                }
-								default:  {
-									Nz=Nr;
-									break;
-								}
-							}
-
-							if (Nr==-1)
-								Nr=Nz;
-
-
-						} //check Np mismatch
-						if (IsFileKeyWord(BeamPar.RBeamType) && IsFileKeyWord(BeamPar.ZBeamType)){
-							if (Nr!=Nz) {
-								S="ERROR: The number of imported particles from Longintudinal Beam File doesn't match with the number of particles imported from Transversal Beam File!";
-								ShowError(S);
-								return ERR_IMPORT;
-							}
-						}
-						if (Lines[k].N==2) {
-							Np=Lines[k].S[1].ToInt();
-							//check Np overrride
-							if (Np>Nr) {
-								S="WARNING: The number of defined particles exceeds the number of imported particles, and will be ignored!";
-								ShowError(S);
-							}  else if (Np<Nr) {
-								S="WARNING: The number of defined particles is less than the number of imported particles! Only the first "+Lines[k].S[1]+" particles will be simulated";
-								ShowError(S);
-								Nr=Np;
-							}
-							F+=" "+Lines[k].S[1];
-						}
-						BeamPar.NParticles=Nr;
-					}
-					ParsedStrings->Add(F);
-					CurrentDefined=true;
-                }
-
-			// OLD CODE
-			 /*	if (Lines[k].N!=5 && Lines[k].N!=2 && Lines[k].N!=3){
-                    return ERR_CURRENT;
-                }
-				I0=Lines[k].S[0].ToDouble();
-				F="CURRENT "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t";//+Lines[k].S[2]+"\t";
-				if (Lines[k].N==5 ){
-					Np=Lines[k].S[1].ToInt();
-					AlphaCS=Lines[k].S[2].ToDouble();
-					BettaCS=Lines[k].S[3].ToDouble();
-					EmittanceCS=Lines[k].S[4].ToDouble();
-					F+=Lines[k].S[2]+"\t"+Lines[k].S[3]+" \t"+Lines[k].S[4];
-				} else if (Lines[k].N==2){
-					if (Lines[k].S[1]=="CST_X" || Lines[k].S[1]=="CST")
-						BeamFile=CST_FileX;
-					else
-						BeamFile=Lines[k].S[1];;
-
-					if (CheckFile(BeamFile))
-						BeamType=CST_X;
-					else{
-						S="ERROR: The file "+BeamFile+" is missing!";
-						ShowError(S);
-						return ERR_CURRENT;
-					}
-					BeamType=CST_X;
-					NpFromFile=true;
-					Np=NumPointsInFile(BeamFile,2);
-				} else if (Lines[k].N==3){
-					if (Lines[k].S[1]=="CST_X" || Lines[k].S[1]=="CST")
-						BeamFile=CST_FileX;
-					else
-						BeamFile=Lines[k].S[1];
-
-					if (CheckFile(BeamFile))
-						BeamType=CST_X;
-					else{
-						S="ERROR: The file "+BeamFile+" is missing!";
-						ShowError(S);
-						return ERR_CURRENT;
-					}
-					BeamType=CST_X;
-					Np=Lines[k].S[2].ToInt();
-					NpFromFile=false;
-				}
-				if (BeamType!=RANDOM)
-					F="CURRENT "+Lines[k].S[0]+" \t"+Lines[k].S[1];
-				if (!NpFromFile)
-					F+=" \t"+Lines[k].S[2];
-				ParsedStrings->Add(F);
-				CurrentDefined=true;   */
+				Error=ParseCurrent(&Lines[k]);
+				CurrentDefined=Error==ERR_NO;
 				break;
 			}
-
-            case CELL:{
+			case CELL:{
 				if(OnlyParameters)
                     break;
 				if (Lines[k].N==3 || Lines[k].N==5){
@@ -1722,8 +1664,10 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				ParsedStrings->Add(Lines[k].S[0]);
 				break;
 			}
-
 		}
+
+		if (Error!=ERR_NO)
+			return Error;
 	}
 
 	if (!BeamDefined) {
@@ -1886,7 +1830,7 @@ TError TBeamSolver::MakeBuncher(TCell& iCell)
     do {
         b=(2/pi)*(1-b0)*arctg(k1*Power(ksi,k2))+b0;
        //   b=(2/pi)*arctg(0.25*sqr(10*ksi*lmb)+0.713);
-        iB=10000*b;
+		iB=10000*b;
         ksi+=b*th/(2*pi);
 		StructPar.NElements++;
     } while (iB<9990);
@@ -2304,7 +2248,7 @@ int TBeamSolver::CreateGeometry()
 	}
 	// fclose(F);
 
-	if (StructPar.SolenoidPar.SolenoidType==IMPORT_1D) {
+	if (StructPar.SolenoidPar.ImportType==IMPORT_1D) {
 		int NSol=0;
 		double *Xz=NULL;
 		double *Bz=NULL;
@@ -2314,7 +2258,7 @@ int TBeamSolver::CreateGeometry()
 			StructPar.SolenoidPar.BField=0;
 			StructPar.SolenoidPar.Length=0;
 			StructPar.SolenoidPar.StartPos=0;
-			StructPar.SolenoidPar.SolenoidType==NO_ELEMENT;
+			StructPar.SolenoidPar.ImportType==NO_ELEMENT;
 			/*Zmag=0;
 			B0=0;
 			Lmag=0;
@@ -2330,7 +2274,7 @@ int TBeamSolver::CreateGeometry()
 				StructPar.SolenoidPar.StartPos=0;
 				StructPar.SolenoidPar.Length=Structure[Npoints-1].ksi*Structure[Npoints-1].lmb;
 				StructPar.SolenoidPar.BField=Bz[0];
-				StructPar.SolenoidPar.SolenoidType==ANALYTIC_0D;
+				StructPar.SolenoidPar.ImportType==ANALYTIC_0D;
 				/*Zmag=0;
 				Lmag=Structure[Npoints-1].ksi*Structure[Npoints-1].lmb;
 				B0=Bz[0];
@@ -2365,9 +2309,9 @@ int TBeamSolver::CreateGeometry()
         Structure[i].Rp=sqr(E_int[i])/2;;
         Structure[i].B=Structure[i].Rp/(2*We0);
 		Structure[i].alpha=Al_int[i]/(lmb*sqrt(lmb));
-		switch (StructPar.SolenoidPar.SolenoidType) {
+		switch (StructPar.SolenoidPar.ImportType) {
 			case IMPORT_1D:{
-				Structure[i].B_ext=Bi[i]/10000;
+				Structure[i].B_ext=Bi[i];
 				break;
 			}
 			case ANALYTIC_0D:{
@@ -2381,7 +2325,7 @@ int TBeamSolver::CreateGeometry()
 		}
     }
 
-	if (StructPar.SolenoidPar.SolenoidType==IMPORT_1D)
+	if (StructPar.SolenoidPar.ImportType==IMPORT_1D)
 		delete[] Bi;
 
     delete[] X_base; delete[] X_int;
@@ -2624,9 +2568,9 @@ bool TBeamSolver::ReadSolenoid(int Nz,double *Z,double* B)
 		if (NumWords(L)==2){       //Check if only two numbers in the line
 			try {                  //Check if the data is really a number
 				S=ReadWord(L,1);
-				z=S.ToDouble();
+				z=S.ToDouble()/100; //[cm]
 				S=ReadWord(L,2);
-				Bz=S.ToDouble();
+				Bz=S.ToDouble()/10000;  //[Gs]
 			}
 			catch (...){
 				continue;          //Skip incorrect line
@@ -2664,19 +2608,20 @@ TSpectrumBar *TBeamSolver::GetEnergySpectrum(int Nknot,double& Wav,double& dW)
     return Spectrum;
 }
 //---------------------------------------------------------------------------
-TSpectrumBar *TBeamSolver::GetPhaseSpectrum(int Nknot,double& Fav,double& dF)
-{
-    TSpectrumBar *Spectrum;
-    Spectrum=GetPhaseSpectrum(Nknot,false,Fav,dF);
-    return Spectrum;
-}
-//---------------------------------------------------------------------------
 TSpectrumBar *TBeamSolver::GetEnergySpectrum(int Nknot,bool Env,double& Wav,double& dW)
 {
-    TSpectrumBar *Spectrum;
-    Spectrum=Beam[Nknot]->GetEnergySpectrum(Env,Wav,dW);
-    return Spectrum;
+	TSpectrumBar *Spectrum;
+	Spectrum=Beam[Nknot]->GetEnergySpectrum(Env,Wav,dW);
+	return Spectrum;
 }
+//---------------------------------------------------------------------------
+TSpectrumBar *TBeamSolver::GetPhaseSpectrum(int Nknot,double& Fav,double& dF)
+{
+	TSpectrumBar *Spectrum;
+	Spectrum=GetPhaseSpectrum(Nknot,false,Fav,dF);
+	return Spectrum;
+}
+
 //---------------------------------------------------------------------------
 TSpectrumBar *TBeamSolver::GetPhaseSpectrum(int Nknot,bool Env,double& Fav,double& dF)
 {

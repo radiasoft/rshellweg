@@ -42,6 +42,7 @@ enum TChartType {CH_EMITTANCE,CH_SECTION,CH_PORTRAIT,CH_PHASE,CH_ENERGY,CH_BETTA
 
 enum TInputParameter {POWER,SOLENOID,BEAM,CURRENT,DRIFT,CELL,CELLS,OPTIONS,DUMP,COMMENT,UNDEFINED,SPCHARGE};
 enum TTrig {SIN,COS,TG,CTG,SEC,CSC};
+enum TDeviation {D_RMS,D_FWHM};
 enum TLoss {LIVE,RADIUS_LOST,PHASE_LOST,BZ_LOST,BX_LOST,B_LOST,STEP_LOST};
 enum TGraphType {TRANS_SEC,LONGT_SEC,TRANS_SPACE,LONGT_SPACE,LONGT_MOTION,PHASE_SLID,W_SPEC,F_SPEC,F_NONE};
 enum TOptType {BUNCHER,ACCELERATOR};
@@ -184,9 +185,9 @@ struct TStructure
 	TDump DumpParameters;
 };
 
-struct TSolenoidParameters
+struct TMagnetParameters
 {
-	TImportType SolenoidType;
+	TImportType ImportType;
 	double BField;
 	double StartPos;
 	double Length;
@@ -208,7 +209,7 @@ struct TStructureInput
 	int ElementsLimit;
 	TSectionParameters *Sections;
 	TCell *Cells;
-	TSolenoidParameters SolenoidPar;
+	TMagnetParameters SolenoidPar;
 	bool Reverse;
 };
 

@@ -315,7 +315,7 @@ bool TBeam::BeamFromFile(TBeamInput *BeamPar)
 				pr=C.px;
 				pth=C.py;
 
-				Particle[i].x=r/lmb;
+				Particle[i].x=0.01*r/lmb;
 				Particle[i].Bx=pr*Particle[i].betta;
 				Particle[i].Th=th;
 				Particle[i].Bth=pth*Particle[i].betta; //check! debugging may be required
@@ -374,7 +374,7 @@ bool TBeam::BeamFromTwiss(TBeamInput *BeamPar)
 bool TBeam::BeamFromSphere(TBeamInput *BeamPar)
 {
 	double *X, *Y;
-	double r=0,th=0,pr=0;
+	double r=0,th=0,pr=0,pz=0,v=0,psi=0;
 	TGauss Gx, Gy;
 	TPhaseSpace C;
 
@@ -393,6 +393,13 @@ bool TBeam::BeamFromSphere(TBeamInput *BeamPar)
 		th=Y[i];
 
 		pr=BeamPar->Sph.Rsph==0?0:-sin(r/BeamPar->Sph.Rsph);
+		//pz=BeamPar->Sph.Rsph==1?0:-cos(r/BeamPar->Sph.Rsph);
+
+		if (BeamPar->Sph.kT>0) {
+			v=sqrt(2*qe*BeamPar->Sph.kT/me);
+			psi=RandomCos();
+			pr+=v*cos(psi)/(Particle[i].betta*c);
+		}
 
 		Particle[i].x=r/lmb;
 		Particle[i].Bx=pr*Particle[i].betta;
@@ -409,36 +416,45 @@ bool TBeam::BeamFromSphere(TBeamInput *BeamPar)
 //---------------------------------------------------------------------------
 bool TBeam::BeamFromEllipse(TBeamInput *BeamPar)
 {
-	double *X, *Y;
-	double r=0,th=0,pr=0;
-	TGauss Gx, Gy;
+	double sx=0,sy=0,r=0,th=0,x=0,y=0;
+	double a=0,b=0,phi=0;
 	TPhaseSpace C;
 
-	Gx.mean=0;
-	Gx.limit=BeamPar->Sph.Rcath;
-	Gx.sigma=BeamPar->Sph.sigma;
-	Gy.mean=0;
-	Gy.limit=pi;
-	Gy.sigma=100*pi;
+	phi=BeamPar->Ell.phi;
+	b=BeamPar->Ell.by;
+	a=BeamPar->Ell.ax;
 
-	X=MakeRayleighDistribution(Gx);
-	Y=MakeGaussDistribution(Gy);
+	sx=a/BeamPar->Ell.h;
+	sy=b/BeamPar->Ell.h;
 
-	for (int i=0; i < Np; i++) {
-		r=X[i];
-		th=Y[i];
+	double xx=0,yy=0,Rc=0,Ran1=0,Ran2=0,Myx=0,Dyx=0;
+	double Mx=0; //x0
+	double My=0; //y0
 
-		pr=BeamPar->Sph.Rsph==0?0:-sin(r/BeamPar->Sph.Rsph);
+	for (int i=0;i<Np;i++){
+		do{
+			TwoRandomGauss(Ran1,Ran2);
+			xx=Mx+Ran1*sx;
+			Myx=My+Rc*sy*(xx-Mx)/sx; //ellitic distribution
+			Dyx=sqr(sy)*(1-sqr(Rc)); //dispersion
+			yy=Myx+Ran2*sqrt(Dyx);
+
+		} while (sqr(xx/a)+sqr(yy/b)>1);
+
+		x=xx*cos(phi)-yy*sin(phi);
+		y=xx*sin(phi)+yy*cos(phi);
+
+		C=CartesianToCylinrical(x,y,0,0);
+
+		r=C.x;
+		th=C.y;
 
 		Particle[i].x=r/lmb;
-		Particle[i].Bx=pr*Particle[i].betta;
+		Particle[i].Bx=0;
 		Particle[i].Th=th;
 		Particle[i].Bth=0;
 		Particle[i].Bz=BzFromOther(Particle[i].betta,Particle[i].Bx,0);//double-check!!!
-    }
-
-	delete[] X;
-	delete[] Y;
+	}
 
 	return true;
 }
@@ -700,7 +716,7 @@ double *TBeam::MakeGaussDistribution(double Xav,double sX,double Xlim)
 		for (int i=0;i<Np;i++){
 			do {
 				xx=RandomGauss()*sX/h;
-			} while (xx<-Xlim || xx>Xlim);
+			} while (mod(xx)>Xlim);
 			Xi[i]=Xav+xx;
 		}
 	}
@@ -721,7 +737,7 @@ double *TBeam::MakeRayleighDistribution(double Xav,double sX,double Xlim)
 		for (int i=0;i<Np;i++){
 			do {
 				xx=RandomRayleigh()*sX;
-			} while (xx<0 || xx>Xlim);
+			} while (mod(xx)>Xlim);
 			Xi[i]=Xav+xx;
 		}
 	}
@@ -1012,6 +1028,16 @@ TSpectrumBar *TBeam::GetSpectrum(bool Smooth,double *X,double& Xav,double& dX,bo
     delete Spectrum;
 
     return SpectrumArray;
+}
+//---------------------------------------------------------------------------
+TGauss TBeam::GetEnergyDistribution(TDeviation D)
+{
+
+}
+//---------------------------------------------------------------------------
+TGauss TBeam::GetPhaseDistribution(TDeviation D)
+{
+
 }
 //---------------------------------------------------------------------------
 TSpectrumBar *TBeam::GetPhaseSpectrum(bool Smooth,double *Radius,double *Phase,double& FavPhase,double& dPhase,int Nslices, bool width)

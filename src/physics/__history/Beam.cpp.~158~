@@ -315,7 +315,7 @@ bool TBeam::BeamFromFile(TBeamInput *BeamPar)
 				pr=C.px;
 				pth=C.py;
 
-				Particle[i].x=r/lmb;
+				Particle[i].x=0.01*r/lmb;
 				Particle[i].Bx=pr*Particle[i].betta;
 				Particle[i].Th=th;
 				Particle[i].Bth=pth*Particle[i].betta; //check! debugging may be required
@@ -374,7 +374,7 @@ bool TBeam::BeamFromTwiss(TBeamInput *BeamPar)
 bool TBeam::BeamFromSphere(TBeamInput *BeamPar)
 {
 	double *X, *Y;
-	double r=0,th=0,pr=0;
+	double r=0,th=0,pr=0,pz=0,v=0,psi=0;
 	TGauss Gx, Gy;
 	TPhaseSpace C;
 
@@ -393,6 +393,13 @@ bool TBeam::BeamFromSphere(TBeamInput *BeamPar)
 		th=Y[i];
 
 		pr=BeamPar->Sph.Rsph==0?0:-sin(r/BeamPar->Sph.Rsph);
+		//pz=BeamPar->Sph.Rsph==1?0:-cos(r/BeamPar->Sph.Rsph);
+
+		if (BeamPar->Sph.kT>0) {
+			v=sqrt(2*qe*BeamPar->Sph.kT/me);
+			psi=RandomCos();
+			pr+=v*cos(psi)/(Particle[i].betta*c);
+		}
 
 		Particle[i].x=r/lmb;
 		Particle[i].Bx=pr*Particle[i].betta;
@@ -432,7 +439,7 @@ bool TBeam::BeamFromEllipse(TBeamInput *BeamPar)
 			Dyx=sqr(sy)*(1-sqr(Rc)); //dispersion
 			yy=Myx+Ran2*sqrt(Dyx);
 
-		} while (mod(xx)>a || mod(yy)>b);
+		} while (sqr(xx/a)+sqr(yy/b)>1);
 
 		x=xx*cos(phi)-yy*sin(phi);
 		y=xx*sin(phi)+yy*cos(phi);

@@ -315,7 +315,7 @@ bool TBeam::BeamFromFile(TBeamInput *BeamPar)
 				pr=C.px;
 				pth=C.py;
 
-				Particle[i].x=r/lmb;
+				Particle[i].x=0.01*r/lmb;
 				Particle[i].Bx=pr*Particle[i].betta;
 				Particle[i].Th=th;
 				Particle[i].Bth=pth*Particle[i].betta; //check! debugging may be required
@@ -374,7 +374,7 @@ bool TBeam::BeamFromTwiss(TBeamInput *BeamPar)
 bool TBeam::BeamFromSphere(TBeamInput *BeamPar)
 {
 	double *X, *Y;
-	double r=0,th=0,pr=0;
+	double r=0,th=0,pr=0,pz=0,v=0,psi=0;
 	TGauss Gx, Gy;
 	TPhaseSpace C;
 
@@ -393,6 +393,13 @@ bool TBeam::BeamFromSphere(TBeamInput *BeamPar)
 		th=Y[i];
 
 		pr=BeamPar->Sph.Rsph==0?0:-sin(r/BeamPar->Sph.Rsph);
+		//pz=BeamPar->Sph.Rsph==1?0:-cos(r/BeamPar->Sph.Rsph);
+
+		if (BeamPar->Sph.kT>0) {
+			v=sqrt(2*qe*BeamPar->Sph.kT/me);
+			psi=RandomCos();
+			pr+=v*cos(psi)/(Particle[i].betta*c);
+		}
 
 		Particle[i].x=r/lmb;
 		Particle[i].Bx=pr*Particle[i].betta;
@@ -1023,6 +1030,30 @@ TSpectrumBar *TBeam::GetSpectrum(bool Smooth,double *X,double& Xav,double& dX,bo
     return SpectrumArray;
 }
 //---------------------------------------------------------------------------
+TGauss TBeam::GetEnergyDistribution(TDeviation D)
+{
+	double *B;
+	TGauss G;
+
+	TSpectrumBar *Spectrum;
+	Spectrum=GetEnergySpectrum(false,G.mean,G.sigma);
+	delete[] Spectrum;
+
+	return G;
+}
+//---------------------------------------------------------------------------
+TGauss TBeam::GetPhaseDistribution(TDeviation D)
+{
+	double *B;
+	TGauss G;
+
+	TSpectrumBar *Spectrum;
+	Spectrum=GetPhaseSpectrum(false,G.mean,G.sigma);
+	delete[] Spectrum;
+
+	return G;
+}
+//---------------------------------------------------------------------------
 TSpectrumBar *TBeam::GetPhaseSpectrum(bool Smooth,double *Radius,double *Phase,double& FavPhase,double& dPhase,int Nslices, bool width)
 {
     TSpectrumBar *Sphase,*SpectrumPhaseArray;
@@ -1055,7 +1086,7 @@ TSpectrumBar *TBeam::GetPhaseSpectrum(bool Smooth,double *Radius,double *Phase,d
 //---------------------------------------------------------------------------
 TSpectrumBar *TBeam::GetEnergySpectrum(bool Smooth,double& Wav,double& dW)
 {
-    TSpectrumBar *S;
+	TSpectrumBar *S;
     double *B;
     CountLiving();
     
@@ -1138,24 +1169,24 @@ double TBeam::GetAveragePhase()
 //---------------------------------------------------------------------------
 double TBeam::GetAverageEnergy()
 {
-    double *B,Bav=0,dB=0;
-    TSpectrumBar *Spectrum;
-    Spectrum=GetEnergySpectrum(false,Bav,dB);
+	double *B,Bav=0,dB=0;
+	TSpectrumBar *Spectrum;
+	Spectrum=GetEnergySpectrum(false,Bav,dB);
    /*   B=new double[Nliv];
    //   GetParameters(B,BETTA_PAR);
 
-    int j=0;
+	int j=0;
 	for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){
 			B[i]=RadToDeg(Particle[i].betta);
 			j++;
 		}
 	}
-         */
+		 */
    //   Spectrum=GetSpectrum(false,B,Bav,dB);
-    delete[] Spectrum;
+	delete[] Spectrum;
    //   delete[] B;
-    return Bav;
+	return Bav;
 }
 //---------------------------------------------------------------------------
 double TBeam::GetMaxEnergy()

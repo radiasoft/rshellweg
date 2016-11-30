@@ -89,9 +89,12 @@ private:    // User declarations
 //    TBeamSolver *Solver;
     void DisplayError();
     void DisplayInputData();
-    bool LoadInputData(bool display_err=true);
-    TError ERR;
-    AnsiString InputFileName;
+	bool LoadInputData(bool display_err=true);
+	bool CreateInputData(bool display_err=true);
+    TError ERR; //remove
+	AnsiString InputFileName;
+	bool DataReady;
+	bool InputReady;
 public:     // User declarations
     TBeamSolver *Solver;
     __fastcall TMainForm(TComponent* Owner);

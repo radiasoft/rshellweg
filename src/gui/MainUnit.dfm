@@ -25,13 +25,13 @@ object MainForm: TMainForm
     Align = alTop
     Caption = 'Input Data'
     TabOrder = 1
-    ExplicitWidth = 715
     object ViewGeometryButton: TButton
       Left = 21
       Top = 234
       Width = 83
       Height = 25
       Caption = 'View Geometry'
+      Enabled = False
       TabOrder = 0
       OnClick = ViewGeometryButtonClick
     end
@@ -76,23 +76,23 @@ object MainForm: TMainForm
       object Label_Length: TLabel
         Left = 16
         Top = 54
-        Width = 119
+        Width = 124
         Height = 13
-        Caption = 'Effective Length = ??? m'
+        Caption = 'Effective Length = ??? cm'
       end
       object Label_B0: TLabel
         Left = 16
         Top = 16
-        Width = 106
+        Width = 112
         Height = 13
-        Caption = 'Magnetic Field = ??? T'
+        Caption = 'Magnetic Field = ??? Gs'
       end
       object Label_Position: TLabel
         Left = 16
         Top = 35
-        Width = 104
+        Width = 109
         Height = 13
-        Caption = 'Start Position = ??? m'
+        Caption = 'Start Position = ??? cm'
       end
     end
     object GroupBeamGeneral: TGroupBox
@@ -293,8 +293,6 @@ object MainForm: TMainForm
     Align = alTop
     Caption = 'Solver Progress'
     TabOrder = 2
-    ExplicitTop = 233
-    ExplicitWidth = 467
   end
   object ResultsGroup: TGroupBox
     Left = 0
@@ -304,9 +302,6 @@ object MainForm: TMainForm
     Align = alClient
     Caption = 'Results'
     TabOrder = 3
-    ExplicitTop = 345
-    ExplicitWidth = 467
-    ExplicitHeight = 266
     object MemoPanel: TPanel
       Left = 2
       Top = 15
@@ -314,8 +309,6 @@ object MainForm: TMainForm
       Height = 209
       Align = alClient
       TabOrder = 0
-      ExplicitWidth = 356
-      ExplicitHeight = 192
       object ResultsMemo: TMemo
         Left = 1
         Top = 1
@@ -327,10 +320,6 @@ object MainForm: TMainForm
         ScrollBars = ssVertical
         TabOrder = 0
         Visible = False
-        ExplicitLeft = 2
-        ExplicitTop = 0
-        ExplicitWidth = 351
-        ExplicitHeight = 192
       end
     end
     object ActPanel: TPanel
@@ -340,8 +329,6 @@ object MainForm: TMainForm
       Height = 209
       Align = alRight
       TabOrder = 1
-      ExplicitLeft = 358
-      ExplicitHeight = 192
       object OptButton: TButton
         Left = 16
         Top = 70
@@ -380,8 +367,6 @@ object MainForm: TMainForm
     Align = alTop
     Caption = 'Controls'
     TabOrder = 0
-    ExplicitTop = 297
-    ExplicitWidth = 467
     DesignSize = (
       577
       48)
@@ -403,7 +388,6 @@ object MainForm: TMainForm
       Caption = 'Exit'
       TabOrder = 2
       OnClick = ExitButtonClick
-      ExplicitLeft = 487
     end
     object AbortButton: TButton
       Left = 286

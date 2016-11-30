@@ -1030,6 +1030,54 @@ TSpectrumBar *TBeam::GetSpectrum(bool Smooth,double *X,double& Xav,double& dX,bo
     return SpectrumArray;
 }
 //---------------------------------------------------------------------------
+TGauss TBeam::GetEnergyDistribution(TDeviation D)
+{
+	double *B;
+	TGauss G;
+
+	TSpectrumBar *Spectrum;
+    CountLiving();
+
+	B=new double[Nliv];
+    int j=0;
+    for (int i=0;i<Np;i++){
+        if (Particle[i].lost==LIVE){
+            B[j]=VelocityToMeV(Particle[i].betta);
+            j++;
+		}
+    }
+	Spectrum=GetSpectrum(false,B,G.mean,G.sigma,D==D_FWHM);
+
+	delete[] Spectrum;
+
+	return G;
+}
+//---------------------------------------------------------------------------
+TGauss TBeam::GetPhaseDistribution(TDeviation D)
+{
+	double *Phi;
+	TGauss G;
+
+	TSpectrumBar *Spectrum;
+
+    CountLiving();
+	Phi=new double[Nliv];
+
+	int j=0;
+    for (int i=0;i<Np;i++){
+        if (Particle[i].lost==LIVE){
+			Phi[j]=RadToDegree(Particle[i].phi);
+			j++;
+        }
+    }
+
+	Spectrum=GetSpectrum(false,Phi,G.mean,G.sigma,D==D_FWHM);
+
+	delete[] Spectrum;
+
+	return G;
+}
+//---------------------------------------------------------------------------
 TSpectrumBar *TBeam::GetPhaseSpectrum(bool Smooth,double *Radius,double *Phase,double& FavPhase,double& dPhase,int Nslices, bool width)
 {
     TSpectrumBar *Sphase,*SpectrumPhaseArray;
@@ -1062,7 +1110,7 @@ TSpectrumBar *TBeam::GetPhaseSpectrum(bool Smooth,double *Radius,double *Phase,d
 //---------------------------------------------------------------------------
 TSpectrumBar *TBeam::GetEnergySpectrum(bool Smooth,double& Wav,double& dW)
 {
-    TSpectrumBar *S;
+	TSpectrumBar *S;
     double *B;
     CountLiving();
     
@@ -1145,24 +1193,24 @@ double TBeam::GetAveragePhase()
 //---------------------------------------------------------------------------
 double TBeam::GetAverageEnergy()
 {
-    double *B,Bav=0,dB=0;
-    TSpectrumBar *Spectrum;
-    Spectrum=GetEnergySpectrum(false,Bav,dB);
+	double *B,Bav=0,dB=0;
+	TSpectrumBar *Spectrum;
+	Spectrum=GetEnergySpectrum(false,Bav,dB);
    /*   B=new double[Nliv];
    //   GetParameters(B,BETTA_PAR);
 
-    int j=0;
+	int j=0;
 	for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){
 			B[i]=RadToDeg(Particle[i].betta);
 			j++;
 		}
 	}
-         */
+		 */
    //   Spectrum=GetSpectrum(false,B,Bav,dB);
-    delete[] Spectrum;
+	delete[] Spectrum;
    //   delete[] B;
-    return Bav;
+	return Bav;
 }
 //---------------------------------------------------------------------------
 double TBeam::GetMaxEnergy()

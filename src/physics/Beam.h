@@ -72,9 +72,12 @@ public:
 		//GET OUTPUT PARAMETERS
     void GetCourantSneider(double& alpha,double& betta, double& epsilon);
     void GetEllipticParameters(double& x0,double& y0, double& a,double& b,double& phi, double& Rx, double& Ry);
-    TSpectrumBar *GetEnergySpectrum(bool Smooth,double& Wav,double& dW);
-    TSpectrumBar *GetPhaseSpectrum(bool Smooth,double& Fav,double& dF);
-    void GetParameters(double *X,TBeamParameter Par);
+	TSpectrumBar *GetEnergySpectrum(bool Smooth,double& Wav,double& dW);
+	TSpectrumBar *GetPhaseSpectrum(bool Smooth,double& Fav,double& dF);
+	void GetParameters(double *X,TBeamParameter Par);
+
+	TGauss GetEnergyDistribution(TDeviation D);
+	TGauss GetPhaseDistribution(TDeviation D);
 
     double GetBeamRadius();
     double GetPhaseLength();

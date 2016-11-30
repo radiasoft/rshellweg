@@ -25,18 +25,12 @@ class TBeamSolver
 private:
     //FLAGS
     bool DataReady;
-	AnsiString UserIniPath/*,SolenoidFile,BeamFile,EnergyFile*/;
+	AnsiString UserIniPath;
 
 	//BEAM
 	TBeamInput BeamPar;
 
 	//These should be removed
-   /* double W0,Phi0,dW,dPhi,I0;
-	double AlphaCS,BettaCS,EmittanceCS;
-   	bool NpFromFile;
-	int Np,NpEnergy;
-	bool Phi_Eq,W_Eq;
-	TBeamType BeamType;    */
 
 	double Kernel,Smooth;
 	double AngErr;
@@ -44,22 +38,16 @@ private:
 
 	int Np_beam,Nstat,Ngraph,Nbars,Nav,Nliv;
 	double I;
-   //	bool Magnetized; //move to BeamPar
-	bool SpCharge,Coulomb,GWmethod; //move to BeamPar
 
 	TSplineType SplineType;
 	//STRUCTURE
-	//TCell *Cells; //move to StructPar
 	TStringList *InputStrings,*ParsedStrings;
 	TStructureInput StructPar;
-
+	int ChangeCells(int N);
 	void ResetStructure();
 
-	//double F0,P0,lmb;
-	//double B0,Lmag,Zmag;  //Lmag - length, Zmag -position
 	int Mode_N,Mode_M,MaxCells,Nmesh,Npoints;//,Ncells,Nlim;
 	double Rb,Lb,phi0,dphi,w,betta0; //create new structure TStructure
-   //	bool Reverse,FSolenoid;
 
 	int GetSolenoidPoints();
 	bool ReadSolenoid(int Nz,double *Z,double* B);
@@ -69,14 +57,30 @@ private:
     TSmartProgress *SmartProgress;
 	#endif
 
-    //INITIALIZATION
+	//INITIALIZATION & PARSING
     void Initialize();
-    void LoadIniConstants();
-	int ChangeCells(int N);
+	void LoadIniConstants();
 
-    TInputLine *ParseFile(int& N);
-	TError ParseLines(TInputLine *Lines,int N,bool OnlyParameters=false);
 	AnsiString AddLines(TInputLine *Lines,int N1, int N2);
+
+	TInputLine *ParseFile(int& N);
+
+	TError ParseOptions (TInputLine *Line);
+	TError ParseSpaceCharge (TInputLine *Line);
+	TError ParseSolenoid (TInputLine *Line);
+	TError ParseBeam (TInputLine *Line);
+
+	TError ParsePID (TInputLine *Line, AnsiString &F);
+	TError ParsePIT (TInputLine *Line, AnsiString &F);
+	TError ParseFile2R (TInputLine *Line, AnsiString &F, int Nr);
+	TError ParseFile1Z (TInputLine *Line, AnsiString &F, int Nz,int Zpos);
+	TError ParseFile2Z (TInputLine *Line, AnsiString &F, int Nz,int Zpos);
+	TError ParseTwiss2D (TInputLine *Line, AnsiString &F, int Nr);
+	TError ParseTwiss4D (TInputLine *Line, AnsiString &F, int Nr);
+	TError ParseSPH (TInputLine *Line, AnsiString &F, int Nr);
+	TError ParseELL (TInputLine *Line, AnsiString &F, int Nr);
+
+	TError ParseLines(TInputLine *Lines,int N,bool OnlyParameters=false);
 
 	//INTERPOLATION
 	double *LinearInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
@@ -91,11 +95,12 @@ private:
 	TIntegration **K;
 	TIntParameters *Par;
 
-	//PARSING
+	//TYPE CHECKS
 	bool IsKeyWord(AnsiString &S);
 	TInputParameter Parse(AnsiString &S);
 
 	TBeamType ParseDistribution(AnsiString &S);
+	TSpaceChargeType ParseSpchType(AnsiString &S);
 	bool IsFullFileKeyWord(TBeamType D);
 	bool IsTransverseKeyWord(TBeamType D);
 	bool IsLongitudinalKeyWord(TBeamType D);
@@ -142,7 +147,7 @@ public:
     //GET INITIAL PARAMETERS
     int GetNumberOfPoints();
     int GetMeshPoints();
-    int GetNumberOfParticles();
+	int GetNumberOfParticles();
    //   double GetWaveLength();
     int GetNumberOfChartPoints();
     int GetNumberOfBars();
@@ -152,20 +157,18 @@ public:
     double GetInputCurrent();
    //   double GetMode(int *N=NULL,int *M=NULL);
 
-    double GetSolenoidField();
-    double GetSolenoidLength();
-    double GetSolenoidPosition();
-    double GetInputAverageEnergy();
+	double GetInputAverageEnergy();
     double GetInputEnergyDeviation();
     double GetInputAveragePhase();
     double GetInputPhaseDeviation();
     double GetInputAlpha();
     double GetInputBetta();
-    double GetInputEpsilon();
-	bool IsCoulombAccounted();
-	bool IsWaveReversed();
-	bool IsEnergyEquiprobable();
-	bool IsPhaseEquiprobable();
+	double GetInputEpsilon();
+
+	bool CheckMagnetization();
+	bool CheckReverse();
+	TSpaceCharge GetSpaceChargeInfo();
+	TMagnetParameters GetSolenoidInfo();
 
 	//GET OUTPUT PARAMETERS
 	void GetCourantSneider(int Nknot, double& alpha,double& betta, double& epsilon);
