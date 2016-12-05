@@ -36,7 +36,6 @@ private:
 	TPhaseSpace *MakeTwissDistribution(TTwiss T);
 	TEllipse GetEllipse(TTwiss T);
 	TEllipse FindEmittanceAngle(TBeamParameter P);
-    //double FindEmittanceAngle(double& a,double& b); //obsolete
 
 	TBeamParameter ComplementaryParameter(TBeamParameter P);
 	bool IsRectangular(TBeamParameter P);
@@ -88,8 +87,9 @@ public:
 	TGauss GetEnergyDistribution(TDeviation D);
 	TGauss GetPhaseDistribution(TDeviation D);
 
-	double GetDeviation(TBeamParameter P,TDeviation D=D_RMS);
+	double GetRadius(TBeamParameter P,TDeviation D=D_RMS);
 	double GetRadius(TDeviation D=D_RMS);
+	double GetDivergence(TBeamParameter P,TDeviation D=D_RMS);
 	double GetDivergence(TDeviation D=D_RMS);
 
     double GetPhaseLength();

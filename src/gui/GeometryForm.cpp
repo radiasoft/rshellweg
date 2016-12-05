@@ -115,7 +115,8 @@ void TGeomForm::ClearParameters()
 //---------------------------------------------------------------------------
 void TGeomForm::SetParameters()
 {
-    double alpha=0,betta=0,eps=0,Rx=0,Ry=0;
+	//double alpha=0,betta=0,eps=0,Rx=0,Ry=0;
+	TTwiss T;
     double Wav=0,dW=0,Fav=0,dF=0;
     AnsiString s;
 
@@ -127,61 +128,82 @@ void TGeomForm::SetParameters()
     FavParLabel->Visible=true;
     dFParLabel->Visible=true;
 
-    MainSolver->GetCourantSneider(0,alpha,betta,eps);
+	T=MainSolver->GetInputTwiss(R_PAR);
     MainSolver->GetEnergySpectrum(0,Wav,dW);
     MainSolver->GetPhaseSpectrum(0,Fav,dF);
 
-    aParLabel->Caption="alpha = "+s.FormatFloat("#0.000##",alpha);
-    bParLabel->Caption="betta = "+s.FormatFloat("#0.000##",100*betta)+" cm/rad";
-    eParLabel->Caption="epsilon = "+s.FormatFloat("#0.000##",100*eps)+" cm*rad";
-    WavParLabel->Caption="Wav = "+s.FormatFloat("#0.000##",Wav)+" MeV";
+	aParLabel->Caption="alpha = "+s.FormatFloat("#0.000##",T.alpha);
+	bParLabel->Caption="betta = "+s.FormatFloat("#0.000##",100*T.beta)+" cm/rad";
+	eParLabel->Caption="epsilon = "+s.FormatFloat("#0.000##",100*T.epsilon)+" cm*rad";
+	WavParLabel->Caption="Wav = "+s.FormatFloat("#0.000##",Wav)+" MeV";
     dWParLabel->Caption="dW = "+s.FormatFloat("#0.000##",dW)+" MeV";
     FavParLabel->Caption="Phi av = "+s.FormatFloat("#0.000##",Fav)+" deg";
     dFParLabel->Caption="dPhi = "+s.FormatFloat("#0.000##",dF)+" deg";
 }
 //---------------------------------------------------------------------------
-void TGeomForm::DrawBeamEnvelope(TLineSeries *Series0,TBeamSolver *Solver,int env_type,TColor Col1)
+void TGeomForm::DrawBeamEnvelope(TLineSeries *Series0,TBeamSolver *Solver,TColor Col1)
 {
-    double a,b,x0=0,y0=0,x,y,x1,y1,k,phi;
-    double alpha,betta,eps,s,An,Rx,Ry;
+	double x,y,x1,y1,k;
+	double s,An;
     int Nb=Solver->GetNumberOfBars();
     TSpectrumBar *Spectrum;
-    double X,dX;
+	double X,dX;
+	bool ellipse_env=false;
+	TEllipse E;
+	TBeamParameter P;
     #define Np 500
 
     Series0->Clear();
 
-    if(BeamGroup->ItemIndex==emittance_chart){
-        SignChart(CH_EMITTANCE);
-        Solver->GetEllipticParameters(0,x0,y0,a,b,phi,Rx,Ry);
-        //Solver->GetCourantSneider(0,alpha,betta,eps);
-        x0*=1e3;
-        y0*=1e3;
-        a*=1e3*h;
-        b*=1e3*h;
+	//if(BeamGroup->ItemIndex==xpx_chart){
+		SignChart(CH_EMITTANCE);
+        switch (BeamGroup->ItemIndex) {
+			case (rpr_chart):{
+				P=R_PAR;
+				ellipse_env=true;
+				break;
+			};
+			case (xpx_chart):{
+				P=X_PAR;
+				ellipse_env=true;
+				break;
+			};
+			case (ypy_chart):{
+				P=Y_PAR;
+				ellipse_env=true;
+				break;
+			};
+		}
+		E=Solver->GetEllipse(0,P);
+		//Solver->GetCourantSneider(0,alpha,betta,eps);
+		E.x0*=1e3;
+		E.y0*=1e3;
+        h=2.27;
+		E.ax*=1e3*h;
+		E.by*=1e3*h;
 
-        if (env_type==ellipse_env){
+		if (ellipse_env){
             for (int i=0;i<Np;i++){
-                k=2.0*a/(Np/2-1);
-                if (i<Np/2){
-                    x=-a+k*i+x0;
-                    s=1;
-                }else{
-                    x=3*a-k*i+x0;
-                    s=-1;
-                }
-                An=1-sqr((x-x0)/a);
-                if (An>=0)
-                    y=s*b*sqrt(An)+y0;
-                else
-                    y=y0;
+				k=2.0*E.ax/(Np/2-1);
+				if (i<Np/2){
+					x=-E.ax+k*i;//+E.x0;
+					s=1;
+				}else{
+					x=3*E.ax-k*i;//+E.x0;
+					s=-1;
+				}
+				An=1-sqr((x/*-E.x0*/)/E.ax);
+				if (An>=0)
+					y=s*E.by*sqrt(An);//+E.y0;
+				else
+					y=0;//E.y0;
 
-                x1=x*cos(phi)-y*sin(phi);
-                y1=x*sin(phi)+y*cos(phi);
-                Series0->AddXY(x1,y1,"",Col1);
+				x1=x*cos(E.phi)-y*sin(E.phi);
+                y1=x*sin(E.phi)+y*cos(E.phi);
+				Series0->AddXY(x1+E.x0,y1+E.y0,"",Col1);
             }
         }
-    }
+   // }
     if(BeamGroup->ItemIndex==energy_chart || BeamGroup->ItemIndex==phase_chart){
         if(BeamGroup->ItemIndex==energy_chart){
             SignChart(CH_ENERGY);
@@ -208,29 +230,74 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
     Series0->Clear();
 
     int Np=Solver->GetNumberOfParticles();
-    double *X0,*Y0,*Z0,x,y;
+	double *X0,*Y0,*Z0,*A0,*B0;
+	double x,y,r,th,br,bth,beta;
     bool NoGraph=false;;
 
     X0= new double[Np];
     Y0= new double[Np];
-    Z0= new double[Np];
+	Z0= new double[Np];
+	A0= new double[Np];
+	B0= new double[Np];
 
-    switch (BeamGroup->ItemIndex) {
-        case (emittance_chart):{
-            SignChart(CH_EMITTANCE);
-            Solver->GetBeamParameters(0,X0,X_PAR);
-            Solver->GetBeamParameters(0,Y0,BX_PAR);
+	switch (BeamGroup->ItemIndex) {
+		case (rpr_chart):{ }
+		case (xpx_chart):{ }
+		case (ypy_chart):{ }
+		case (xy_chart) :{ }
+		case (thpth_chart) :{
+			SignChart(CH_EMITTANCE);
+			Solver->GetBeamParameters(0,X0,R_PAR);
+			Solver->GetBeamParameters(0,Y0,BR_PAR);
+			Solver->GetBeamParameters(0,A0,TH_PAR);
+			Solver->GetBeamParameters(0,B0,BTH_PAR);
 			Solver->GetBeamParameters(0,Z0,BETA_PAR);
-            for (int i=0;i<Np;i++){
-                double x=X0[i];
-                double bx=Y0[i];
-                double bz=Z0[i];
-                X0[i]=1e3*x*Solver->Structure[0].lmb;
-                //Y0[i]/=Z0[i];
-                Y0[i]=1e3*bx/bz;
-            }
-            break;
-        }
+			for (int i=0;i<Np;i++){
+				TPhaseSpace R,C;
+				beta=Z0[i];
+				C.x=1e3*X0[i]*Solver->Structure[0].lmb;
+				C.px=1e3*PulseToAngle(Y0[i],beta);
+				C.y=A0[i];
+				C.py=1e3*PulseToAngle(B0[i],beta);
+				R=CylinricalToCartesian(C);
+
+				switch (BeamGroup->ItemIndex) {
+					case (rpr_chart):{
+						X0[i]=C.x;
+						Y0[i]=C.px;
+						break;
+					}
+					case (xpx_chart):{
+						X0[i]=R.x;
+						Y0[i]=R.px;
+						break;
+
+					}
+					case (ypy_chart):{
+						X0[i]=R.y;
+						Y0[i]=R.py;
+						break;
+
+					}
+					case (xy_chart):{
+						X0[i]=R.x;
+						Y0[i]=R.y;
+						break;
+					}
+					case (thpth_chart):{
+						X0[i]=RadToDegree(C.y);
+						Y0[i]=C.py;
+						break;
+					}
+					case (rth_chart):{
+						X0[i]=C.x;
+						Y0[i]=RadToDegree(C.y);
+						break;
+					}
+				}
+			}
+			break;
+		}
         case (portrait_chart):{
             SignChart(CH_PORTRAIT);
             Solver->GetBeamParameters(0,X0,PHI_PAR);
@@ -243,8 +310,8 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
         }
         case (section_chart):{
             SignChart(CH_SECTION);
-            Solver->GetBeamParameters(0,X0,X_PAR);
-            Solver->GetBeamParameters(0,Y0,TH_PAR);
+			Solver->GetBeamParameters(0,X0,R_PAR);
+			Solver->GetBeamParameters(0,Y0,TH_PAR);
             for (int i=0;i<Np;i++){
                 x=1e3*X0[i]*cos(Y0[i])*Solver->Structure[0].lmb;
                 y=1e3*X0[i]*sin(Y0[i])*Solver->Structure[0].lmb;
@@ -265,9 +332,11 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
             Series0->AddXY(X0[i],Y0[i],"",Col1);
     }
 
-    delete[] X0;
-    delete[] Y0;
-    delete[] Z0;
+	delete[] X0;
+	delete[] Y0;
+	delete[] Z0;
+	delete[] A0;
+	delete[] B0;
 }
 //---------------------------------------------------------------------------
 void TGeomForm::DrawBarChart(TBarSeries *Series0,TBeamSolver *Solver,TColor Col1)
@@ -427,7 +496,7 @@ void __fastcall TGeomForm::FormShow(TObject *Sender)
         if (BeamBox->Checked)
             DrawBeam(BeamSeries1,MainSolver,Particle_col);
         if (EnvelopeCB->Checked)
-            DrawBeamEnvelope(EnvelopeSeries1,MainSolver,ellipse_env,Envelope_col);
+			DrawBeamEnvelope(EnvelopeSeries1,MainSolver,Envelope_col);
         SetParameters();
     }
     else{
@@ -495,7 +564,7 @@ void __fastcall TGeomForm::BeamGroupClick(TObject *Sender)
 {
     try{
         if (EnvelopeCB->Checked)
-            DrawBeamEnvelope(EnvelopeSeries1,MainSolver,ellipse_env,Envelope_col);
+            DrawBeamEnvelope(EnvelopeSeries1,MainSolver,Envelope_col);
         else
             EnvelopeSeries1->Clear();
 

@@ -60,7 +60,6 @@ void TSpectrum::GetBoundaries()
 //---------------------------------------------------------------------------
 void TSpectrum::SetMesh(double *X0,int Nb,int Ny)
 {
-
     delete[] Spectrum;
     Nbars=Nb;
     Nx=Ny;

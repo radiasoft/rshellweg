@@ -47,7 +47,7 @@ void TBeamSolver::Initialize()
 {
     MaxCells=500;
     Nmesh=20;
-   	Kernel=0;
+   // Kernel=0.9;
     SplineType=LSPLINE;
     Nstat=100;
     Ngraph=500;
@@ -301,7 +301,23 @@ TGauss TBeamSolver::GetInputPhase()
 //---------------------------------------------------------------------------
 TTwiss TBeamSolver::GetInputTwiss(TBeamParameter P)
 {
-	return GetTwiss(0,P);
+	TTwiss T;
+	T.alpha=-1;
+	T.beta=-1;
+	T.epsilon=-1;
+
+	switch (P) {
+		case R_PAR: {}
+		case X_PAR: {}
+		case Y_PAR:
+		{
+			T=Beam[0]->GetTwiss(P);
+			break;
+		}
+		default: {};
+	}
+
+	return T;
 }
 //---------------------------------------------------------------------------
 bool TBeamSolver::CheckMagnetization()
@@ -2593,15 +2609,13 @@ bool TBeamSolver::ReadSolenoid(int Nz,double *Z,double* B)
 	return Success;
 }
 //---------------------------------------------------------------------------
-TEllipse TBeamSolver::GetEllipse(int Nknot,TBeamParameter P)
+TEllipse TBeamSolver::GetEllipticParameters(int Nknot,TBeamParameter P)
 {
-	//return Beam[Nknot]->GetEllipseDirect(P);
 	return Beam[Nknot]->GetEllipse(P);
 }
 //---------------------------------------------------------------------------
-TTwiss TBeamSolver::GetTwiss(int Nknot,TBeamParameter P)
+TTwiss TBeamSolver::GetCourantSneider(int Nknot,TBeamParameter P)
 {
-	//return Beam[Nknot]->GetTwissDirect(P);
 	return Beam[Nknot]->GetTwiss(P);
 }
 //---------------------------------------------------------------------------
@@ -3199,7 +3213,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	double I=Beam[j]->Ib;
 	double I0=Beam[0]->Ib;
     double kc=100.0*Beam[j]->GetLivingNumber()/Beam[0]->GetLivingNumber();
-    double r=1e3*Beam[j]->GetRadius();
+    double r=1e3*Beam[j]->GetBeamRadius();
 
     double F=0,dF=0;
 
@@ -3223,7 +3237,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	//double Pw=1e-6*P0-(P-Pin+Pb);
 
 	TTwiss T;
-	T=GetTwiss(j);
+	T=GetCourantSneider(j);
 
   /*  double A=0;
   	int Na=j-Nmesh/2;

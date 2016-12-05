@@ -35,7 +35,7 @@ namespace HellwegTypes {
 enum TError {ERR_NO,ERR_NOFILE,ERR_OPENFILE,ERR_COUPLER,ERR_SOLENOID,ERR_BEAM,
 				ERR_CURRENT,ERR_DRIFT,ERR_CELL,ERR_CELLS,ERR_OPTIONS,ERR_DUMP,ERR_FORMAT,ERR_IMPORT,ERR_SPCHARGE};
 
-enum TBeamParameter {R_PAR,TH_PAR,BR_PAR,BTH_PAR,BZ_PAR,PHI_PAR,BETA_PAR,X_PAR,Y_PAR,BX_PAR,BY_PAR,AR_PAR,AX_PAR,AY_PAR,NO_PAR} ;
+enum TBeamParameter {R_PAR,TH_PAR,BR_PAR,BTH_PAR,BZ_PAR,PHI_PAR,BETA_PAR,X_PAR,Y_PAR} ;
 enum TStructureParameter {KSI_PAR,Z_PAR,A_PAR,RP_PAR,B_PAR,ALPHA_PAR,BETTA_F_PAR,RA_PAR,B_EXT_PAR,NUM_PAR} ;
 enum TSplineType {ZSPLINE,LSPLINE,CSPLINE,SSPLINE};
 enum TChartType {CH_EMITTANCE,CH_SECTION,CH_PORTRAIT,CH_PHASE,CH_ENERGY,CH_BETTA,CH_A,CH_B,CH_ELP,CH_ATT,CH_APP,CH_BEXT,CH_CLEAR};
@@ -72,7 +72,6 @@ struct TGauss{
 	double mean;
 	double sigma;
 	double limit;
-	double FWHM;
 };
 
 struct TSphere{
@@ -395,14 +394,11 @@ inline double sign(double x){
         return x>0?1:-1;
 }
 //---------------------------------------------------------------------------
-inline double PulseToAngle(double beta_x,double beta_z)
-{
-	return mod(beta_z>0)?arctg(beta_x/beta_z):sign(beta_x)*pi/2;
- /*   if (mod(bz)>1e-5)
+inline double PulseToAngle(double bx,double bz){
+    if (mod(bz)>1e-5)
         return arctg(bx/bz);
     else
-		return sign(bx)*pi/2;    */
-
+        return sign(bx)*pi/2;
 }
 //---------------------------------------------------------------------------
 inline int Fact(int n){
@@ -586,7 +582,7 @@ TPhaseSpace CylinricalToCartesian(double r, double th, double pr, double pth)
 	return R;
 }
 //---------------------------------------------------------------------------
-TPhaseSpace CylinricalToCartesian(TPhaseSpace C)
+TPhaseSpace CartesianToCylinrical(TPhaseSpace C)
 {
 	return CylinricalToCartesian(C.x,C.y,C.px,C.py);
 }

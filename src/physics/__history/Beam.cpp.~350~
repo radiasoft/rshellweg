@@ -1134,7 +1134,7 @@ TTwiss TBeam::GetTwiss(TBeamParameter P)
 	T.epsilon=sqrt(Sx*Spx-sqr(Sxpx))/Nliv;
 	T.beta=sqr(Gx.sigma)/T.epsilon;
 
-   	if (P==R_PAR) {   //DEBUG!
+   	if (P==R_PAR) {
 	   //	T.alpha=Gy.sigma*Gx.sigma/T.epsilon;
 		T.alpha=-(Sxpx/Nliv)/T.epsilon;
 		T.gamma=(sqr(T.alpha)+1)/T.beta;

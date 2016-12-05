@@ -36,7 +36,6 @@ private:
 	TPhaseSpace *MakeTwissDistribution(TTwiss T);
 	TEllipse GetEllipse(TTwiss T);
 	TEllipse FindEmittanceAngle(TBeamParameter P);
-    //double FindEmittanceAngle(double& a,double& b); //obsolete
 
 	TBeamParameter ComplementaryParameter(TBeamParameter P);
 	bool IsRectangular(TBeamParameter P);

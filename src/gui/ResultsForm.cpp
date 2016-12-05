@@ -99,10 +99,10 @@ void TResForm::GetTransBoundaries()
             Wmax=W;
         for (int j=0;j<Np;j++){
 			if (Solver->Beam[i]->Particle[j].lost==LIVE){
-				double beta=Solver->Beam[i]->Particle[j].betta;
+				double beta=Solver->Beam[i]->Particle[j].beta;
 				double X=0;
 				if (beta>0)
-					Solver->Beam[i]->Particle[j].Bx/beta;
+					Solver->Beam[i]->Particle[j].Br/beta;
                 if (mod(X)>Xmax)
                     Xmax=mod(X);
             }
@@ -231,7 +231,7 @@ void TResForm::DrawEnergy()
                 break;
 
             double z=100*Solver->Beam[j]->Particle[i].z;
-            double W=VelocityToMeV(Solver->Beam[j]->Particle[i].betta);
+			double W=VelocityToMeV(Solver->Beam[j]->Particle[i].beta);
             PackSeries->AddXY(z,W);
         }
     }
@@ -277,7 +277,7 @@ void TResForm::DrawRadius()
                 break;
 
             double z=100*Solver->Beam[j]->Particle[i].z;
-            double r=1e3*Solver->Beam[j]->Particle[i].x*Solver->Structure[j].lmb;
+			double r=1e3*Solver->Beam[j]->Particle[i].r*Solver->Structure[j].lmb;
 //			if (j == 0) {
 //		       fprintf(F,"%d: lmb=%g, r(mm)=%g, z(cm)=%g\n",i,Solver->Structure[j].lmb,r,z);
 			if (i == 0) {
@@ -404,7 +404,7 @@ void TResForm::DrawAvRadius()
 
     for (int j=0;j<Npts;j++){
         double z=100*Solver->Structure[j].ksi*Solver->Structure[j].lmb;
-        double R0=100*Solver->Beam[j]->GetBeamRadius();
+		double R0=100*Solver->Beam[j]->GetRadius();
         double Ra=100*Solver->Structure[j].Ra*Solver->Structure[j].lmb;
         LineSeries->AddXY(z,R0);
         AddSeries->AddXY(z,Ra);
@@ -447,7 +447,7 @@ void TResForm::DrawLongtSection(bool sliding)
                 if (sliding)
                     r=250*Rmax*cos(HellwegTypes::DegToRad(phi));
                 else
-                    r=1e3*Solver->Beam[j]->Particle[i].x*Solver->Structure[j].lmb;
+					r=1e3*Solver->Beam[j]->Particle[i].r*Solver->Structure[j].lmb;
 
                 BeamSeries->AddXY(phi,r);
             }
@@ -545,7 +545,7 @@ void TResForm::DrawLongtSpace()
 	if (ChartCheck->Checked){
 		for (int i=0;i<Np;i++){
 			if (Solver->Beam[j]->Particle[i].lost==LIVE){
-				double W=VelocityToMeV(Solver->Beam[j]->Particle[i].betta);
+				double W=VelocityToMeV(Solver->Beam[j]->Particle[i].beta);
 				double phi=HellwegTypes::RadToDeg(Solver->Beam[j]->Particle[i].phi);
 				BeamSeries->AddXY(phi,W);
 			}
@@ -577,7 +577,7 @@ void TResForm::DrawTransSection()
     double x=0,y=0,k=0,An=0;
     if (EnvelopeCheck->Checked){
         double h=Solver->GetKernel();
-        double R=1000*Solver->Beam[j]->GetBeamRadius();
+		double R=1000*Solver->Beam[j]->GetRadius();
         for (int i=0;i<PointsNumber;i++){
             k=2.0*R/(PointsNumber/2-1);
             if (i<PointsNumber/2){
@@ -599,7 +599,7 @@ void TResForm::DrawTransSection()
     if (ChartCheck->Checked){
         for (int i=0;i<Np;i++){
             if (Solver->Beam[j]->Particle[i].lost==LIVE){
-                double r=1e3*Solver->Beam[j]->Particle[i].x*Solver->Structure[j].lmb;
+				double r=1e3*Solver->Beam[j]->Particle[i].r*Solver->Structure[j].lmb;
                 if (mod(r)>1e3*Rmax)
                     continue;
                 double th=Solver->Beam[j]->Particle[i].Th;
@@ -636,32 +636,32 @@ void TResForm::DrawTransSpace()
     //BeamChart->SeriesUp(EnvelopeSeries);
 
    //   sqr(A[j]*Wo/ELPi[j])
-    double x0=0,y0=0,a=0,b=0,phi=0,Rx=0,Ry=0,k=0,x=0,y=0,An=0,x1=0,y1=0;
-    
+	double k=0,x=0,y=0,An=0,x1=0,y1=0;
+	TEllipse E;
 
     if (EnvelopeCheck->Checked){
-        Solver->GetEllipticParameters(j,x0,y0,a,b,phi,Rx,Ry);
+		E=Solver->GetEllipse(j);
         double h=Solver->GetKernel();
-        x0*=1e3;
-        y0*=1e3;
-        a*=1e3*h;
-        b*=1e3*h;
-        for (int i=0;i<PointsNumber;i++){
-            k=2.0*a/(PointsNumber/2-1);
-            if (i<PointsNumber/2){
-                x=-a+k*i+x0;
-                s=1;
-            }else{
-                x=3*a-k*i+x0;
-                s=-1;
-            }
-            An=1-sqr((x-x0)/a);
-            if (An>=0)
-                y=s*b*sqrt(An)+y0;
-            else
-                y=y0;
-            x1=x*cos(phi)-y*sin(phi);
-            y1=x*sin(phi)+y*cos(phi);
+		E.x0*=1e3;
+		E.y0*=1e3;
+		E.ax*=1e3*h;
+		E.by*=1e3*h;
+		for (int i=0;i<PointsNumber;i++){
+			k=2.0*E.ax/(PointsNumber/2-1);
+			if (i<PointsNumber/2){
+				x=-E.ax+k*i+E.x0;
+				s=1;
+			}else{
+				x=3*E.ax-k*i+E.x0;
+				s=-1;
+			}
+			An=1-sqr((x-E.x0)/E.ax);
+			if (An>=0)
+				y=s*E.by*sqrt(An)+E.y0;
+			else
+				y=E.y0;
+			x1=x*cos(E.phi)-y*sin(E.phi);
+			y1=x*sin(E.phi)+y*cos(E.phi);
             EnvelopeSeries->AddXY(x1,y1);
         }
     }
@@ -669,8 +669,8 @@ void TResForm::DrawTransSpace()
     if (ChartCheck->Checked){
         for (int i=0;i<Np;i++){
             if (Solver->Beam[j]->Particle[i].lost==LIVE){
-                double r=1e3*Solver->Beam[j]->Particle[i].x*Solver->Structure[j].lmb;
-                double px=1e3*Solver->Beam[j]->Particle[i].Bx/Solver->Beam[j]->Particle[i].betta;
+				double r=1e3*Solver->Beam[j]->Particle[i].r*Solver->Structure[j].lmb;
+				double px=1e3*Solver->Beam[j]->Particle[i].Br/Solver->Beam[j]->Particle[i].beta;
 
                 BeamSeries->AddXY(r,px);
             }
@@ -709,7 +709,7 @@ void TResForm::DrawLongtMotion()
     if (ChartCheck->Checked){
         for (int i=0;i<Np;i++){
             if (Solver->Beam[j]->Particle[i].lost==LIVE){
-                double r=1e3*Solver->Beam[j]->Particle[i].x*Solver->Structure[j].lmb;
+                double r=1e3*Solver->Beam[j]->Particle[i].r*Solver->Structure[j].lmb;
                 double phi=Solver->Beam[j]->Particle[i].phi;
                 double z0=z+1e2*Solver->Structure[j].lmb*phi/(2*pi);
 
@@ -979,7 +979,7 @@ void TResForm::ShowParameters()
     double I=Solver->Beam[j]->Ib;
     
     double kc=100*Np/N0;
-    double r=1e3*Solver->Beam[j]->GetBeamRadius();
+    double r=1e3*Solver->Beam[j]->GetRadius();
 
     FSpectrum=Solver->GetPhaseSpectrum(j,true,F,dF);
     double f=1e-6*c/Solver->Structure[j].lmb;
@@ -988,8 +988,8 @@ void TResForm::ShowParameters()
     double v=Solver->Structure[j].betta;
     double E=1e-6*Solver->Structure[j].A*We0/Solver->Structure[j].lmb;
 
-    double alpha=0,betta=0,eps=0;
-    Solver->GetCourantSneider(j,alpha,betta,eps);
+	TTwiss T;
+	T=Solver->GetTwiss(j);
 
     Table->Cells[colValue][pZ]=s.FormatFloat("#0.000",z);
     Table->Cells[colValue][pWav]=s.FormatFloat("#0.000",W);
@@ -1005,9 +1005,9 @@ void TResForm::ShowParameters()
     Table->Cells[colValue][pPb]=s.FormatFloat("#0.0000",P);
     Table->Cells[colValue][pvph]=s.FormatFloat("#0.000",v);
     Table->Cells[colValue][pE]=s.FormatFloat("#0.00",E);
-    Table->Cells[colValue][peps]=s.FormatFloat("#0.0000",100*eps);
-    Table->Cells[colValue][palpha]=s.FormatFloat("#0.000",alpha);
-    Table->Cells[colValue][pbetta]=s.FormatFloat("#0.000",100*betta);
+	Table->Cells[colValue][peps]=s.FormatFloat("#0.0000",100*T.epsilon);
+	Table->Cells[colValue][palpha]=s.FormatFloat("#0.000",T.alpha);
+    Table->Cells[colValue][pbetta]=s.FormatFloat("#0.000",100*T.beta);
 }
 //---------------------------------------------------------------------------
 void TResForm::DeleteTemp()

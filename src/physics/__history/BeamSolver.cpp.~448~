@@ -2595,14 +2595,14 @@ bool TBeamSolver::ReadSolenoid(int Nz,double *Z,double* B)
 //---------------------------------------------------------------------------
 TEllipse TBeamSolver::GetEllipse(int Nknot,TBeamParameter P)
 {
-	//return Beam[Nknot]->GetEllipseDirect(P);
-	return Beam[Nknot]->GetEllipse(P);
+	return Beam[Nknot]->GetEllipseDirect(P);
+	//return Beam[Nknot]->GetEllipse(P);
 }
 //---------------------------------------------------------------------------
 TTwiss TBeamSolver::GetTwiss(int Nknot,TBeamParameter P)
 {
-	//return Beam[Nknot]->GetTwissDirect(P);
-	return Beam[Nknot]->GetTwiss(P);
+	return Beam[Nknot]->GetTwissDirect(P);
+	//return Beam[Nknot]->GetTwiss(P);
 }
 //---------------------------------------------------------------------------
 TSpectrumBar *TBeamSolver::GetEnergySpectrum(int Nknot,double& Wav,double& dW)

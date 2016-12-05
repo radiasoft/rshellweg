@@ -36,12 +36,9 @@ private:
 	TPhaseSpace *MakeTwissDistribution(TTwiss T);
 	TEllipse GetEllipse(TTwiss T);
 	TEllipse FindEmittanceAngle(TBeamParameter P);
-    //double FindEmittanceAngle(double& a,double& b); //obsolete
 
 	TBeamParameter ComplementaryParameter(TBeamParameter P);
 	bool IsRectangular(TBeamParameter P);
-
-	double *GetLivingParameter(TBeamParameter P, bool Square=false);
 	TGauss GetStatistics(TBeamParameter P,bool Square=false);
 	TGauss GetStatistics(double *X);
 
@@ -81,6 +78,8 @@ public:
 	TEllipse GetEllipse(TBeamParameter P=R_PAR);
 	TEllipse GetEllipseDirect(TBeamParameter P=R_PAR);
 
+	double *GetLivingParameter(TBeamParameter P, bool Square=false);
+
 	TSpectrumBar *GetEnergySpectrum(bool Smooth,double& Wav,double& dW);  //replace
 	TSpectrumBar *GetPhaseSpectrum(bool Smooth,double& Fav,double& dF);  //replace
 	void GetParameters(double *X,TBeamParameter Par); //remove
@@ -88,13 +87,10 @@ public:
 	TGauss GetEnergyDistribution(TDeviation D);
 	TGauss GetPhaseDistribution(TDeviation D);
 
-	double GetDeviation(TBeamParameter P,TDeviation D=D_RMS);
-	double GetRadius(TDeviation D=D_RMS);
-	double GetDivergence(TDeviation D=D_RMS);
-
+    double GetBeamRadius();
     double GetPhaseLength();
     double GetAveragePhase();
-	double GetAverageEnergy();
+    double GetAverageEnergy();
 	double GetMaxEnergy();
 	double GetMinPhase();
 	double GetMaxPhase();

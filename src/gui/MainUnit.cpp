@@ -148,10 +148,20 @@ void TMainForm::DisplayInputData()
 	Label_dW->Caption="RMS Energy = "+s.FormatFloat("#0.000#",W.sigma)+" MeV";
 	Label_dPhi->Caption="RMS Phase = "+s.FormatFloat("#0.00",Phi.sigma)+" deg";
 
-   /* Label_Alpha->Caption="Alpha = "+s.FormatFloat("#0.000##",Solver->GetInputAlpha())+"";
-	Label_Betta->Caption="Betta = "+s.FormatFloat("#0.000##",Solver->GetInputBetta())+" cm/rad";
-	Label_Emittance->Caption="Emittance = "+s.FormatFloat("#0.000##",Solver->GetInputEpsilon())+" cm*rad";
-	*/
+	TTwiss TR=Solver->GetInputTwiss(R_PAR);
+	Label_AlphaR->Caption="Alpha = "+s.FormatFloat("#0.000##",TR.alpha)+"";
+	Label_BetaR->Caption="Betta = "+s.FormatFloat("#0.000##",100*TR.beta)+" cm/rad";
+	Label_EmittanceR->Caption="Emittance = "+s.FormatFloat("#0.0##",1e6*TR.epsilon)+" mm*mrad";
+
+	TTwiss TX=Solver->GetInputTwiss(X_PAR);
+	Label_AlphaX->Caption="Alpha = "+s.FormatFloat("#0.000##",TX.alpha)+"";
+	Label_BetaX->Caption="Betta = "+s.FormatFloat("#0.000##",100*TX.beta)+" cm/rad";
+	Label_EmittanceX->Caption="Emittance = "+s.FormatFloat("#0.0##",1e6*TX.epsilon)+" mm*mrad";
+
+	TTwiss TY=Solver->GetInputTwiss(Y_PAR);
+	Label_AlphaY->Caption="Alpha = "+s.FormatFloat("#0.000##",TY.alpha)+"";
+	Label_BetaY->Caption="Betta = "+s.FormatFloat("#0.000##",100*TY.beta)+" cm/rad";
+	Label_EmittanceY->Caption="Emittance = "+s.FormatFloat("#0.0##",1e6*TY.epsilon)+" mm*mrad";
 
 	//CURRENT
 	Label_I0->Caption="Input Current = "+s.FormatFloat("#0.000",Solver->GetInputCurrent())+" A";

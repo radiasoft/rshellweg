@@ -301,7 +301,7 @@ TGauss TBeamSolver::GetInputPhase()
 //---------------------------------------------------------------------------
 TTwiss TBeamSolver::GetInputTwiss(TBeamParameter P)
 {
-	return GetTwiss(0,P);
+	return GetTwiss(0);
 }
 //---------------------------------------------------------------------------
 bool TBeamSolver::CheckMagnetization()
@@ -2595,14 +2595,12 @@ bool TBeamSolver::ReadSolenoid(int Nz,double *Z,double* B)
 //---------------------------------------------------------------------------
 TEllipse TBeamSolver::GetEllipse(int Nknot,TBeamParameter P)
 {
-	//return Beam[Nknot]->GetEllipseDirect(P);
-	return Beam[Nknot]->GetEllipse(P);
+	return Beam[Nknot]->GetEllipseDirect(P);
 }
 //---------------------------------------------------------------------------
 TTwiss TBeamSolver::GetTwiss(int Nknot,TBeamParameter P)
 {
-	//return Beam[Nknot]->GetTwissDirect(P);
-	return Beam[Nknot]->GetTwiss(P);
+	return Beam[Nknot]->GetTwissDirect(P);
 }
 //---------------------------------------------------------------------------
 TSpectrumBar *TBeamSolver::GetEnergySpectrum(int Nknot,double& Wav,double& dW)
@@ -3199,7 +3197,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	double I=Beam[j]->Ib;
 	double I0=Beam[0]->Ib;
     double kc=100.0*Beam[j]->GetLivingNumber()/Beam[0]->GetLivingNumber();
-    double r=1e3*Beam[j]->GetRadius();
+    double r=1e3*Beam[j]->GetBeamRadius();
 
     double F=0,dF=0;
 

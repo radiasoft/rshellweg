@@ -975,8 +975,8 @@ TEllipse TBeam::FindEmittanceAngle(TBeamParameter P)
 			  //	fprintf(logFile,"%f %f %f %f \n",X0[k],Bx0[k],Beam1->Particle[k].r,Beam1->Particle[k].Br);
             }
 		}
-		Sx=Beam1->GetDeviation(R_PAR);
-		Sbx=Beam1->GetDeviation(BR_PAR);
+		Sx=Beam1->GetDeviation(P);
+		Sbx=Beam1->GetDeviation(P2);
 
         for (int k=0;k<Np;k++){
             if (Particle[k].lost==LIVE){
@@ -985,7 +985,7 @@ TEllipse TBeam::FindEmittanceAngle(TBeamParameter P)
             }
         }
 
-		Sy=Beam1->GetDeviation(R_PAR);
+		Sy=Beam1->GetDeviation(P);
 
 		if (mod(Sx-Sy)<Err)
 			break;
@@ -1134,13 +1134,13 @@ TTwiss TBeam::GetTwiss(TBeamParameter P)
 	T.epsilon=sqrt(Sx*Spx-sqr(Sxpx))/Nliv;
 	T.beta=sqr(Gx.sigma)/T.epsilon;
 
-   	if (P==R_PAR) {   //DEBUG!
+	if (P==R_PAR) {
 	   //	T.alpha=Gy.sigma*Gx.sigma/T.epsilon;
 		T.alpha=-(Sxpx/Nliv)/T.epsilon;
 		T.gamma=(sqr(T.alpha)+1)/T.beta;
 	}else{
 		T.gamma=sqr(Gy.sigma)/T.epsilon;
-		T.alpha=sqrt(mod(T.gamma*T.beta-1));
+		T.alpha=sqrt(T.gamma*T.beta-1);
 	}
 	delete[] X;
 	delete[] Y;

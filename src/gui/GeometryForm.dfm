@@ -55,13 +55,19 @@ object GeomForm: TGeomForm
       Enabled = False
       ItemIndex = 0
       Items.Strings = (
-        'Emittance'
+        'R-R'#39
+        'X-X'#39
+        'Y-Y'#39
+        'X-Y'
+        'Th-Th'#39
+        'R-Th'
         'Phase Portrait'
         'Cross Section'
         'Energy Distribution'
         'Phase Distribution')
       TabOrder = 1
       OnClick = BeamGroupClick
+      ExplicitTop = 4
     end
     object EnvelopeCB: TCheckBox
       Left = 518

@@ -30,13 +30,16 @@
 #define Ra_chart 5
 #define Bz_chart 6
 //Beam Chart
-#define emittance_chart 0
-#define portrait_chart 1
-#define section_chart 2
-#define energy_chart 3
-#define phase_chart 4
-//Envelope Chart
-#define ellipse_env 0
+#define rpr_chart 0
+#define xpx_chart 1
+#define ypy_chart 2
+#define xy_chart 3
+#define thpth_chart 4
+#define rth_chart 5
+#define portrait_chart 6
+#define section_chart 7
+#define energy_chart 8
+#define phase_chart 9
 
 //---------------------------------------------------------------------------
 class TGeomForm : public TForm
@@ -90,7 +93,7 @@ private:    // User declarations
     double h;
     void DrawChart(TLineSeries *Series0,TBeamSolver *Solver,TColor Col1, TColor Col2);
     void DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1);
-    void DrawBeamEnvelope(TLineSeries *Series0,TBeamSolver *Solver,int env_type,TColor Col1);
+	void DrawBeamEnvelope(TLineSeries *Series0,TBeamSolver *Solver,TColor Col1);
     void DrawBarChart(TBarSeries *Series0,TBeamSolver *Solver,TColor Col1);
     void SignChart(TChartType ChartType);
     void SetParameters();

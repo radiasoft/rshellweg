@@ -169,15 +169,14 @@ public:
 	TMagnetParameters GetSolenoidInfo();
 
 	//GET OUTPUT PARAMETERS
-	TTwiss GetTwiss(int Nknot,TBeamParameter P=R_PAR);
-	TEllipse GetEllipse(int Nknot,TBeamParameter P=R_PAR);
-
-	TSpectrumBar *GetEnergySpectrum(int Nknot,double& Wav,double& dW);// remove
-	TSpectrumBar *GetPhaseSpectrum(int Nknot,double& Fav,double& dF);  // remove
-	TSpectrumBar *GetEnergySpectrum(int Nknot,bool Env,double& Wav,double& dW);// remove
-	TSpectrumBar *GetPhaseSpectrum(int Nknot,bool Env,double& Fav,double& dF); // remove
-	void GetBeamParameters(int Nknot,double *X,TBeamParameter Par);  //  replace
-	void GetStructureParameters(double *X,TStructureParameter Par);   // replace
+	void GetCourantSneider(int Nknot, double& alpha,double& betta, double& epsilon);
+	void GetEllipticParameters(int Nknot, double& x0,double& y0, double& a,double& b,double& phi,double &Rx,double& Ry);
+	TSpectrumBar *GetEnergySpectrum(int Nknot,double& Wav,double& dW);
+	TSpectrumBar *GetPhaseSpectrum(int Nknot,double& Fav,double& dF);
+	TSpectrumBar *GetEnergySpectrum(int Nknot,bool Env,double& Wav,double& dW);
+	TSpectrumBar *GetPhaseSpectrum(int Nknot,bool Env,double& Fav,double& dF);
+	void GetBeamParameters(int Nknot,double *X,TBeamParameter Par);
+	void GetStructureParameters(double *X,TStructureParameter Par);
 	double GetKernel();
 
 	void Solve();

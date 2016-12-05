@@ -221,9 +221,9 @@ object MainForm: TMainForm
       object Label_EmittanceR: TLabel
         Left = 16
         Top = 52
-        Width = 114
+        Width = 125
         Height = 13
-        Caption = 'Emittance = ??? cm*rad'
+        Caption = 'Emittance = ??? mm*mrad'
       end
     end
     object GroupTwissX: TGroupBox
