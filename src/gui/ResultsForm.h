@@ -160,6 +160,10 @@ private:    // User declarations
     void GetTransBoundaries();
     void CreateTable();
 
+	void DrawTrace(TBeamParameter P1);
+	void DrawPlots(TStructureParameter P1,TStructureParameter P2);
+	void DrawSpace(int Nknot,TBeamParameter P1,TBeamParameter P2,bool sliding=false);
+
     void DrawPhase();
     void DrawEnergy();
     void DrawRadius();
@@ -169,7 +173,7 @@ private:    // User declarations
     void DrawAvEnergy();
     void DrawAvRadius();
     void DrawTransSection();
-    void DrawLongtSection(bool sliding=false);
+	void DrawLongtSection(bool sliding=false);
     void DrawLongtMotion();
     void DrawTransSpace();
     void DrawLongtSpace();

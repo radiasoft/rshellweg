@@ -13,12 +13,12 @@ class TBeam
 {
 private:
     int Nliv,Nbars;
-	double Kernel;
-	double Ib,I0; //beam current
-
-	void CountLiving();
+    double Kernel;
+    void CountLiving();
     //void TwoRandomGauss(double& x1,double& x2); //Moved to types.h
     void SetParameters(double *X,TBeamParameter Par);
+	TSpectrumBar *GetSpectrum(bool Smooth,double *X,double& Xav,double& dX,bool width=false);  //remove
+	TSpectrumBar *GetPhaseSpectrum(bool Smooth,double *Radius,double *Phase,double& FavPhase,double& dPhase, int Nslices, bool width=false);  //remove
 
 	//DISTRIBUTIONS
 	double *MakeRayleighDistribution(TGauss G);
@@ -44,14 +44,8 @@ private:
 	double *GetLivingParameter(TBeamParameter P, bool Square=false);
 	TGauss GetStatistics(TBeamParameter P,bool Square=false);
 	TGauss GetStatistics(double *X);
-	TSpectrum *GetSpectrum(TBeamParameter P);
-	TSpectrum *GetSpectrum(double *X);
-	TSpectrumBar *GetSpectrumBar(TBeamParameter P,bool Smooth=false);
-	TSpectrumBar *GetSpectrumBar(double *X,bool Smooth=false);
 	double GetDeviation(TBeamParameter P,TDeviation D=D_RMS);
 	double GetMean(TBeamParameter P);
-	double GetMinValue(TBeamParameter P);
-	double GetMaxValue(TBeamParameter P);
 
 	//IMPORT
 	double **ImportFromFile(TBeamType BeamType,TBeamInput *BeamPar,bool T=true);
@@ -63,7 +57,8 @@ public:
     __fastcall TBeam(int N);
     __fastcall ~TBeam();
     TParticle *Particle;
-	double lmb,h,Cmag;
+    double lmb,h,Cmag;
+    double Ib,I0; //beam current
     bool Reverse;
 	int Np;
     
@@ -80,8 +75,6 @@ public:
 	void GeneratePhase(TGauss G);
 	void GenerateAzimuth(TGauss G);
 	bool ImportEnergy(TBeamInput *BeamPar);
-	void SetCurrent(double I);
-	void SetInputCurrent(double I);
 
 		//GET OUTPUT PARAMETERS
    	TTwiss GetTwiss(TBeamParameter P=R_PAR);
@@ -89,13 +82,13 @@ public:
 	TEllipse GetEllipse(TBeamParameter P=R_PAR);
 	TEllipse GetEllipseDirect(TBeamParameter P=R_PAR);
 
-   //	void GetParameters(double *X,TBeamParameter Par); //remove
-	TGauss GetEnergyDistribution(TDeviation D=D_RMS);
-	TGauss GetPhaseDistribution(TDeviation D=D_RMS);
-	TSpectrumBar *GetEnergySpectrum(bool Smooth);
-	TSpectrumBar *GetPhaseSpectrum(bool Smooth);
+ /* OBSOLETE
+	TSpectrumBar *GetEnergySpectrum(bool Smooth,double& Wav,double& dW);  //replace
+	TSpectrumBar *GetPhaseSpectrum(bool Smooth,double& Fav,double& dF);  //replace    */
+	void GetParameters(double *X,TBeamParameter Par); //remove
 
-	double GetParameter(int i,TBeamParameter P);
+	TGauss GetEnergyDistribution(TDeviation D);
+	TGauss GetPhaseDistribution(TDeviation D);
 
 	double GetRadius(TDeviation D=D_RMS);
 	double GetDivergence(TDeviation D=D_RMS);
@@ -106,9 +99,6 @@ public:
 	double GetMaxEnergy();
 	double GetMinPhase();
 	double GetMaxPhase();
-	double GetMaxDivergence();
-	double GetCurrent();
-	double GetInputCurrent();
 
     double iGetAverageEnergy(TIntParameters& Par,TIntegration *I);
     double iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices, bool SpectrumOutput=false);

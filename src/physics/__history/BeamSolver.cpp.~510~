@@ -2670,24 +2670,9 @@ double TBeamSolver::GetMinPhase(int Ni)
 	return Beam[Ni]->GetMinPhase();
 }
 //---------------------------------------------------------------------------
-double TBeamSolver::GetCurrent(int Ni)
-{
-	return Beam[Ni]->GetCurrent();
-}
-//---------------------------------------------------------------------------
-double TBeamSolver::GetBeamRadius(int Ni)
-{
-	return Beam[Ni]->GetRadius();
-}
-//---------------------------------------------------------------------------
 TLoss TBeamSolver::GetLossType(int Nknot,int Np)
 {
 	return Beam[Nknot]->Particle[Np].lost;
-}
-//---------------------------------------------------------------------------
-int TBeamSolver::GetLivingNumber(int Ni)
-{
-	return Beam[Ni]->GetLivingNumber();
 }
 //---------------------------------------------------------------------------
 TGraph *TBeamSolver::GetTrace(int Np,TBeamParameter P1,TBeamParameter P2)

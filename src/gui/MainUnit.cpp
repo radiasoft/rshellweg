@@ -111,7 +111,8 @@ void TMainForm::DisplayInputData()
 
 	//POWER SOURCE
 	Label_P0->Caption="Input Power = "+s.FormatFloat("#0.00",Solver->GetPower())+" MW";
-	Label_F0->Caption="Frequency = "+s.FormatFloat("#0.00",Solver->GetFrequency())+" MHz";
+	Label_F0->Caption="Wavelength = "+s.FormatFloat("#0.00",Solver->GetInputWavelength()/100)+" cm";
+	//Label_F0->Caption="Frequency = "+s.FormatFloat("#0.00",Solver->GetFrequency())+" MHz";
 
 	//SOLENOID
 	TMagnetParameters Solenoid=Solver->GetSolenoidInfo();
@@ -144,23 +145,23 @@ void TMainForm::DisplayInputData()
 	TGauss Phi=Solver->GetInputPhase();
 
 	Label_W0->Caption="Average Energy = "+s.FormatFloat("#0.000",W.mean)+" MeV";
-	Label_Phi0->Caption="Average Phase = "+s.FormatFloat("#0.00",Phi.mean)+" deg";
+	Label_Phi0->Caption="Average Phase = "+s.FormatFloat("#0.00",RadToDegree(Phi.mean))+" deg";
 	Label_dW->Caption="RMS Energy = "+s.FormatFloat("#0.000#",W.sigma)+" MeV";
-	Label_dPhi->Caption="RMS Phase = "+s.FormatFloat("#0.00",Phi.sigma)+" deg";
+	Label_dPhi->Caption="RMS Phase = "+s.FormatFloat("#0.00",RadToDegree(Phi.sigma))+" deg";
 
 	TTwiss TR=Solver->GetInputTwiss(R_PAR);
 	Label_AlphaR->Caption="Alpha = "+s.FormatFloat("#0.000##",TR.alpha)+"";
-	Label_BetaR->Caption="Betta = "+s.FormatFloat("#0.000##",100*TR.beta)+" cm/rad";
+	Label_BetaR->Caption="Beta = "+s.FormatFloat("#0.000##",100*TR.beta)+" cm/rad";
 	Label_EmittanceR->Caption="Emittance = "+s.FormatFloat("#0.0##",1e6*TR.epsilon)+" mm*mrad";
 
 	TTwiss TX=Solver->GetInputTwiss(X_PAR);
 	Label_AlphaX->Caption="Alpha = "+s.FormatFloat("#0.000##",TX.alpha)+"";
-	Label_BetaX->Caption="Betta = "+s.FormatFloat("#0.000##",100*TX.beta)+" cm/rad";
+	Label_BetaX->Caption="Beta = "+s.FormatFloat("#0.000##",100*TX.beta)+" cm/rad";
 	Label_EmittanceX->Caption="Emittance = "+s.FormatFloat("#0.0##",1e6*TX.epsilon)+" mm*mrad";
 
 	TTwiss TY=Solver->GetInputTwiss(Y_PAR);
 	Label_AlphaY->Caption="Alpha = "+s.FormatFloat("#0.000##",TY.alpha)+"";
-	Label_BetaY->Caption="Betta = "+s.FormatFloat("#0.000##",100*TY.beta)+" cm/rad";
+	Label_BetaY->Caption="Beta = "+s.FormatFloat("#0.000##",100*TY.beta)+" cm/rad";
 	Label_EmittanceY->Caption="Emittance = "+s.FormatFloat("#0.0##",1e6*TY.epsilon)+" mm*mrad";
 
 	//CURRENT

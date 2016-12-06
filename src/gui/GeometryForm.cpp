@@ -115,10 +115,7 @@ void TGeomForm::ClearParameters()
 //---------------------------------------------------------------------------
 void TGeomForm::SetParameters()
 {
-	//double alpha=0,betta=0,eps=0,Rx=0,Ry=0;
-	TTwiss T;
-    double Wav=0,dW=0,Fav=0,dF=0;
-    AnsiString s;
+	AnsiString s;
 
     aParLabel->Visible=true;
     bParLabel->Visible=true;
@@ -128,17 +125,17 @@ void TGeomForm::SetParameters()
     FavParLabel->Visible=true;
     dFParLabel->Visible=true;
 
-	T=MainSolver->GetInputTwiss(R_PAR);
-    MainSolver->GetEnergySpectrum(0,Wav,dW);
-    MainSolver->GetPhaseSpectrum(0,Fav,dF);
+	TTwiss T=MainSolver->GetInputTwiss(R_PAR);
+	TGauss Gw=MainSolver->GetEnergyStats(0);
+	TGauss Gphi=MainSolver->GetPhaseStats(0);
 
 	aParLabel->Caption="alpha = "+s.FormatFloat("#0.000##",T.alpha);
 	bParLabel->Caption="betta = "+s.FormatFloat("#0.000##",100*T.beta)+" cm/rad";
 	eParLabel->Caption="epsilon = "+s.FormatFloat("#0.000##",100*T.epsilon)+" cm*rad";
-	WavParLabel->Caption="Wav = "+s.FormatFloat("#0.000##",Wav)+" MeV";
-    dWParLabel->Caption="dW = "+s.FormatFloat("#0.000##",dW)+" MeV";
-    FavParLabel->Caption="Phi av = "+s.FormatFloat("#0.000##",Fav)+" deg";
-    dFParLabel->Caption="dPhi = "+s.FormatFloat("#0.000##",dF)+" deg";
+	WavParLabel->Caption="Wav = "+s.FormatFloat("#0.000##",Gw.mean)+" MeV";
+	dWParLabel->Caption="dW = "+s.FormatFloat("#0.000##",Gw.sigma)+" MeV";
+	FavParLabel->Caption="Phi av = "+s.FormatFloat("#0.000##",RadToDegree(Gphi.mean))+" deg";
+	dFParLabel->Caption="dPhi = "+s.FormatFloat("#0.000##",RadToDegree(Gphi.sigma))+" deg";
 }
 //---------------------------------------------------------------------------
 void TGeomForm::DrawBeamEnvelope(TLineSeries *Series0,TBeamSolver *Solver,TColor Col1)
@@ -204,13 +201,14 @@ void TGeomForm::DrawBeamEnvelope(TLineSeries *Series0,TBeamSolver *Solver,TColor
             }
         }
    // }
-    if(BeamGroup->ItemIndex==energy_chart || BeamGroup->ItemIndex==phase_chart){
+	if(BeamGroup->ItemIndex==energy_chart || BeamGroup->ItemIndex==phase_chart){
+		bool Smooth=true;
         if(BeamGroup->ItemIndex==energy_chart){
             SignChart(CH_ENERGY);
-            Spectrum=Solver->GetEnergySpectrum(0,true,X,dX);
+			Spectrum=Solver->GetEnergySpectrum(0,Smooth);
         }else if(BeamGroup->ItemIndex==phase_chart){
             SignChart(CH_PHASE);
-            Spectrum=Solver->GetPhaseSpectrum(0,true,X,dX);
+            Spectrum=Solver->GetPhaseSpectrum(0,Smooth);
         }
 
         for (int i=0;i<Nb;i++)
@@ -247,15 +245,15 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
 		case (xy_chart) :{ }
 		case (thpth_chart) :{
 			SignChart(CH_EMITTANCE);
-			Solver->GetBeamParameters(0,X0,R_PAR);
-			Solver->GetBeamParameters(0,Y0,BR_PAR);
-			Solver->GetBeamParameters(0,A0,TH_PAR);
-			Solver->GetBeamParameters(0,B0,BTH_PAR);
-			Solver->GetBeamParameters(0,Z0,BETA_PAR);
+			X0=Solver->GetBeamParameters(0,R_PAR);
+			Y0=Solver->GetBeamParameters(0,BR_PAR);
+			A0=Solver->GetBeamParameters(0,TH_PAR);
+			B0=Solver->GetBeamParameters(0,BTH_PAR);
+			Z0=Solver->GetBeamParameters(0,BETA_PAR);
 			for (int i=0;i<Np;i++){
 				TPhaseSpace R,C;
 				beta=Z0[i];
-				C.x=1e3*X0[i]*Solver->Structure[0].lmb;
+				C.x=1e3*X0[i]*Solver->GetInputWavelength();
 				C.px=1e3*PulseToAngle(Y0[i],beta);
 				C.y=A0[i];
 				C.py=1e3*PulseToAngle(B0[i],beta);
@@ -300,8 +298,8 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
 		}
         case (portrait_chart):{
             SignChart(CH_PORTRAIT);
-            Solver->GetBeamParameters(0,X0,PHI_PAR);
-            Solver->GetBeamParameters(0,Y0,BETA_PAR);
+			X0=Solver->GetBeamParameters(0,PHI_PAR);
+			Y0=Solver->GetBeamParameters(0,BETA_PAR);
             for (int i=0;i<Np;i++){
                 X0[i]=HellwegTypes::RadToDeg(X0[i]);
                 Y0[i]=VelocityToMeV(Y0[i]);
@@ -310,11 +308,11 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
         }
         case (section_chart):{
             SignChart(CH_SECTION);
-			Solver->GetBeamParameters(0,X0,R_PAR);
-			Solver->GetBeamParameters(0,Y0,TH_PAR);
+			X0=Solver->GetBeamParameters(0,R_PAR);
+			Y0=Solver->GetBeamParameters(0,TH_PAR);
             for (int i=0;i<Np;i++){
-                x=1e3*X0[i]*cos(Y0[i])*Solver->Structure[0].lmb;
-                y=1e3*X0[i]*sin(Y0[i])*Solver->Structure[0].lmb;
+				x=1e3*X0[i]*cos(Y0[i])*Solver->GetInputWavelength();
+				y=1e3*X0[i]*sin(Y0[i])*Solver->GetInputWavelength();
                 X0[i]=x;
                 Y0[i]=y;
             }
@@ -352,10 +350,10 @@ void TGeomForm::DrawBarChart(TBarSeries *Series0,TBeamSolver *Solver,TColor Col1
 
     if (BeamGroup->ItemIndex==energy_chart){
         SignChart(CH_ENERGY);
-        Spectrum=Solver->GetEnergySpectrum(0,X,dX);
+		Spectrum=Solver->GetEnergySpectrum(0);
     }else if (BeamGroup->ItemIndex==phase_chart){
-        SignChart(CH_PHASE);
-        Spectrum=Solver->GetPhaseSpectrum(0,X,dX);
+		SignChart(CH_PHASE);
+        Spectrum=Solver->GetPhaseSpectrum(0);
     }else{
         //SignChart(CH_CLEAR);
         return;
@@ -383,56 +381,55 @@ void TGeomForm::DrawChart(TLineSeries *Series0,TBeamSolver *Solver,TColor Col1, 
     Y0= new double[Np];
     N0= new double[Np];
 
-    Solver->GetStructureParameters(N0,NUM_PAR);
+	N0=Solver->GetStructureParameters(NUM_PAR);
     
     switch (ChartGroup->ItemIndex) {
         case (betta_chart):{
             SignChart(CH_BETTA);
-            Solver->GetStructureParameters(Y0,BETTA_F_PAR);
+			Y0=Solver->GetStructureParameters(SBETA_PAR);
             break;
         }
         case (A_chart):{
             SignChart(CH_A);
-            Solver->GetStructureParameters(Y0,A_PAR);
+			Y0=Solver->GetStructureParameters(A_PAR);
             break;
         }
         case (ELP_chart):{
             SignChart(CH_ELP);
-            Solver->GetStructureParameters(Y0,RP_PAR);
+			Y0=Solver->GetStructureParameters(RP_PAR);
             for (int i=0;i<Np;i++)
                 Y0[i]=sqrt(2*Y0[i]);
             break;
         }
         case (B_chart):{
             SignChart(CH_B);
-            Solver->GetStructureParameters(Y0,B_PAR);
+			Y0=Solver->GetStructureParameters(E0_PAR);
             for (int i=0;i<Np;i++)
                 Y0[i]=1e-6*Y0[i];
             break;
         }
         case (alpha_chart):{
             SignChart(CH_ATT);
-            Solver->GetStructureParameters(Y0,ALPHA_PAR);
+			Y0=Solver->GetStructureParameters(ALPHA_PAR);
             break;
         }
         case (Bz_chart):{
             SignChart(CH_BEXT);
-            Solver->GetStructureParameters(Y0,B_EXT_PAR);
+			Y0=Solver->GetStructureParameters(B_EXT_PAR);
             for (int i=0;i<Np;i++)
                 Y0[i]=10000*Y0[i];
             break;
         }
         case (Ra_chart):{
             SignChart(CH_APP);
-            Solver->GetStructureParameters(Y0,RA_PAR);
+            Y0=Solver->GetStructureParameters(RA_PAR);
             for (int i=0;i<Np;i++)
                 Y0[i]=100*Y0[i];
             break;
         }
     }
     
-    Solver->GetStructureParameters(X0,Z_PAR);
-    
+	X0=Solver->GetStructureParameters(Z_PAR);
 
    /*   FILE *F;
     F=fopen("geometry.log","w"); */
@@ -449,31 +446,9 @@ void TGeomForm::DrawChart(TLineSeries *Series0,TBeamSolver *Solver,TColor Col1, 
         }
        /*   if (i>0 && X0[i]==X0[i-1])
             X0[i]+=1e-6; */
-        Series0->AddXY(X0[i]*100,Y0[i],"",Col);
-    }
+		Series0->AddXY(X0[i]*100,Y0[i],"",Col);
+	}
 
- /* for (int i=0;i<Np/Nm;i++){
-        Col=(i%2)?Col1:Col2;
-
-        for (int j=0;j<Nm;j++)
-            
-        //fprintf(F,"%i %f %f\n",i,X0[i],Y0[i]);
-        //Series0->Add(Y0[i],X0[i]);
-        //Series0->Add(i,X0[i]);
-        //Series0->Add(Y0[i],i);
-        //TColor Col=(i%(2*Nm)==0)?Col1:Col2;
-        
-    }
-    fclose(F);    */
-
-
-  /*    for (int j=0;j<Np;j+=Nm){
-        if (j%(2*Nm)==0)
-            Series0->ColorRange(Series0->ValuesList->ValueList[0],j,j+Nm,Col1);
-        else
-            Series0->ColorRange(Series0->ValuesList->ValueList[0],j,j+Nm,Col2);
-    }
-          */
     delete[] X0;
     delete[] Y0;
     delete[] N0;

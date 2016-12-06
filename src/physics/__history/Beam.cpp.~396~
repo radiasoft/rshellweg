@@ -548,15 +548,11 @@ void TBeam::SetParameters(double *X,TBeamParameter Par)
 	}
 }
 //---------------------------------------------------------------------------
-void TBeam::SetCurrent(double I)
+double TBeam::GetCurrent()
 {
-	Ib=I;
+	return Ib;
 }
-//---------------------------------------------------------------------------
-void TBeam::SetInputCurrent(double I)
-{
-	I0=I;
-}
+
 //---------------------------------------------------------------------------
 double *TBeam::MakeEquiprobableDistribution(double Xav, double dX)
 {

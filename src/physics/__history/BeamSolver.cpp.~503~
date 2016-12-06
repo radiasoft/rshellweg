@@ -324,11 +324,6 @@ bool TBeamSolver::CheckReverse()
 	return StructPar.Reverse;
 }
 //---------------------------------------------------------------------------
-bool TBeamSolver::CheckDrift(int Nknot)
-{
-	return Structure[Nknot].drift;
-}
-//---------------------------------------------------------------------------
 TSpaceCharge TBeamSolver::GetSpaceChargeInfo()
 {
 	return BeamPar.SpaceCharge;
@@ -2660,36 +2655,6 @@ double TBeamSolver::GetMaxDivergence(int Ni)
 	return Beam[Ni]->GetMaxDivergence();
 }
 //---------------------------------------------------------------------------
-double TBeamSolver::GetMaxPhase(int Ni)
-{
-	return Beam[Ni]->GetMaxPhase();
-}
-//---------------------------------------------------------------------------
-double TBeamSolver::GetMinPhase(int Ni)
-{
-	return Beam[Ni]->GetMinPhase();
-}
-//---------------------------------------------------------------------------
-double TBeamSolver::GetCurrent(int Ni)
-{
-	return Beam[Ni]->GetCurrent();
-}
-//---------------------------------------------------------------------------
-double TBeamSolver::GetBeamRadius(int Ni)
-{
-	return Beam[Ni]->GetRadius();
-}
-//---------------------------------------------------------------------------
-TLoss TBeamSolver::GetLossType(int Nknot,int Np)
-{
-	return Beam[Nknot]->Particle[Np].lost;
-}
-//---------------------------------------------------------------------------
-int TBeamSolver::GetLivingNumber(int Ni)
-{
-	return Beam[Ni]->GetLivingNumber();
-}
-//---------------------------------------------------------------------------
 TGraph *TBeamSolver::GetTrace(int Np,TBeamParameter P1,TBeamParameter P2)
 {
 	TGraph *G;
@@ -2824,10 +2789,6 @@ double TBeamSolver::GetStructureParameter(int Nknot, TStructureParameter P)
 			x=Structure[Nknot].CellNumber;
 			break;
 		}
-		/*case (LMB_PAR):{
-            x=Structure[Nknot].lmb;
-			break;
-		}    */
 	}
 
 	return x;

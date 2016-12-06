@@ -80,8 +80,6 @@ public:
 	void GeneratePhase(TGauss G);
 	void GenerateAzimuth(TGauss G);
 	bool ImportEnergy(TBeamInput *BeamPar);
-	void SetCurrent(double I);
-	void SetInputCurrent(double I);
 
 		//GET OUTPUT PARAMETERS
    	TTwiss GetTwiss(TBeamParameter P=R_PAR);
@@ -108,7 +106,6 @@ public:
 	double GetMaxPhase();
 	double GetMaxDivergence();
 	double GetCurrent();
-	double GetInputCurrent();
 
     double iGetAverageEnergy(TIntParameters& Par,TIntegration *I);
     double iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices, bool SpectrumOutput=false);

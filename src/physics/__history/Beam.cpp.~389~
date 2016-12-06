@@ -478,6 +478,44 @@ bool TBeam::BeamFromEllipse(TBeamInput *BeamPar)
 	return true;
 }
 //---------------------------------------------------------------------------
+//REMOVED
+/*bool TBeam::ReadCSTEmittance(AnsiString &F, int Nmax)
+{
+	std::ifstream fs(F.c_str());
+	float x=0,vx=0;
+	int i=0;
+	bool Success=false;
+	AnsiString S,L;
+
+	while (!fs.eof()){
+		L=GetLine(fs);
+
+		if (NumWords(L)==2){       //Check if only two numbers in the line
+			try {                  //Check if the data is really a number
+				S=ReadWord(L,1);
+				x=S.ToDouble();
+				S=ReadWord(L,2);
+				vx=S.ToDouble();
+			}
+			catch (...){
+				continue;          //Skip incorrect line
+			}
+			if (i==Nmax){     //if there is more data than expected
+				i++;
+				break;
+			}
+			Particle[i].x=x/lmb;
+			Particle[i].Bx=vx/c;
+			i++;
+		}
+	}
+
+	fs.close();
+
+	Success=(i==Nmax);
+	return Success;
+}        */
+//---------------------------------------------------------------------------
 TPhaseSpace *TBeam::MakeTwissDistribution(TTwiss T)
 {
 	TPhaseSpace *X=NULL;
@@ -485,8 +523,24 @@ TPhaseSpace *TBeam::MakeTwissDistribution(TTwiss T)
 
 	X=new TPhaseSpace[Np];
 
+   /*	double a=0,b=0,phi=0,C=0;
+	double H=0;
+	double sx=0,sy=0,r=0;      */
+
+/*	T.beta/=100;  //to m/rad
+	T.epsilon/=100;  //to m*rad   */
+
 	T.gamma=(1+sqr(T.alpha))/T.beta;
 	E=GetEllipse(T);
+   /*	H=(T.beta+T.gamma)/2;
+
+	//phi=0.5*arctg(2*alpha*betta/(1+sqr(alpha)-sqr(betta))); - old
+	phi=0.5*arctg(-2*T.alpha/(T.beta-T.gamma));
+	b=sqrt(T.epsilon/2)*(sqrt(H+1)+sqrt(H-1));
+	a=sqrt(T.epsilon/2)*(sqrt(H+1)-sqrt(H-1));
+
+	sx=a;///h; //RMS
+	sy=b;///h;    */
 
 	double xx=0,yy=0,Rc=0,Ran1=0,Ran2=0,Myx=0,Dyx=0;
 	double Mx=0; //x0
@@ -507,14 +561,66 @@ TPhaseSpace *TBeam::MakeTwissDistribution(TTwiss T)
    	return X;
 }
 //---------------------------------------------------------------------------
+//REMOVED
+/*void TBeam::MakeGaussEmittance(double alpha, double betta, double eps)
+{
+	double a=0,b=0,phi=0,C=0;
+	double gamma=0,H=0;
+	double sx=0,sy=0,r=0;
+
+	eps/=100;  //to m*rad
+	betta/=100; //to m/rad
+
+	//phi=0.5*arctg(2*alpha*betta/(1+sqr(alpha)-sqr(betta)));
+	gamma=(1+sqr(alpha))/betta;
+	H=(betta+gamma)/2;
+
+	phi=0.5*arctg(-2*alpha/(betta-gamma));
+	b=sqrt(eps/2)*(sqrt(H+1)+sqrt(H-1));
+	a=sqrt(eps/2)*(sqrt(H+1)-sqrt(H-1));
+
+    //C=sqrt(eps*betta/pi);
+   //   a=C/sqrt(1+sqr(alpha));
+   //   b=C/betta;
+  //    h=1;
+	sx=a;///h; //RMS
+	sy=b;///h;
+
+	double xx=0,yy=0,Rc=0,Ran1=0,Ran2=0,Myx=0,Dyx=0;
+	double Mx=0; //x0
+	double My=0; //x'0
+
+	FILE *F;
+	F=fopen("particleInit.log","w");
+	for (int i=0;i<Np;i++){
+		TwoRandomGauss(Ran1,Ran2);
+		xx=Mx+Ran1*sx;
+		Myx=My+Rc*sy*(xx-Mx)/sx; //ellitic distribution
+		Dyx=sqr(sy)*(1-sqr(Rc)); //dispersion
+		yy=Myx+Ran2*sqrt(Dyx);
+		double x=xx*cos(phi)-yy*sin(phi);
+		Particle[i].x=x/lmb;
+	   //   Particle[i].x/=lmb;
+		double px=xx*sin(phi)+yy*cos(phi);     //x'=bx/bz; Emittance is defined in space x-x'
+		Particle[i].Bx=px*Particle[i].betta;  //bx=x'*bz
+	   //   Particle[i].Bx/=lmb;
+		if (i <= 100) {
+		   fprintf(F,"%d: lmb=%g, x(m)=%g, Bx=%g, betta=%g, z(m)=%g\n",
+				   i,lmb,Particle[i].x,Particle[i].Bx,Particle[i].betta,Particle[i].z);
+		}
+   }
+   fclose(F);
+
+}        */
+//---------------------------------------------------------------------------
 void TBeam::SetParameters(double *X,TBeamParameter Par)
 {
-	switch (Par) {
+    switch (Par) {
 		case (R_PAR):{
-			for (int i=0;i<Np;i++)
+            for (int i=0;i<Np;i++)
 				Particle[i].r=X[i];
-			break;
-		}
+            break;
+        }
 		case (BR_PAR):{
             for (int i=0;i<Np;i++)
 				Particle[i].Br=X[i];
@@ -548,19 +654,132 @@ void TBeam::SetParameters(double *X,TBeamParameter Par)
 	}
 }
 //---------------------------------------------------------------------------
-void TBeam::SetCurrent(double I)
+double TBeam::GetParameter(int i,TBeamParameter P)
 {
-	Ib=I;
+	double x=0;
+	TPhaseSpace C,R;
+
+    if (IsRectangular(P)) {
+		C.x=Particle[i].r;
+		C.y=Particle[i].Th;
+		C.px=Particle[i].Br/Particle[i].beta;
+		C.py=Particle[i].Bth/Particle[i].beta;
+		R=CylinricalToCartesian(C);
+	}
+
+	switch (P) {
+		case (R_PAR):{
+			x=Particle[i].r;
+			break;
+		}
+		case (TH_PAR):{
+			x=Particle[i].Th;
+			break;
+		}
+		case (X_PAR):{
+			x=R.x;
+			break;
+		}
+		case (Y_PAR):{
+			x=R.y;
+			break;
+		}
+		case (BR_PAR):{
+			x=Particle[i].Br;
+			break;
+		}
+		case (BTH_PAR):{
+			x=Particle[i].Bth;
+			break;
+		}
+		case (BX_PAR):{
+			x=R.px*Particle[i].beta;
+			break;
+		}
+		case (BY_PAR):{
+			x=R.py*Particle[i].beta;
+			break;
+		}
+		case (AR_PAR):{
+			x=arctg(Particle[i].Br/Particle[i].beta);
+			break;
+		}
+		case (ATH_PAR):{
+			x=arctg(Particle[i].Bth/Particle[i].beta);
+			break;
+		}
+		case (AX_PAR):{
+			x=arctg(R.px);
+			break;
+		}
+		case (AY_PAR):{
+			x=arctg(R.py);
+			break;
+		}
+		case (PHI_PAR):{
+			x=Particle[i].phi;
+			break;
+		}
+		case (BETA_PAR):{
+			x=Particle[i].beta;
+			break;
+		}
+		case (W_PAR):{
+			x=VelocityToMeV(Particle[i].beta);
+			break;
+			}
+		case (KIV_PAR):{
+			x=Particle[i].lost==LIVE?1:0;
+			break;
+			}
+		default:{
+			x=-1;
+			break;
+		}
+	}
+
+	return x;
 }
 //---------------------------------------------------------------------------
-void TBeam::SetInputCurrent(double I)
+/*void TBeam::GetParameters(double *X,TBeamParameter Par)
 {
-	I0=I;
-}
+	switch (Par) {
+		case (R_PAR):{
+			for (int i=0;i<Np;i++)
+				X[i]=Particle[i].r;//*lmb;
+            break;
+		}
+		case (BR_PAR):{
+            for (int i=0;i<Np;i++)
+				X[i]=Particle[i].Br;
+			break;
+        }
+		case (TH_PAR):{
+            for (int i=0;i<Np;i++)
+                X[i]=Particle[i].Th;
+			break;
+        }
+		case (BTH_PAR):{
+            for (int i=0;i<Np;i++)
+				X[i]=Particle[i].Bth;
+            break;
+		}
+        case (PHI_PAR):{
+			for (int i=0;i<Np;i++)
+                X[i]=Particle[i].phi;
+			break;
+        }
+		case (BETA_PAR):{
+			for (int i=0;i<Np;i++)
+				X[i]=Particle[i].beta;
+			break;
+		}
+	}
+}           */
 //---------------------------------------------------------------------------
 double *TBeam::MakeEquiprobableDistribution(double Xav, double dX)
 {
-	double Ran=0;
+    double Ran=0;
 	double *Xi;
 	Xi= new double[Np];
 	double a=Xav-dX;
@@ -675,18 +894,124 @@ void TBeam::MakeGaussDistribution(TGauss G,TBeamParameter Par)
 //---------------------------------------------------------------------------
 void TBeam::CountLiving()
 {
-	Nliv=0;
-	for (int i=0;i<Np;i++){
+    Nliv=0;
+    for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE)
-			Nliv++;
-	}
+            Nliv++;
+    }
 }
 //---------------------------------------------------------------------------
-TEllipse TBeam::FindEmittanceAngle(TBeamParameter P)
+//OBSOLETE
+/*double TBeam::FindEmittanceAngle(double& a,double& b)
 {
 	TBeam *Beam1;
 	Beam1=new TBeam(Np);
 	Beam1->SetBarsNumber(Nbars);
+	Beam1->SetKernel(Kernel);
+
+	TSpectrum *Spectrum1,*Spectrum2;
+	Spectrum1=new TSpectrum;
+	Spectrum2=new TSpectrum;
+
+	double *X,*X0,*Bx,*Bx0;;
+
+	double Ang0=-pi/2, Ang1=pi/2, dAngle,Angle;
+	double Angle1,Angle2,Res;
+	double Sx=0,Sbx=0;
+	double Sy=0,Sby=0;
+	double Err=1e-5;
+	int Nmax=30;
+
+	X=new double[Nliv];
+	Bx=new double[Nliv];
+
+	X0=new double[Np];
+	Bx0=new double[Np];
+
+	dAngle=(Ang1-Ang0)/2;
+	Angle=Ang0+dAngle;
+
+	int i=0;
+
+	//FILE *logFile;
+	//logFile=fopen("Ang_legacy.log","w");
+
+	for (int k=0;k<Np;k++){
+		if (Particle[k].lost==LIVE){
+			X0[k]=Particle[k].r*lmb;
+			Bx0[k]=PulseToAngle(Particle[k].Br,Particle[k].beta);
+			//fprintf(logFile,"%f %f \n",X0[k],Bx0[k]);
+		}
+	}
+
+	while (dAngle>Err && i<Nmax){
+		dAngle/=2;
+		Angle1=Angle+dAngle;
+		Angle2=Angle-dAngle;
+		for (int k=0;k<Np;k++){
+			if (Particle[k].lost==LIVE){
+				Beam1->Particle[k].r=X0[k]*cos(Angle1)+Bx0[k]*sin(Angle1);
+				Beam1->Particle[k].Br=Bx0[k]*cos(Angle1)-X0[k]*sin(Angle1);
+			  //	fprintf(logFile,"%f %f %f %f \n",X0[k],Bx0[k],Beam1->Particle[k].r,Beam1->Particle[k].Br);
+			}
+		}
+		int j=0;
+		for(int k=0;k<Np;k++){
+			if(Particle[k].lost==LIVE){
+				X[j]=Beam1->Particle[k].r;
+				Bx[j]=Beam1->Particle[k].Br;
+				j++;
+			}
+		}
+		Spectrum1->SetMesh(X,Nbars,Nliv);
+		Spectrum2->SetMesh(Bx,Nbars,Nliv);
+		Sx=Spectrum1->GetSquareDeviation();
+		Sbx=Spectrum2->GetSquareDeviation();
+
+		for (int k=0;k<Np;k++){
+			if (Particle[k].lost==LIVE){
+				Beam1->Particle[k].r=X0[k]*cos(Angle2)+Bx0[k]*sin(Angle2);
+				Beam1->Particle[k].Br=Bx0[k]*cos(Angle2)-X0[k]*sin(Angle2);
+            }
+		}
+		j=0;
+		for(int k=0;k<Np;k++){
+			if(Particle[k].lost==LIVE){
+				X[j]=Beam1->Particle[k].r;
+			//	Bx[j]=Beam1->Particle[i].Bx;
+				j++;
+			}
+		}
+		Spectrum1->SetMesh(X,Nbars,Nliv);
+		Sy=Spectrum1->GetSquareDeviation();
+
+		if (Sx>Sy)
+			Angle=Angle2;
+		else if (Sy>Sx)
+			Angle=Angle1;
+		else if (Sx==Sy)
+			break;
+		i++;
+	}
+
+	//fclose(logFile);
+
+	delete Beam1;
+	delete Spectrum1;
+	delete Spectrum2;
+	delete[] X;	delete[] Bx;
+	delete[] X0;delete[] Bx0;
+
+	a=Sx;
+	b=Sbx;
+	return Angle;
+}      */
+//---------------------------------------------------------------------------
+TEllipse TBeam::FindEmittanceAngle(TBeamParameter P)
+{
+    TBeam *Beam1;
+    Beam1=new TBeam(Np);
+    Beam1->SetBarsNumber(Nbars);
 	Beam1->SetKernel(Kernel);
 
 	double Ang0=-pi/2, Ang1=pi/2, dAngle,Angle;
@@ -931,97 +1256,6 @@ TTwiss TBeam::GetTwiss(TBeamParameter P)
 	return T;
 }
 //---------------------------------------------------------------------------
-double TBeam::GetParameter(int i,TBeamParameter P)
-{
-	double x=0;
-	TPhaseSpace C,R;
-
-    if (IsRectangular(P)) {
-		C.x=Particle[i].r;
-		C.y=Particle[i].Th;
-		C.px=Particle[i].Br/Particle[i].beta;
-		C.py=Particle[i].Bth/Particle[i].beta;
-		R=CylinricalToCartesian(C);
-	}
-
-	switch (P) {
-		case (R_PAR):{
-			x=Particle[i].r;
-			break;
-		}
-		case (TH_PAR):{
-			x=Particle[i].Th;
-			break;
-		}
-		case (X_PAR):{
-			x=R.x;
-			break;
-		}
-		case (Y_PAR):{
-			x=R.y;
-			break;
-		}
-		case (BR_PAR):{
-			x=Particle[i].Br;
-			break;
-		}
-		case (BTH_PAR):{
-			x=Particle[i].Bth;
-			break;
-		}
-		case (BX_PAR):{
-			x=R.px*Particle[i].beta;
-			break;
-		}
-		case (BY_PAR):{
-			x=R.py*Particle[i].beta;
-			break;
-		}
-		case (AR_PAR):{
-			x=arctg(Particle[i].Br/Particle[i].beta);
-			break;
-		}
-		case (ATH_PAR):{
-			x=arctg(Particle[i].Bth/Particle[i].beta);
-			break;
-		}
-		case (AX_PAR):{
-			x=arctg(R.px);
-			break;
-		}
-		case (AY_PAR):{
-			x=arctg(R.py);
-			break;
-		}
-		case (PHI_PAR):{
-			x=Particle[i].phi;
-			break;
-		}
-		case (Z0_PAR):{
-			x=Particle[i].z;
-			break;
-		}
-		case (BETA_PAR):{
-			x=Particle[i].beta;
-			break;
-		}
-		case (W_PAR):{
-			x=VelocityToMeV(Particle[i].beta);
-			break;
-			}
-		case (LIVE_PAR):{
-			x=Particle[i].lost==LIVE?1:0;
-			break;
-			}
-		default:{
-			x=-1;
-			break;
-		}
-	}
-
-	return x;
-}
-//---------------------------------------------------------------------------
 TBeamParameter TBeam::ComplementaryParameter(TBeamParameter P)
 {
 	TBeamParameter P1;
@@ -1064,7 +1298,76 @@ double *TBeam::GetLivingParameter(TBeamParameter P, bool Square)
 
 	for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE) {
-			X[i]=GetParameter(i,P);
+			TPhaseSpace C,R;
+			if (IsRectangular(P)) {
+				C.x=Particle[i].r;
+				C.y=Particle[i].Th;
+				C.px=Particle[i].Br/Particle[i].beta;
+				C.py=Particle[i].Bth/Particle[i].beta;
+				R=CylinricalToCartesian(C);
+			}
+			switch (P) {
+				case (R_PAR):{
+					X[i]=Particle[i].r;
+					break;
+				}
+					case (TH_PAR):{
+					X[i]=Particle[i].Th;
+					break;
+				}
+				case (X_PAR):{
+					X[i]=R.x;
+					break;
+				}
+				case (Y_PAR):{
+					X[i]=R.y;
+					break;
+				}
+				case (BR_PAR):{
+					X[i]=Particle[i].Br;
+					break;
+				}
+				case (BTH_PAR):{
+					X[i]=Particle[i].Bth;
+					break;
+				}
+				case (BX_PAR):{
+					X[i]=R.px*Particle[i].beta;
+					break;
+				}
+				case (BY_PAR):{
+					X[i]=R.py*Particle[i].beta;
+					break;
+				}
+				case (AR_PAR):{
+					X[i]=arctg(Particle[i].Br/Particle[i].beta);
+					break;
+				}
+				case (ATH_PAR):{
+					X[i]=arctg(Particle[i].Bth/Particle[i].beta);
+					break;
+				}
+				case (AX_PAR):{
+					X[i]=arctg(R.px);
+					break;
+				}
+				case (AY_PAR):{
+					X[i]=arctg(R.py);
+					break;
+				}
+				case (PHI_PAR):{
+					X[i]=Particle[i].phi;
+					break;
+				}
+				case (BETA_PAR):{
+					X[i]=Particle[i].beta;
+					break;
+				}
+				case (W_PAR):{
+					X[i]=VelocityToMeV(Particle[i].beta);
+					break;
+				}
+			}
 			if (Square) {
 				X[i]=sqr(X[i]);
 			}
@@ -1286,16 +1589,6 @@ double TBeam::GetAverageEnergy()
 double TBeam::GetMaxEnergy()
 {
 	return GetMaxValue(W_PAR);
-}
-//---------------------------------------------------------------------------
-double TBeam::GetCurrent()
-{
-	return Ib;
-}
-//---------------------------------------------------------------------------
-double TBeam::GetInputCurrent()
-{
-	return I0;
 }
 //---------------------------------------------------------------------------
 double TBeam::GetMean(TBeamParameter P)
