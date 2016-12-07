@@ -166,6 +166,7 @@ public:
 
 	bool CheckMagnetization();
 	bool CheckReverse();
+	bool CheckDrift(int Nknot);
 	TSpaceCharge GetSpaceChargeInfo();
 	TMagnetParameters GetSolenoidInfo();
 
@@ -181,6 +182,12 @@ public:
 	double GetAperture(int Ni);
 	double GetMaxEnergy(int Ni);
 	double GetMaxDivergence(int Ni);
+	double GetMaxPhase(int Ni);
+	double GetMinPhase(int Ni);
+	double GetCurrent(int Ni);
+	double GetBeamRadius(int Ni);
+	TLoss GetLossType(int Nknot,int Np);
+	int GetLivingNumber(int Ni);
 
 	TGraph *GetTrace(int Np,TBeamParameter P1,TBeamParameter P2);
 	TGraph *GetSpace(int Nknot,TBeamParameter P1,TBeamParameter P2);

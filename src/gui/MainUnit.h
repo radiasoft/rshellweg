@@ -91,7 +91,8 @@ private:    // User declarations
     void DisplayInputData();
 	bool LoadInputData(bool display_err=true);
 	bool CreateInputData(bool display_err=true);
-    TError ERR; //remove
+	void ShowGeometryForm(bool BeamView);
+	TError ERR; //remove
 	AnsiString InputFileName;
 	bool DataReady;
 	bool InputReady;

@@ -31,7 +31,6 @@ object MainForm: TMainForm
       Width = 83
       Height = 25
       Caption = 'View Geometry'
-      Enabled = False
       TabOrder = 0
       OnClick = ViewGeometryButtonClick
     end
@@ -49,7 +48,7 @@ object MainForm: TMainForm
       Top = 19
       Width = 185
       Height = 54
-      Caption = 'Power Source'
+      Caption = 'Power Source (First)'
       TabOrder = 2
       object Label_P0: TLabel
         Left = 16
@@ -354,6 +353,7 @@ object MainForm: TMainForm
         Width = 75
         Height = 25
         Caption = 'Load Results'
+        Enabled = False
         TabOrder = 2
         OnClick = LoadResultsButtonClick
       end

@@ -74,6 +74,11 @@ private:
 	TError ParseBeam (TInputLine *Line);
 	TError ParseCurrent (TInputLine *Line);
 	TError ParseCell (TInputLine *Line,int Ni,int Nsec, bool NewCell);
+	TError ParseSingleCell (TInputLine *Line,int Ni,int Nsec, bool NewCell);
+	TError ParseMultipleCells (TInputLine *Line,int Ni,int Nsec, bool NewCell);
+	TError ParseDrift (TInputLine *Line,int Ni,int Nsec);
+	TError ParsePower (TInputLine *Line,int Nsec);
+	TError ParseDump (TInputLine *Line,int Ni);
 
 	TError ParsePID (TInputLine *Line, AnsiString &F);
 	TError ParsePIT (TInputLine *Line, AnsiString &F);
@@ -150,12 +155,12 @@ public:
     int GetNumberOfPoints();
     int GetMeshPoints();
 	int GetNumberOfParticles();
-   //   double GetWaveLength();
     int GetNumberOfChartPoints();
     int GetNumberOfBars();
-    int GetNumberOfCells();
-    double GetFrequency();
-    double GetPower();
+	int GetNumberOfCells();
+	int GetNumberOfSections();
+	double GetFrequency(int Nsec=0);
+	double GetPower(int Nsec=0);
 	double GetInputCurrent();
    //   double GetMode(int *N=NULL,int *M=NULL);
 

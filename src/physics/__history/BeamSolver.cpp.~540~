@@ -275,7 +275,12 @@ int TBeamSolver::GetNumberOfBars()
 //---------------------------------------------------------------------------
 int TBeamSolver::GetNumberOfCells()
 {
-	return -1;
+	return StructPar.NElements;
+}
+//---------------------------------------------------------------------------
+int TBeamSolver::GetNumberOfSections()
+{
+	return StructPar.NSections;
 }
 //---------------------------------------------------------------------------
 double TBeamSolver::GetFrequency()
@@ -1367,9 +1372,7 @@ TError TBeamSolver::ParseCurrent(TInputLine *Line)
 //---------------------------------------------------------------------------
 TError TBeamSolver::ParseCell(TInputLine *Line,int Ni, int Nsec, bool NewCell)
 {
-	 AnsiString F="CELL ",S;
-
-	 if (Line->N==3 || Line->N==5){
+	if (Line->N==3 || Line->N==5){
 		StructPar.Cells[Ni].Mode=Line->S[0].ToDouble();
 		StructPar.Cells[Ni].betta=Line->S[1].ToDouble();
 		StructPar.Cells[Ni].ELP=Line->S[2].ToDouble();
@@ -1385,16 +1388,210 @@ TError TBeamSolver::ParseCell(TInputLine *Line,int Ni, int Nsec, bool NewCell)
 		return ERR_CELL;
 	 }
 
-	 F+=Line->S[0]+"\t"+S.FormatFloat("#0.000",StructPar.Cells[Ni].betta)+"\t"+S.FormatFloat("#0.000",StructPar.Cells[Ni].ELP)+"\t"+S.FormatFloat("#0.000000",StructPar.Cells[Ni].AL32)+"\t"+S.FormatFloat("#0.000000",StructPar.Cells[Ni].AkL);
-	 ParsedStrings->Add(F);
-
 	 StructPar.Cells[Ni].F0=StructPar.Sections[Nsec-1].Frequency;
 	 StructPar.Cells[Ni].P0=StructPar.Sections[Nsec-1].Power;
-	 StructPar.Cells[Ni].dF=StructPar.Sections[Nsec-1].PhaseShift;
 	 StructPar.Cells[Ni].First=NewCell;
+	 StructPar.Cells[Ni].dF=NewCell?StructPar.Sections[Nsec-1].PhaseShift:0;
 	 StructPar.Sections[Nsec-1].NCells++;
 
 	 return ERR_NO;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseSingleCell(TInputLine *Line,int Ni, int Nsec, bool NewCell)
+{
+	 AnsiString F="CELL ",S;
+	 TError Err;
+
+	 Err=ParseCell(Line,Ni,Nsec,NewCell);
+
+	 F+=Line->S[0]+"\t"+S.FormatFloat("#0.000",StructPar.Cells[Ni].betta)+"\t"+S.FormatFloat("#0.000",StructPar.Cells[Ni].ELP)+"\t"+S.FormatFloat("#0.000000",StructPar.Cells[Ni].AL32)+"\t"+S.FormatFloat("#0.000000",StructPar.Cells[Ni].AkL);
+	 ParsedStrings->Add(F);
+
+	 return Err;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseMultipleCells(TInputLine *Line,int Ni, int Nsec, bool NewCell)
+{
+	AnsiString F="CELLS ",S;
+
+	TError Err;
+	TInputLine ParsedLine;
+	ParsedLine=*Line;
+	int Ncells=Line->S[0].ToInt();
+	for (int i = 0; i < Line->N-1; i++) {
+		ParsedLine.S[i]=Line->S[i+1];
+	}
+	ParsedLine.N=Line->N-1;
+
+	for (int i = 0; i < Ncells; i++) {
+		Err=ParseCell(&ParsedLine, Ni+i,Nsec,NewCell);
+		NewCell=false;
+	}
+
+	F+=Line->S[0]+"\t"+Line->S[1]+"\t"+S.FormatFloat("#0.000",StructPar.Cells[Ni].betta)+"\t"+S.FormatFloat("#0.000",StructPar.Cells[Ni].ELP)+"\t"+S.FormatFloat("#0.000000",StructPar.Cells[Ni].AL32)+"\t"+S.FormatFloat("#0.000000",StructPar.Cells[Ni].AkL);
+	ParsedStrings->Add(F);
+
+	return Err;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseDrift(TInputLine *Line,int Ni, int Nsec)
+{
+	AnsiString F="DRIFT ",S;
+	double m=0;
+	TError Err;
+
+	if (Line->N<2 || Line->N>3){
+		return ERR_DRIFT;
+	} else {
+		StructPar.Cells[Ni].Drift=true;
+		StructPar.Cells[Ni].betta=Line->S[0].ToDouble()/100;//D, cm
+		StructPar.Cells[Ni].AkL=Line->S[1].ToDouble()/100;//Ra, cm
+		if (Line->N==3){
+			m=Line->S[2].ToDouble();
+			if (m>1)
+				StructPar.Cells[Ni].Mesh=m;
+			else{
+				S="WARNING: Number of mesh points must be more than 1";
+				ShowError(S);
+				StructPar.Cells[Ni].Mesh=Nmesh;
+			}
+		} else
+			StructPar.Cells[Ni].Mesh=Nmesh;
+
+		StructPar.Cells[Ni].ELP=0;
+		StructPar.Cells[Ni].AL32=0;
+		StructPar.Cells[Ni].First=true;
+		StructPar.Cells[Ni].F0=c;
+		StructPar.Cells[Ni].dF=arc(StructPar.Sections[Nsec-1].PhaseShift);
+
+		F+=Line->S[0]+" \t"+Line->S[1];
+		ParsedStrings->Add(F);
+	}
+
+	return ERR_NO;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParsePower(TInputLine *Line,int Nsec)
+{
+	AnsiString F="POWER ",S;
+	if (Line->N>=2 && Line->N<=3){
+		if (Nsec>StructPar.NSections) {
+			S="ERROR: Inconsistent number of sections!";
+			ShowError(S);
+			return ERR_FORMAT;
+		}  else{
+			StructPar.Sections[Nsec].Power=1e6*Line->S[0].ToDouble();
+			StructPar.Sections[Nsec].Power=1e6*Line->S[1].ToDouble();
+			StructPar.Sections[Nsec-1].NCells=0;
+			F+=Line->S[0]+"\t"+Line->S[1]+"\t";
+			if(Line->N==3){
+				StructPar.Sections[Nsec-1].PhaseShift=arc(Line->S[2].ToDouble());
+				F+=Line->S[2];
+			}else
+				StructPar.Sections[Nsec-1].PhaseShift=0;
+		}
+		return ERR_COUPLER;
+	}
+
+	ParsedStrings->Add(F);
+
+	return ERR_NO;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseDump(TInputLine *Line, int Ni)
+{
+	bool DefaultSet=true;
+	int Nkey=1; // the word from which the flags are checked
+	AnsiString F="SAVE ", S;
+
+	if (Line->N>=1 && Line->N<=9){
+		StructPar.Cells[Ni].Dump=true;
+		StructPar.Cells[Ni].DumpParameters.File=Line->S[0].c_str();
+		StructPar.Cells[Ni].DumpParameters.LiveOnly=true;
+		StructPar.Cells[Ni].DumpParameters.Phase=false;
+		StructPar.Cells[Ni].DumpParameters.Energy=false;
+		StructPar.Cells[Ni].DumpParameters.Radius=false;
+		StructPar.Cells[Ni].DumpParameters.Azimuth=false;
+		StructPar.Cells[Ni].DumpParameters.Vx=false;
+
+		F+=Line->S[0];
+			if (Line->N>=2 && IsNumber(Line->S[1])) {
+				StructPar.Cells[Ni].DumpParameters.N1=Line->S[1].ToDouble();
+				F=F+" "+Line->S[1];
+				Nkey=2;
+				if (Line->N>=3 && IsNumber(Line->S[2])){
+					StructPar.Cells[Ni].DumpParameters.N2=Line->S[2].ToDouble();
+					F=F+" "+Line->S[2];
+					Nkey=3;
+				} else
+					StructPar.Cells[Ni].DumpParameters.N2=0;
+			}  else {
+				StructPar.Cells[Ni].DumpParameters.N1=0;
+				StructPar.Cells[Ni].DumpParameters.N2=0;
+			}
+			if (Line->N>=2 && Line->N<=9) {
+				for (int j=Nkey;j<Line->N;j++){
+					if (Line->S[j]=="LOST") {
+						StructPar.Cells[Ni].DumpParameters.LiveOnly=false;
+						F=F+" LOST";
+					}
+					else if (Line->S[j]=="PHASE") {
+						StructPar.Cells[Ni].DumpParameters.Phase=true;
+						F=F+" PHASE";
+						DefaultSet=false;
+					}
+					else if (Line->S[j]=="ENERGY") {
+						StructPar.Cells[Ni].DumpParameters.Energy=true;
+						F=F+" ENERGY";
+						DefaultSet=false;
+					}
+					else if (Line->S[j]=="RADIUS") {
+						StructPar.Cells[Ni].DumpParameters.Radius=true;
+						F=F+" RADIUS";
+						DefaultSet=false;
+					}
+					else if (Line->S[j]=="AZIMUTH") {
+						StructPar.Cells[Ni].DumpParameters.Azimuth=true;
+						F=F+" AZIMUTH";
+						DefaultSet=false;
+					}
+					else if (Line->S[j]=="VX") {
+						StructPar.Cells[Ni].DumpParameters.Vx=true;
+						F=F+" VX";
+						DefaultSet=false;
+					} else {
+						S="WARNING: The keyword "+Line->S[j]+" in SAVE line is not recognized and will be ignored";
+						ShowError(S);
+					}
+				}
+			}
+
+			if (DefaultSet) {
+				StructPar.Cells[Ni].DumpParameters.Phase=true;
+				StructPar.Cells[Ni].DumpParameters.Energy=true;
+				StructPar.Cells[Ni].DumpParameters.Radius=true;
+				StructPar.Cells[Ni].DumpParameters.Azimuth=true;
+				StructPar.Cells[Ni].DumpParameters.Vx=true;
+			}
+
+			//check the numbers
+			if (StructPar.Cells[Ni].DumpParameters.N1<0 || StructPar.Cells[Ni].DumpParameters.N2<0) {
+				S="WARNING: The particle numbers in SAVE line can not be negative. The region will be ignored.";
+				ShowError(S);
+				StructPar.Cells[Ni].DumpParameters.N1=0;
+				StructPar.Cells[Ni].DumpParameters.N2=0;
+			} else if (StructPar.Cells[Ni].DumpParameters.N2!=0 && StructPar.Cells[Ni].DumpParameters.N1>StructPar.Cells[Ni].DumpParameters.N2) {
+				int temp=StructPar.Cells[Ni].DumpParameters.N2; //switch the numbers
+				StructPar.Cells[Ni].DumpParameters.N2=StructPar.Cells[Ni].DumpParameters.N1;
+				StructPar.Cells[Ni].DumpParameters.N1=temp;
+			}
+		ParsedStrings->Add(F);
+	} else {    // else skip the line
+		S="WARNING: The format of SAVE line is wrong and will be ignored.";
+		ShowError(S);
+	}
+
+	return ERR_NO;
 }
 //---------------------------------------------------------------------------
 TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
@@ -1425,7 +1622,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 			}
 			case OPTIONS:{
 				Error=ParseOptions(&Lines[k]);
-								break;
+				break;
 			}
 			case SPCHARGE:{
 				Error=ParseSpaceCharge(&Lines[k]);
@@ -1445,17 +1642,23 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				CurrentDefined=Error==ERR_NO;
 				break;
 			}
-			case CELL:{
+			case CELL:{ }
+			case CELLS:{
 				if(!OnlyParameters){
-					Error=ParseCell(&Lines[k],Ni,Nsec,NewCell);
-					Ni++;
-					CellDefined=Error==ERR_NO;
-
 					if (NewCell && !PowerDefined) {
 						S="ERROR: The RF power source must be defined before each RF section. Put POWER line in correct format into the input file before the end of each RF section. Note that DRIFT element terminates the defined RF power!";
 						ShowError(S);
 						return ERR_FORMAT;
-	 				}
+					}
+					if (Lines[k].P==CELL) {
+						Error=ParseSingleCell(&Lines[k],Ni,Nsec,NewCell);
+						Ni++;
+					} else if (Lines[k].P==CELLS) {
+						Error=ParseMultipleCells(&Lines[k],Ni,Nsec,NewCell);
+						Ni+=Lines[k].S[0].ToInt();
+					}
+
+					CellDefined=Error==ERR_NO;
 
 					NewCell=false;
 
@@ -1465,216 +1668,31 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 
 				break;
 			}
-
-            case CELLS:{
-                if(OnlyParameters)
-                    break;
-				if (Lines[k].N==4 || Lines[k].N==6){
-					for (int j=0;j<Lines[k].S[0].ToInt();j++){
-						StructPar.Cells[Ni].Mode=Lines[k].S[1].ToDouble();
-						StructPar.Cells[Ni].betta=Lines[k].S[2].ToDouble();
-						StructPar.Cells[Ni].ELP=Lines[k].S[3].ToDouble();
-						StructPar.Cells[Ni].Mesh=Nmesh;
-						if (Lines[k].N==4)
-							GetDimensions(StructPar.Cells[Ni]);
-						else if (Lines[k].N==6){
-							StructPar.Cells[Ni].AL32=Lines[k].S[4].ToDouble();
-							StructPar.Cells[Ni].AkL=Lines[k].S[5].ToDouble();
-						}
-						StructPar.Cells[Ni].F0=F_last*1e6;
-						StructPar.Cells[Ni].P0=P_last*1e6;
-						StructPar.Cells[Ni].dF=arc(dF);
-					 //   Cells[Ni].Drift=false;
-						StructPar.Cells[Ni].First=NewCell;
-						StructPar.Sections[Nsec-1].NCells++;
-						if (NewCell && !PowerDefined) {
-							S="ERROR: The RF power source must be defined before each RF section. Put POWER line in correct format into the input file before the end of each RF section. Note that DRIFT element terminates the defined RF power!";
-							ShowError(S);
-							Error=ERR_FORMAT;
-						}
-						NewCell=false;
-						dF=0;
-
-						Ni++;
-						if (StructPar.ElementsLimit>-1 &&Ni>=StructPar.ElementsLimit){
-							OnlyParameters=true;
-							break;
-						}
-					}
-				} else{
-					return ERR_CELLS;
-				}
-				if (Ni>0){
-					F="CELLS "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+s.FormatFloat("#0.000",StructPar.Cells[Ni-1].betta)+"\t"+s.FormatFloat("#0.000",StructPar.Cells[Ni-1].ELP)+"\t"+s.FormatFloat("#0.000000",StructPar.Cells[Ni-1].AL32)+"\t"+s.FormatFloat("#0.000000",StructPar.Cells[Ni-1].AkL);
-					ParsedStrings->Add(F);
-				}
-
-				CellDefined=true;
-				break;
-			}
 			case DRIFT:{
-				if(OnlyParameters)
-					break;
-				if (Lines[k].N<2 || Lines[k].N>3){
-					return ERR_DRIFT;
+				if(!OnlyParameters){
+					Error=ParseDrift(&Lines[k],Ni,Nsec);
+					NewCell=true;
+					PowerDefined=false;
+					Ni++;
 				}
-				StructPar.Cells[Ni].Drift=true;
-				StructPar.Cells[Ni].betta=Lines[k].S[0].ToDouble()/100;//D, cm
-				StructPar.Cells[Ni].AkL=Lines[k].S[1].ToDouble()/100;//Ra, cm
-				if (Lines[k].N==3){
-					double m=Lines[k].S[2].ToDouble();
-					if (m>1)
-						StructPar.Cells[Ni].Mesh=m;
-					else{
-						S="WARNING: Number of mesh points must be more than 1";
-						ShowError(S);
-						StructPar.Cells[Ni].Mesh=Nmesh;
-                    }
-				}
-				else
-					StructPar.Cells[Ni].Mesh=Nmesh;
 
-				StructPar.Cells[Ni].ELP=0;
-				StructPar.Cells[Ni].AL32=0;
-				StructPar.Cells[Ni].First=true;
-				StructPar.Cells[Ni].F0=c;
-				StructPar.Cells[Ni].dF=arc(dF);
-				dF=0;
-				NewCell=true;
-				PowerDefined=false;
-
-				F="DRIFT "+Lines[k].S[0]+" \t"+Lines[k].S[1];
-				ParsedStrings->Add(F);
-
-				Ni++;
 				if (StructPar.ElementsLimit>-1 && Ni>=StructPar.ElementsLimit)
 					OnlyParameters=true;
+
 				break;
 			}
 			case POWER:{
-				if (Lines[k].N>=2 && Lines[k].N<=3){
-					Nsec++;
-
-					P_last=Lines[k].S[0].ToDouble();
-					F_last=Lines[k].S[1].ToDouble();
-					if(Lines[k].N==3)
-						dF=Lines[k].S[2].ToDouble();
-					else
-						dF=0;
-
-					if (Nsec>StructPar.NSections) {
-						S="ERROR: Inconsistent number of sections!";
-						ShowError(S);
-						return ERR_COUPLER;
-					} else {
-						StructPar.Sections[Nsec-1].Power=1e6*P_last;
-						StructPar.Sections[Nsec-1].Frequency=1e6*F_last;
-						StructPar.Sections[Nsec-1].PhaseShift=arc(dF);
-						//StructPar.Sections[Nsec-1].Wavelength=1e-6*c/F_last;
-						StructPar.Sections[Nsec-1].NCells=0;
-					}
-					
+				Error=ParsePower(&Lines[k],Nsec);
+				if (Error===ERR_NO){
+				   	Nsec++;
 					NewCell=true;
-				} else {
+					PowerDefined=true;
+				} else
 					return ERR_COUPLER;
-				}
-
-				F="POWER "+Lines[k].S[0]+"\t"+Lines[k].S[1]+"\t"+s.FormatFloat("#0.00",dF);
-				ParsedStrings->Add(F);
-
-				PowerDefined=true;
 				break;
 			}
 			case DUMP:{
-				if (Lines[k].N>=1 && Lines[k].N<=9){
-					StructPar.Cells[Ni].Dump=true;
-					StructPar.Cells[Ni].DumpParameters.File=Lines[k].S[0].c_str();
-					StructPar.Cells[Ni].DumpParameters.LiveOnly=true;
-					StructPar.Cells[Ni].DumpParameters.Phase=false;
-					StructPar.Cells[Ni].DumpParameters.Energy=false;
-					StructPar.Cells[Ni].DumpParameters.Radius=false;
-					StructPar.Cells[Ni].DumpParameters.Azimuth=false;
-					StructPar.Cells[Ni].DumpParameters.Vx=false;
-					bool DefaultSet=true;
-					int Nkey=1; // the word from which the flags are checked
-
-					F="SAVE "+Lines[k].S[0];
-					if (Lines[k].N>=2 && IsNumber(Lines[k].S[1])) {
-						StructPar.Cells[Ni].DumpParameters.N1=Lines[k].S[1].ToDouble();
-						F=F+" "+Lines[k].S[1];
-						Nkey=2;
-						if (Lines[k].N>=3 && IsNumber(Lines[k].S[2])){
-							StructPar.Cells[Ni].DumpParameters.N2=Lines[k].S[2].ToDouble();
-							F=F+" "+Lines[k].S[2];
-							Nkey=3;
-						}
-						else
-							StructPar.Cells[Ni].DumpParameters.N2=0;
-					}  else {
-						StructPar.Cells[Ni].DumpParameters.N1=0;
-						StructPar.Cells[Ni].DumpParameters.N2=0;
-					}
-					if (Lines[k].N>=2 && Lines[k].N<=9) {
-						for (int j=Nkey;j<Lines[k].N;j++){
-							if (Lines[k].S[j]=="LOST") {
-								StructPar.Cells[Ni].DumpParameters.LiveOnly=false;
-								F=F+" LOST";
-							}
-							else if (Lines[k].S[j]=="PHASE") {
-								StructPar.Cells[Ni].DumpParameters.Phase=true;
-								F=F+" PHASE";
-								DefaultSet=false;
-							}
-							else if (Lines[k].S[j]=="ENERGY") {
-								StructPar.Cells[Ni].DumpParameters.Energy=true;
-								F=F+" ENERGY";
-								DefaultSet=false;
-							}
-							else if (Lines[k].S[j]=="RADIUS") {
-								StructPar.Cells[Ni].DumpParameters.Radius=true;
-								F=F+" RADIUS";
-								DefaultSet=false;
-							}
-							else if (Lines[k].S[j]=="AZIMUTH") {
-								StructPar.Cells[Ni].DumpParameters.Azimuth=true;
-								F=F+" AZIMUTH";
-								DefaultSet=false;
-							}
-							else if (Lines[k].S[j]=="VX") {
-								StructPar.Cells[Ni].DumpParameters.Vx=true;
-								F=F+" VX";
-								DefaultSet=false;
-							} else {
-								S="WARNING: The keyword "+Lines[k].S[j]+" in SAVE line is not recognized and will be ignored";
-								ShowError(S);
-							}
-						}
-					}
-					if (DefaultSet) {
-						StructPar.Cells[Ni].DumpParameters.Phase=true;
-						StructPar.Cells[Ni].DumpParameters.Energy=true;
-						StructPar.Cells[Ni].DumpParameters.Radius=true;
-						StructPar.Cells[Ni].DumpParameters.Azimuth=true;
-						StructPar.Cells[Ni].DumpParameters.Vx=true;
-					}
-
-					//check the numbers
-					if (StructPar.Cells[Ni].DumpParameters.N1<0 || StructPar.Cells[Ni].DumpParameters.N2<0) {
-						S="WARNING: The particle numbers in SAVE line can not be negative. The region will be ignored.";
-						ShowError(S);
-						StructPar.Cells[Ni].DumpParameters.N1=0;
-						StructPar.Cells[Ni].DumpParameters.N2=0;
-					} else if (StructPar.Cells[Ni].DumpParameters.N2!=0 && StructPar.Cells[Ni].DumpParameters.N1>StructPar.Cells[Ni].DumpParameters.N2) {
-						int temp=StructPar.Cells[Ni].DumpParameters.N2; //switch the numbers
-						StructPar.Cells[Ni].DumpParameters.N2=StructPar.Cells[Ni].DumpParameters.N1;
-						StructPar.Cells[Ni].DumpParameters.N1=temp;
-					}
-
-					ParsedStrings->Add(F);
-				} else {    // else skip the line
-					S="WARNING: The format of SAVE line is wrong and will be ignored.";
-					ShowError(S);
-				}
+				Error=ParseDump(&Lines[k],Ni);
 				break;
 			}
 			case COMMENT:{
@@ -2670,9 +2688,24 @@ double TBeamSolver::GetMinPhase(int Ni)
 	return Beam[Ni]->GetMinPhase();
 }
 //---------------------------------------------------------------------------
+double TBeamSolver::GetCurrent(int Ni)
+{
+	return Beam[Ni]->GetCurrent();
+}
+//---------------------------------------------------------------------------
+double TBeamSolver::GetBeamRadius(int Ni)
+{
+	return Beam[Ni]->GetRadius();
+}
+//---------------------------------------------------------------------------
 TLoss TBeamSolver::GetLossType(int Nknot,int Np)
 {
 	return Beam[Nknot]->Particle[Np].lost;
+}
+//---------------------------------------------------------------------------
+int TBeamSolver::GetLivingNumber(int Ni)
+{
+	return Beam[Ni]->GetLivingNumber();
 }
 //---------------------------------------------------------------------------
 TGraph *TBeamSolver::GetTrace(int Np,TBeamParameter P1,TBeamParameter P2)

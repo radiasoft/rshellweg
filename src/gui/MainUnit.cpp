@@ -110,8 +110,8 @@ void TMainForm::DisplayInputData()
 	AnsiString s,L;
 
 	//POWER SOURCE
-	Label_P0->Caption="Input Power = "+s.FormatFloat("#0.00",Solver->GetPower())+" MW";
-	Label_F0->Caption="Wavelength = "+s.FormatFloat("#0.00",Solver->GetInputWavelength()/100)+" cm";
+	Label_P0->Caption="Input Power = "+s.FormatFloat("#0.00",Solver->GetPower()/1e6)+" MW";
+	Label_F0->Caption="Frequency = "+s.FormatFloat("#0.00",Solver->GetFrequency()/1e6)+" MHz";
 	//Label_F0->Caption="Frequency = "+s.FormatFloat("#0.00",Solver->GetFrequency())+" MHz";
 
 	//SOLENOID
@@ -138,7 +138,8 @@ void TMainForm::DisplayInputData()
 	}
 
 	//STRUCTURE
-	Label_Cells->Caption=s.FormatFloat("#0",Solver->GetNumberOfCells())+" Cells Uploaded";
+	Label_Cells->Caption=s.FormatFloat("Number of Elements = 0",Solver->GetNumberOfCells());
+	Label_Sections->Caption=s.FormatFloat("Number of Sections = 0",Solver->GetNumberOfSections());
 
 	// BEAM
 	TGauss W=Solver->GetInputEnergy();
@@ -260,14 +261,14 @@ void __fastcall TMainForm::SolveButtonClick(TObject *Sender)
 
 }
 //---------------------------------------------------------------------------
-void __fastcall TMainForm::ViewBeamButtonClick(TObject *Sender)
+void  TMainForm::ShowGeometryForm(bool BeamView)
 {
 	if (!DataReady)
 		DataReady=LoadInputData(true);
 
 	if (!DataReady){
-        ShowMessage("Error occurred while reading input file! Impossible to create beam.");
-        return;
+		ShowMessage("Error occurred while reading input file! Impossible to create beam.");
+		return;
 	}
 
 	if (!InputReady) {
@@ -276,38 +277,19 @@ void __fastcall TMainForm::ViewBeamButtonClick(TObject *Sender)
 
 	if (InputReady) {
 		GeomForm->MainSolver=Solver;
-		GeomForm->Beam=true;
+		GeomForm->Beam=BeamView;
 		GeomForm->Show();
 	}
 }
 //---------------------------------------------------------------------------
-
+void __fastcall TMainForm::ViewBeamButtonClick(TObject *Sender)
+{
+	ShowGeometryForm(true);
+}
+//---------------------------------------------------------------------------
 void __fastcall TMainForm::ViewGeometryButtonClick(TObject *Sender)
 {
-    bool dataReady=LoadInputData(true);
-
-    if (!dataReady){
-        ShowMessage("Error occurred while reading input file! Impossible to create geomentry.");
-        return;
-    }
-  
-    try{
-        Solver->CreateGeometry();
-    } catch(...){
-        ShowMessage("Error occurred while creating geometry. Check the values in input file!");
-        return;
-    }
-	try{
-        ShowMessage("ViewGeometryButtonClick: try CreateBeam");
-        Solver->CreateBeam();
-    }  catch(...){
-        ShowMessage("Error occurred while creating beam. Check the values in input file!");
-        return;
-	}
-
-    GeomForm->MainSolver=Solver;
-    GeomForm->Beam=false;
-    GeomForm->Show();
+    ShowGeometryForm(false);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::AbortButtonClick(TObject *Sender)
