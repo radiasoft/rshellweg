@@ -864,7 +864,7 @@ TEllipse TBeam::GetEllipse(TBeamParameter P)
 TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 {
 	TTwiss T;
-	double *X=NULL,*Y=NULL, *Z=NULL;
+	double *X,*Y, *Z;
 	TGauss Gx,Gy,Gz;
 	bool Square=true;
 

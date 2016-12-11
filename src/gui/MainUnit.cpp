@@ -110,8 +110,8 @@ void TMainForm::DisplayInputData()
 	AnsiString s,L;
 
 	//POWER SOURCE
-	Label_P0->Caption="Input Power = "+s.FormatFloat("#0.00",Solver->GetPower()/1e6)+" MW";
-	Label_F0->Caption="Frequency = "+s.FormatFloat("#0.00",Solver->GetFrequency()/1e6)+" MHz";
+	Label_P0->Caption="Input Power = "+s.FormatFloat("#0.00",Solver->GetSectionPower()/1e6)+" MW";
+	Label_F0->Caption="Frequency = "+s.FormatFloat("#0.00",Solver->GetSectionFrequency()/1e6)+" MHz";
 	//Label_F0->Caption="Frequency = "+s.FormatFloat("#0.00",Solver->GetFrequency())+" MHz";
 
 	//SOLENOID
@@ -170,7 +170,7 @@ void TMainForm::DisplayInputData()
 	Label_Np->Caption="Number of Particles = "+s.FormatFloat("#0",Solver->GetNumberOfParticles());
 
 	//SPACE CHARGE
-	L="NONE";
+	L="";
 	TSpaceCharge Spch=Solver->GetSpaceChargeInfo();
 	switch (Spch.Type) {
 		case SPCH_ELL: {
@@ -192,6 +192,10 @@ void TMainForm::DisplayInputData()
 		L+="MAGNETIZED ";
 	if (Solver->CheckReverse())
 		L+="REVERSE ";
+
+	if (L=="") {
+        L="NONE";
+	}
 
 	Label_SpchPar->Caption=L;
 }
@@ -257,8 +261,6 @@ void __fastcall TMainForm::SolveButtonClick(TObject *Sender)
 		ShowMessage("Error occurred while solving the task. Check the values in input file!");
 		return;
 	}
-
-
 }
 //---------------------------------------------------------------------------
 void  TMainForm::ShowGeometryForm(bool BeamView)

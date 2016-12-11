@@ -37,7 +37,7 @@ private:
 	double AngErr;
 	double dh;
 
-	int Np_beam,Nstat,Ngraph,Nav,Nliv;
+	int Np_beam,Nstat,Ngraph,Nbars,Nav,Nliv;
 	double I;
 
 	TSplineType SplineType;
@@ -148,7 +148,7 @@ public:
 
     TError CreateBeam();
     int CreateGeometry();
-    void SetBarsNumber(double Nbin);
+
     void ChangeInputCurrent(double Ib);
 
     //GET INITIAL PARAMETERS
@@ -156,7 +156,7 @@ public:
     int GetMeshPoints();
 	int GetNumberOfParticles();
     int GetNumberOfChartPoints();
-    //int GetNumberOfBars();
+    int GetNumberOfBars();
 	int GetNumberOfCells();
 	int GetNumberOfSections();
 	double GetInputCurrent();

@@ -47,11 +47,11 @@ object GeomForm: TGeomForm
     object BeamGroup: TRadioGroup
       Left = 281
       Top = 1
-      Width = 231
+      Width = 320
       Height = 103
       Align = alLeft
       Caption = 'Beam Chart Data'
-      Columns = 2
+      Columns = 3
       Enabled = False
       ItemIndex = 0
       Items.Strings = (
@@ -59,35 +59,38 @@ object GeomForm: TGeomForm
         'X-X'#39
         'Y-Y'#39
         'X-Y'
-        'Th-Th'#39
-        'R-Th'
-        'Phase Portrait'
-        'Cross Section'
-        'Energy Distribution'
-        'Phase Distribution')
+        'R-Theta'
+        'Theta-Theta'#39
+        'W-phi'
+        'Energy Spectrum'
+        'Phase Spectrum'
+        'R Spectrum'
+        'X Spectrum'
+        'Y Spectrum')
       TabOrder = 1
       OnClick = BeamGroupClick
-      ExplicitTop = 4
     end
     object EnvelopeCB: TCheckBox
-      Left = 518
-      Top = 80
+      Left = 607
+      Top = 24
       Width = 97
       Height = 17
       Caption = 'Envelope'
       Checked = True
       State = cbChecked
       TabOrder = 2
+      OnClick = EnvelopeCBClick
     end
     object BeamBox: TCheckBox
-      Left = 518
-      Top = 64
+      Left = 607
+      Top = 6
       Width = 97
       Height = 17
       Caption = 'Particles'
       Checked = True
       State = cbChecked
       TabOrder = 3
+      OnClick = BeamBoxClick
     end
   end
   object WorkPanel: TPanel
@@ -151,9 +154,9 @@ object GeomForm: TGeomForm
       end
       object ParametersGroup: TGroupBox
         Left = 1
-        Top = 264
+        Top = 232
         Width = 184
-        Height = 149
+        Height = 181
         Align = alBottom
         Caption = 'Parameters'
         TabOrder = 1
@@ -179,39 +182,46 @@ object GeomForm: TGeomForm
           Caption = 'epsilon='
         end
         object WavParLabel: TLabel
-          Left = 5
-          Top = 64
+          Left = 4
+          Top = 88
           Width = 30
           Height = 13
           Caption = 'Wav='
         end
         object dWParLabel: TLabel
           Left = 5
-          Top = 80
+          Top = 107
           Width = 24
           Height = 13
           Caption = 'dW='
         end
         object FavParLabel: TLabel
           Left = 5
-          Top = 96
+          Top = 126
           Width = 37
           Height = 13
           Caption = 'Phi av='
         end
         object dFParLabel: TLabel
           Left = 5
-          Top = 112
+          Top = 145
           Width = 28
           Height = 13
           Caption = 'dPhi='
         end
         object rParLabel: TLabel
           Left = 5
-          Top = 131
+          Top = 164
           Width = 21
           Height = 13
           Caption = 'Rb='
+        end
+        object enParLabel: TLabel
+          Left = 5
+          Top = 67
+          Width = 44
+          Height = 13
+          Caption = 'e_norm='
         end
       end
     end
@@ -239,7 +249,6 @@ object GeomForm: TGeomForm
         BottomAxis.LabelsFormat.Font.Height = -37
         BottomAxis.LabelStyle = talValue
         BottomAxis.LogarithmicBase = 2.718281828459050000
-        BottomAxis.TickOnLabelsOnly = False
         BottomAxis.Title.Caption = 'U, V'
         BottomAxis.Title.Font.Height = -48
         BottomAxis.Title.Font.Style = [fsBold]
@@ -254,11 +263,11 @@ object GeomForm: TGeomForm
         DepthTopAxis.Maximum = 1.040000000000000000
         DepthTopAxis.Minimum = 0.040000000000000240
         LeftAxis.AxisValuesFormat = '#0.#'
+        LeftAxis.ExactDateTime = False
         LeftAxis.GridCentered = True
         LeftAxis.LabelsFormat.Font.Height = -37
+        LeftAxis.LabelsSeparation = 0
         LeftAxis.LabelStyle = talValue
-        LeftAxis.RoundFirstLabel = False
-        LeftAxis.TickOnLabelsOnly = False
         LeftAxis.Title.Caption = 'I, mA'
         LeftAxis.Title.Font.Height = -48
         LeftAxis.Title.Font.Style = [fsBold]
@@ -328,6 +337,28 @@ object GeomForm: TGeomForm
           Pointer.Pen.Color = clRed
           Pointer.Pen.Visible = False
           Pointer.Style = psCircle
+          Pointer.Transparency = 70
+          XValues.Name = 'X'
+          XValues.Order = loNone
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object BeamSeries2: TPointSeries
+          Legend.Visible = False
+          Depth = 0
+          Marks.Clip = True
+          Marks.DrawEvery = 100
+          SeriesColor = clRed
+          ShowInLegend = False
+          Title = 'BeamSeries2'
+          ClickableLine = False
+          Pointer.Brush.Color = clMaroon
+          Pointer.InflateMargins = True
+          Pointer.Pen.Color = clRed
+          Pointer.Pen.Visible = False
+          Pointer.Shadow.Transparency = 49
+          Pointer.Style = psCircle
+          Pointer.Transparency = 70
           XValues.Name = 'X'
           XValues.Order = loNone
           YValues.Name = 'Y'
@@ -349,6 +380,23 @@ object GeomForm: TGeomForm
           Marks.DrawEvery = 50
           SeriesColor = clBlue
           Title = 'EnvelopeSeries1'
+          Brush.BackColor = clDefault
+          LinePen.Color = clBlue
+          LinePen.Width = 2
+          Pointer.InflateMargins = True
+          Pointer.Style = psRectangle
+          XValues.Name = 'X'
+          XValues.Order = loNone
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object EnvelopeSeries2: TLineSeries
+          Depth = 0
+          Marks.Style = smsValue
+          Marks.Clip = True
+          Marks.DrawEvery = 50
+          SeriesColor = clNavy
+          Title = 'EnvelopeSeries2'
           Brush.BackColor = clDefault
           LinePen.Color = clBlue
           LinePen.Width = 2

@@ -65,8 +65,9 @@ public:
 	double lmb,h,Cmag;
     bool Reverse;
 	int Np;
+    
     void SetKernel(double Ker);
-
+    void SetBarsNumber(int N);
 
 	// BEAM CREATION
 	bool BeamFromCST(TBeamInput *BeamPar);
@@ -78,13 +79,11 @@ public:
 	void GeneratePhase(TGauss G);
 	void GenerateAzimuth(TGauss G);
 	bool ImportEnergy(TBeamInput *BeamPar);
-
 	void SetCurrent(double I);
 	void SetInputCurrent(double I);
-	void SetBarsNumber(int N);
 
 		//GET OUTPUT PARAMETERS
-   	TTwiss GetTwiss(TBeamParameter P=R_PAR,bool Norm=false);
+   	TTwiss GetTwiss(TBeamParameter P=R_PAR);
 	TTwiss GetTwissDirect(TBeamParameter P=R_PAR);
 	TEllipse GetEllipse(TBeamParameter P=R_PAR);
 	TEllipse GetEllipseDirect(TBeamParameter P=R_PAR);
@@ -101,7 +100,6 @@ public:
 	double GetDivergence(TBeamParameter P=AR_PAR,TDeviation D=D_RMS);
 
 	TSpectrumBar *GetSpectrumBar(TBeamParameter P,bool Smooth=false);
-	//DELETE
 	TSpectrumBar *GetRSpectrum(bool Smooth);
 	TSpectrumBar *GetXSpectrum(bool Smooth);
 	TSpectrumBar *GetYSpectrum(bool Smooth);

@@ -36,7 +36,7 @@ void TBeam::SetBarsNumber(int N)
 void TBeam::SetKernel(double Ker)
 {
     Kernel=Ker;
-    h=1;//sqrt(-2*ln(1-Kernel));   ALWAYS RMS!
+    h=sqrt(-2*ln(1-Kernel));
 }
 //---------------------------------------------------------------------------
 //MOVED TO TYPES.H
@@ -855,16 +855,16 @@ TEllipse TBeam::GetEllipse(TBeamParameter P)
 		Gy=GetStatistics(P1); //rad
 	}
 
-	E.x0=Gx.mean;
+	E.x0=Gx.mean*lmb;
 	E.y0=Gy.mean;
 
 	return E;
 }
 //---------------------------------------------------------------------------
-TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
+TTwiss TBeam::GetTwiss(TBeamParameter P)
 {
 	TTwiss T;
-	double *X=NULL,*Y=NULL, *Z=NULL;
+	double *X,*Y, *Z;
 	TGauss Gx,Gy,Gz;
 	bool Square=true;
 
@@ -931,16 +931,8 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
              T.alpha=-(Sxpx/Nliv)/T.epsilon;
 
 	}
-
-	if (Norm) {
-		double W=GetAverageEnergy();
-		double beta_gamma=MeVToVelocity(W)*MeVToGamma(W);
-		T.epsilon=beta_gamma*T.epsilon;
-		T.beta=T.beta/beta_gamma;
-	}
-	DeleteArray(X);
-	DeleteArray(Y);
-	DeleteArray(Z);
+   /*	delete[] X;
+	delete[] Y;     */
 
 	//fclose(logFile);
 
@@ -1013,10 +1005,6 @@ double TBeam::GetParameter(int i,TBeamParameter P)
 			x=Particle[i].phi;
 			break;
 		}
-        case (ZREL_PAR):{
-			x=lmb*Particle[i].phi/(2*pi);
-			break;
-		}
 		case (Z0_PAR):{
 			x=Particle[i].z;
 			break;
@@ -1078,7 +1066,7 @@ bool TBeam::IsRectangular(TBeamParameter P)
 //---------------------------------------------------------------------------
 double *TBeam::GetLivingParameter(TBeamParameter P)
 {
-	double *X=NULL;
+	double *X;
 	CountLiving();
 	X=new double[Nliv];
 	int j=0;

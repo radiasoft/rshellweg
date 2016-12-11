@@ -864,7 +864,7 @@ TEllipse TBeam::GetEllipse(TBeamParameter P)
 TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 {
 	TTwiss T;
-	double *X=NULL,*Y=NULL, *Z=NULL;
+	double *X,*Y, *Z;
 	TGauss Gx,Gy,Gz;
 	bool Square=true;
 
@@ -935,12 +935,11 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 	if (Norm) {
 		double W=GetAverageEnergy();
 		double beta_gamma=MeVToVelocity(W)*MeVToGamma(W);
-		T.epsilon=beta_gamma*T.epsilon;
-		T.beta=T.beta/beta_gamma;
+		T.epsilon=beta_gamma*epsilon
+
 	}
-	DeleteArray(X);
-	DeleteArray(Y);
-	DeleteArray(Z);
+   /*	delete[] X;
+	delete[] Y;     */
 
 	//fclose(logFile);
 
@@ -1078,7 +1077,7 @@ bool TBeam::IsRectangular(TBeamParameter P)
 //---------------------------------------------------------------------------
 double *TBeam::GetLivingParameter(TBeamParameter P)
 {
-	double *X=NULL;
+	double *X;
 	CountLiving();
 	X=new double[Nliv];
 	int j=0;

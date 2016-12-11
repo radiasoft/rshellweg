@@ -65,7 +65,7 @@ public:
 	double lmb,h,Cmag;
     bool Reverse;
 	int Np;
-    void SetKernel(double Ker);
+    //void SetKernel(double Ker);
 
 
 	// BEAM CREATION
@@ -84,7 +84,7 @@ public:
 	void SetBarsNumber(int N);
 
 		//GET OUTPUT PARAMETERS
-   	TTwiss GetTwiss(TBeamParameter P=R_PAR,bool Norm=false);
+   	TTwiss GetTwiss(TBeamParameter P=R_PAR);
 	TTwiss GetTwissDirect(TBeamParameter P=R_PAR);
 	TEllipse GetEllipse(TBeamParameter P=R_PAR);
 	TEllipse GetEllipseDirect(TBeamParameter P=R_PAR);

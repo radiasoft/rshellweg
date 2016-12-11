@@ -19,36 +19,6 @@ __fastcall TGeomForm::TGeomForm(TComponent* Owner)
 void TGeomForm::SignChart(TChartType ChartType)
 {
     switch (ChartType) {
-        case CH_EMITTANCE:{
-            GChart->Title->Caption="Beam Emittance";
-            GChart->BottomAxis->Title->Caption="x,mm";
-            GChart->LeftAxis->Title->Caption="dx,mrad";
-            break;
-        };
-        case CH_SECTION:{
-            GChart->Title->Caption="Beam Section";
-            GChart->BottomAxis->Title->Caption="x,mm";
-            GChart->LeftAxis->Title->Caption="y,mm";
-            break;
-        };
-        case CH_PORTRAIT:{
-            GChart->Title->Caption="Beam Portrait";
-            GChart->BottomAxis->Title->Caption="phi, deg";
-            GChart->LeftAxis->Title->Caption="W, MeV";
-            break;
-        };
-        case CH_ENERGY:{
-            GChart->Title->Caption="Energy Spectrum";
-            GChart->BottomAxis->Title->Caption="W,MeV";
-            GChart->LeftAxis->Title->Caption="N";
-            break;
-        };
-        case CH_PHASE:{
-            GChart->Title->Caption="Phase Spectrum";
-            GChart->BottomAxis->Title->Caption="phi, deg";
-            GChart->LeftAxis->Title->Caption="N";
-            break;
-        };
         case CH_BETTA:{
             GChart->Title->Caption="Wave Phase Velocity";
             GChart->BottomAxis->Title->Caption="z,cm";
@@ -115,7 +85,8 @@ void TGeomForm::ClearParameters()
 //---------------------------------------------------------------------------
 void TGeomForm::SetParameters()
 {
-	AnsiString s;
+	AnsiString s,A;
+	TBeamParameter P;
 
     aParLabel->Visible=true;
     bParLabel->Visible=true;
@@ -123,27 +94,86 @@ void TGeomForm::SetParameters()
     WavParLabel->Visible=true;
     dWParLabel->Visible=true;
     FavParLabel->Visible=true;
-    dFParLabel->Visible=true;
+	dFParLabel->Visible=true;
 
-	TTwiss T=MainSolver->GetInputTwiss(R_PAR);
+	switch (BeamGroup->ItemIndex) {
+		case (xpx_chart):{
+			A="_x";
+			P=X_PAR;
+			break;
+		}
+		case (ypy_chart):{
+			A="_y";
+			P=Y_PAR;
+			break;
+		}
+		case (rpr_chart):{ }
+		default: {
+        	A="_r";
+			P=R_PAR;
+			break;
+		}
+	}
+
+	TTwiss T=MainSolver->GetInputTwiss(P);
 	TGauss Gw=MainSolver->GetEnergyStats(0);
 	TGauss Gphi=MainSolver->GetPhaseStats(0);
+	double beta_gamma=MeVToVelocity(Gw.mean)*MeVToGamma(Gw.mean);
+	double Rb=MainSolver->GetBeamRadius(0);
 
-	aParLabel->Caption="alpha = "+s.FormatFloat("#0.000##",T.alpha);
-	bParLabel->Caption="betta = "+s.FormatFloat("#0.000##",100*T.beta)+" cm/rad";
-	eParLabel->Caption="epsilon = "+s.FormatFloat("#0.000##",100*T.epsilon)+" cm*rad";
+	aParLabel->Caption="alpha"+A+" = "+s.FormatFloat("#0.000##",T.alpha);
+	bParLabel->Caption="betta"+A+" = "+s.FormatFloat("#0.000##",100*T.beta)+" cm/rad";
+	eParLabel->Caption="epsilon"+A+" = "+s.FormatFloat("#0.000##",1e6*T.epsilon)+" um";
+	enParLabel->Caption="e_norm"+A+" = "+s.FormatFloat("#0.000##",1e6*T.epsilon*beta_gamma)+" um";
 	WavParLabel->Caption="Wav = "+s.FormatFloat("#0.000##",Gw.mean)+" MeV";
 	dWParLabel->Caption="dW = "+s.FormatFloat("#0.000##",Gw.sigma)+" MeV";
 	FavParLabel->Caption="Phi av = "+s.FormatFloat("#0.000##",RadToDegree(Gphi.mean))+" deg";
 	dFParLabel->Caption="dPhi = "+s.FormatFloat("#0.000##",RadToDegree(Gphi.sigma))+" deg";
+	rParLabel->Caption="Rbeam (rms) = "+s.FormatFloat("#0.000##",1000*Rb)+" mm";
+}
+//---------------------------------------------------------------------------
+bool TGeomForm::IsSpace(int index)
+{
+	bool R=false;
+
+	switch (index) {
+		case (rpr_chart):{ }
+		case (xpx_chart):{ }
+		case (ypy_chart):{ }
+		case (xy_chart) :{ }
+		case (rth_chart) :{ }
+		case (thpth_chart) :{}
+		case (wphi_chart):{
+			R=true;
+		}
+	}
+
+	return R;
+}
+//---------------------------------------------------------------------------
+bool TGeomForm::IsSpectrum(int index)
+{
+	bool R=false;
+
+	switch (index) {
+		case (w_chart):{ }
+		case (phi_chart):{ }
+		case (r_chart):{ }
+		case (x_chart) :{ }
+		case (y_chart) :{
+			R=true;
+		}
+	}
+
+	return R;
 }
 //---------------------------------------------------------------------------
 void TGeomForm::DrawBeamEnvelope(TLineSeries *Series0,TBeamSolver *Solver,TColor Col1)
 {
 	double x,y,x1,y1,k;
 	double s,An;
-    int Nb=Solver->GetNumberOfBars();
-    TSpectrumBar *Spectrum;
+   // int Nb=Solver->GetNumberOfBars();
+    TSpectrumBar *Spectrum=NULL;
 	double X,dX;
 	bool ellipse_env=false;
 	TEllipse E;
@@ -152,9 +182,8 @@ void TGeomForm::DrawBeamEnvelope(TLineSeries *Series0,TBeamSolver *Solver,TColor
 
     Series0->Clear();
 
-	//if(BeamGroup->ItemIndex==xpx_chart){
-		SignChart(CH_EMITTANCE);
-        switch (BeamGroup->ItemIndex) {
+	if(IsSpace(BeamGroup->ItemIndex)){
+		switch (BeamGroup->ItemIndex) {
 			case (rpr_chart):{
 				P=R_PAR;
 				ellipse_env=true;
@@ -200,24 +229,56 @@ void TGeomForm::DrawBeamEnvelope(TLineSeries *Series0,TBeamSolver *Solver,TColor
 				Series0->AddXY(x1+E.x0,y1+E.y0,"",Col1);
             }
         }
-   // }
-	if(BeamGroup->ItemIndex==energy_chart || BeamGroup->ItemIndex==phase_chart){
+	} /*else if (IsSpectrum(BeamGroup->ItemIndex)) {
 		bool Smooth=true;
-        if(BeamGroup->ItemIndex==energy_chart){
-            SignChart(CH_ENERGY);
-			Spectrum=Solver->GetEnergySpectrum(0,Smooth);
-        }else if(BeamGroup->ItemIndex==phase_chart){
-            SignChart(CH_PHASE);
-            Spectrum=Solver->GetPhaseSpectrum(0,Smooth);
-        }
-
-        for (int i=0;i<Nb;i++)
-            Series0->AddXY(Spectrum[i].x,Spectrum[i].y,"",Col1);
-
-        delete[] Spectrum;
-    }
-
-
+		switch (BeamGroup->ItemIndex) {
+			case w_chart:
+			{
+				Spectrum=Solver->GetEnergySpectrum(0,Smooth);
+				break;
+			}
+			case phi_chart:
+			{
+				Spectrum=Solver->GetPhaseSpectrum(0,Smooth);
+				break;
+			}
+			case r_chart:
+			{
+				Spectrum=Solver->GetRSpectrum(0,Smooth);
+				break;
+			}
+			case x_chart:
+			{
+				Spectrum=Solver->GetXSpectrum(0,Smooth);
+				break;
+			}
+			case y_chart:
+			{
+				Spectrum=Solver->GetYSpectrum(0,Smooth);
+				break;
+			}
+		}
+		if (Spectrum!=NULL) {
+			for (int i=0;i<Nb;i++){
+				x=Spectrum[i].x;
+				y=Spectrum[i].N;
+				switch (BeamGroup->ItemIndex){
+					case (phi_chart):{
+						x=RadToDegree(x);
+					break;
+				}
+				case (r_chart):{}
+				case (x_chart):{}
+				case (y_chart):{
+					x=1000*x;
+					break;
+				}
+			}
+			Series0->AddXY(Spectrum[i].x,Spectrum[i].y,"",Col1);
+			}
+			delete[] Spectrum;
+		}
+	}         */
     #undef Np
 
 }
@@ -228,143 +289,201 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
     Series0->Clear();
 
     int Np=Solver->GetNumberOfParticles();
-	double *X0,*Y0,*Z0,*A0,*B0;
-	double x,y,r,th,br,bth,beta;
-    bool NoGraph=false;;
+	double *X0=NULL,*Y0=NULL,*Z0=NULL,*A0=NULL,*B0=NULL;
+	double x=0,y=0,r=0,th=0,br=0,bth=0,beta=0;
+	bool NoGraph=false;
+	TPhaseSpace R,C;
 
-    X0= new double[Np];
-    Y0= new double[Np];
-	Z0= new double[Np];
-	A0= new double[Np];
-	B0= new double[Np];
+	if (IsSpace(BeamGroup->ItemIndex)) {
 
-	switch (BeamGroup->ItemIndex) {
-		case (rpr_chart):{ }
-		case (xpx_chart):{ }
-		case (ypy_chart):{ }
-		case (xy_chart) :{ }
-		case (thpth_chart) :{
-			SignChart(CH_EMITTANCE);
+		if (BeamGroup->ItemIndex==wphi_chart) {
+			X0=Solver->GetBeamParameters(0,PHI_PAR);
+			Y0=Solver->GetBeamParameters(0,W_PAR);
+		} else {
 			X0=Solver->GetBeamParameters(0,R_PAR);
 			Y0=Solver->GetBeamParameters(0,BR_PAR);
 			A0=Solver->GetBeamParameters(0,TH_PAR);
 			B0=Solver->GetBeamParameters(0,BTH_PAR);
 			Z0=Solver->GetBeamParameters(0,BETA_PAR);
-			for (int i=0;i<Np;i++){
-				TPhaseSpace R,C;
+		}
+		for (int i=0;i<Np;i++){
+			if (BeamGroup->ItemIndex!=wphi_chart){
 				beta=Z0[i];
-				C.x=1e3*X0[i]*Solver->GetInputWavelength();
+				C.x=1e3*X0[i];
 				C.px=1e3*PulseToAngle(Y0[i],beta);
 				C.y=A0[i];
 				C.py=1e3*PulseToAngle(B0[i],beta);
 				R=CylinricalToCartesian(C);
+			}
 
-				switch (BeamGroup->ItemIndex) {
-					case (rpr_chart):{
-						X0[i]=C.x;
-						Y0[i]=C.px;
-						break;
-					}
-					case (xpx_chart):{
-						X0[i]=R.x;
-						Y0[i]=R.px;
-						break;
+			switch (BeamGroup->ItemIndex) {
+				case (rpr_chart):{
+					GChart->Title->Caption="Radial Phase Space";
+					GChart->BottomAxis->Title->Caption="r,mm";
+					GChart->LeftAxis->Title->Caption="r',mrad";
 
-					}
-					case (ypy_chart):{
-						X0[i]=R.y;
-						Y0[i]=R.py;
-						break;
+					X0[i]=C.x;
+					Y0[i]=C.px;
+					break;
+				}
+				case (xpx_chart):{
+					GChart->Title->Caption="Horizontal Phase Space";
+					GChart->BottomAxis->Title->Caption="x,mm";
+					GChart->LeftAxis->Title->Caption="x',mrad";
 
-					}
-					case (xy_chart):{
-						X0[i]=R.x;
-						Y0[i]=R.y;
-						break;
-					}
-					case (thpth_chart):{
-						X0[i]=RadToDegree(C.y);
-						Y0[i]=C.py;
-						break;
-					}
-					case (rth_chart):{
-						X0[i]=C.x;
-						Y0[i]=RadToDegree(C.y);
-						break;
-					}
+					X0[i]=R.x;
+					Y0[i]=R.px;
+					break;
+				}
+				case (ypy_chart):{
+					GChart->Title->Caption="Vertical Phase Space";
+					GChart->BottomAxis->Title->Caption="y,mm";
+					GChart->LeftAxis->Title->Caption="y',mrad";
+
+					X0[i]=R.y;
+					Y0[i]=R.py;
+					break;
+				}
+				case (xy_chart):{
+					GChart->Title->Caption="Beam Cross Section";
+					GChart->BottomAxis->Title->Caption="x,mm";
+					GChart->LeftAxis->Title->Caption="y,mm";
+
+					X0[i]=R.x;
+					Y0[i]=R.y;
+					break;
+				}
+				case (thpth_chart):{
+					GChart->Title->Caption="Azimuthal Phase Space";
+					GChart->BottomAxis->Title->Caption="theta,deg";
+					GChart->LeftAxis->Title->Caption="theta',mrad";
+
+					X0[i]=RadToDegree(C.y);
+					Y0[i]=C.py;
+					break;
+				}
+				case (rth_chart):{
+					GChart->Title->Caption="Cylindrical Cross Section";
+					GChart->BottomAxis->Title->Caption="theta,deg";
+					GChart->LeftAxis->Title->Caption="r,mm";
+
+					X0[i]=RadToDegree(C.y);
+					Y0[i]=C.x;
+					break;
+				}
+				case (wphi_chart):{
+					GChart->Title->Caption="Longitudinal Phase Space";
+					GChart->BottomAxis->Title->Caption="phi,deg";
+					GChart->LeftAxis->Title->Caption="W,MeV";
+
+					X0[i]=RadToDegree(X0[i]);
+					Y0[i]=Y0[i];
+					break;
+				}
+				default:{
+					NoGraph=true;
+					break;
 				}
 			}
-			break;
 		}
-        case (portrait_chart):{
-            SignChart(CH_PORTRAIT);
-			X0=Solver->GetBeamParameters(0,PHI_PAR);
-			Y0=Solver->GetBeamParameters(0,BETA_PAR);
-            for (int i=0;i<Np;i++){
-                X0[i]=HellwegTypes::RadToDeg(X0[i]);
-                Y0[i]=VelocityToMeV(Y0[i]);
-            }  
-            break;
-        }
-        case (section_chart):{
-            SignChart(CH_SECTION);
-			X0=Solver->GetBeamParameters(0,R_PAR);
-			Y0=Solver->GetBeamParameters(0,TH_PAR);
-            for (int i=0;i<Np;i++){
-				x=1e3*X0[i]*cos(Y0[i])*Solver->GetInputWavelength();
-				y=1e3*X0[i]*sin(Y0[i])*Solver->GetInputWavelength();
-                X0[i]=x;
-                Y0[i]=y;
-            }
-            break;
-        }
-        default:{
-            //SignChart(CH_CLEAR);
-            NoGraph=true;
-            break;
-        }
-    }
+		if (!NoGraph){
+			for (int i=0;i<Np;i++)
+				Series0->AddXY(X0[i],Y0[i],"",Col1);
+			//Rescale();
+		}
+	}
 
-    if (!NoGraph){
-        for (int i=0;i<Np;i++)
-            Series0->AddXY(X0[i],Y0[i],"",Col1);
-    }
-
-	delete[] X0;
-	delete[] Y0;
-	delete[] Z0;
-	delete[] A0;
-	delete[] B0;
+	DeleteArray(X0);
+	DeleteArray(Y0);
+	DeleteArray(A0);
+	DeleteArray(B0);
+	DeleteArray(Z0);
 }
 //---------------------------------------------------------------------------
 void TGeomForm::DrawBarChart(TBarSeries *Series0,TBeamSolver *Solver,TColor Col1)
 {
     Series0->Clear();
 
-    double x;
-    TSpectrumBar *Spectrum;
+	double x=0,y=0;
+	int n=0;
+	TSpectrumBar *Spectrum=NULL;
     double X,dX;
-    int Nb=Solver->GetNumberOfBars();
-    bool NoGraph=false;
+	int Nb=100;//Solver->GetNumberOfBars();
+	Solver->SetBarsNumber(Nb);
+	bool NoGraph=false,Smooth=EnvelopeCB->Checked;
 
+	if (!IsSpectrum(BeamGroup->ItemIndex)) {
+    	return;
+	}
 
-    if (BeamGroup->ItemIndex==energy_chart){
-        SignChart(CH_ENERGY);
-		Spectrum=Solver->GetEnergySpectrum(0);
-    }else if (BeamGroup->ItemIndex==phase_chart){
-		SignChart(CH_PHASE);
-        Spectrum=Solver->GetPhaseSpectrum(0);
-    }else{
-        //SignChart(CH_CLEAR);
-        return;
-    }
- 
-    if (!NoGraph){
-        for (int i=0;i<Nb;i++)
-            Series0->AddXY(Spectrum[i].x,Spectrum[i].N);
-            //EnvelopeSeries1->AddXY(SpectrumArray[i].x,SpectrumArray[i].y,clBlue);
-    }
-    delete[] Spectrum;
+	switch (BeamGroup->ItemIndex) {
+		case (w_chart):{
+			GChart->Title->Caption="Energy Spectrum";
+			GChart->BottomAxis->Title->Caption="W,MeV";
+			GChart->LeftAxis->Title->Caption="Number of particles";
+
+			Spectrum=Solver->GetEnergySpectrum(0,Smooth);
+			break;
+		}
+		case (phi_chart):{
+			GChart->Title->Caption="Phase Spectrum";
+			GChart->BottomAxis->Title->Caption="phi,deg";
+			GChart->LeftAxis->Title->Caption="Number of particles";
+
+			Spectrum=Solver->GetPhaseSpectrum(0,Smooth);
+			break;
+		}
+		case (r_chart):{
+			GChart->Title->Caption="Radial Spectrum";
+			GChart->BottomAxis->Title->Caption="r,mm";
+			GChart->LeftAxis->Title->Caption="Number of particles";
+
+			Spectrum=Solver->GetRSpectrum(0,Smooth);
+			break;
+		}
+		case (x_chart):{
+			GChart->Title->Caption="Horizontal Spectrum";
+			GChart->BottomAxis->Title->Caption="x,mm";
+			GChart->LeftAxis->Title->Caption="Number of particles";
+
+			Spectrum=Solver->GetXSpectrum(0,Smooth);
+			break;
+		}
+		case (y_chart):{
+			GChart->Title->Caption="Vertical Spectrum";
+			GChart->BottomAxis->Title->Caption="y,mm";
+			GChart->LeftAxis->Title->Caption="Number of particles";
+
+			Spectrum=Solver->GetYSpectrum(0,Smooth);
+			break;
+		}
+		default: { return;}
+	}
+
+	for (int i=0;i<Nb;i++){
+		x=Spectrum[i].x;
+		y=Spectrum[i].y;
+		n=Spectrum[i].N;
+		switch (BeamGroup->ItemIndex){
+			case (phi_chart):{
+				x=RadToDegree(x);
+				break;
+			}
+			case (r_chart):{}
+			case (x_chart):{}
+			case (y_chart):{
+				x=1000*x*Solver->GetInputWavelength();
+				break;
+			}
+		}
+		Series0->AddXY(x,n);
+		if (Smooth)
+			EnvelopeSeries1->AddXY(x,y,clBlue);
+	}
+
+	if (Spectrum!=NULL)
+		delete[] Spectrum;
+
 }
 //---------------------------------------------------------------------------
 void TGeomForm::DrawChart(TLineSeries *Series0,TBeamSolver *Solver,TColor Col1, TColor Col2)
@@ -464,10 +583,12 @@ void __fastcall TGeomForm::FormShow(TObject *Sender)
     BeamGroup->Enabled=Beam;
     BeamSeries1->Visible=Beam;
     
-    h=MainSolver->GetKernel();
+    h=1;//MainSolver->GetKernel();
  // ChartSeries1->Visible=false;
 
-    if (Beam){
+ 	Draw();
+
+   /* if (Beam){
         if (BeamBox->Checked)
             DrawBeam(BeamSeries1,MainSolver,Particle_col);
         if (EnvelopeCB->Checked)
@@ -477,7 +598,7 @@ void __fastcall TGeomForm::FormShow(TObject *Sender)
     else{
         DrawChart(Series1,MainSolver,Line1_col_a,Line1_col_b);
         ClearParameters();
-    }
+	}   */
 }
 //---------------------------------------------------------------------------
 
@@ -495,16 +616,18 @@ void __fastcall TGeomForm::OpenButton1Click(TObject *Sender)
 
     CompData1->InputFile=File1Name;
     int Err=CompData1->LoadData();
-    CompData1->CreateGeometry();
+	CompData1->CreateGeometry();
+	if (Beam)
+		CompData1->CreateBeam();
 
-    if (Err==ERR_NO){
-        DrawChart(Series2,CompData1,Line2_col_a,Line2_col_b);
-        C1=true;
+	if (Err==ERR_NO){
+		//DrawChart(Series2,CompData1,Line2_col_a,Line2_col_b);
+		C1=true;
+		Draw();
     } else
-        C1=false;
+		C1=false;
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TGeomForm::FormCreate(TObject *Sender)
 {
     Path=Application->ExeName;
@@ -512,19 +635,23 @@ void __fastcall TGeomForm::FormCreate(TObject *Sender)
     
     TIniFile *UserIni;
     UserIni=new TIniFile(Path+"\\hellweg.ini");
-    Np_max=UserIni->ReadInteger("OTHER","Maximum Points Output",Np_max);
+	Np_max=UserIni->ReadInteger("OTHER","Maximum Points Output",Np_max);
+    CompData1=new TBeamSolver;
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TGeomForm::FormDestroy(TObject *Sender)
 {
-    delete CompData1;   
+	delete CompData1;
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TGeomForm::Compare1Click(TObject *Sender)
 {
-    Series2->Visible=Compare1->Checked && !Beam;    
+	Series2->Visible=Compare1->Checked;// && !Beam;
+	BeamSeries2->Visible=Compare1->Checked;
+	EnvelopeSeries2->Visible=Compare1->Checked;
+	Draw();
 }
 //---------------------------------------------------------------------------
 
@@ -532,32 +659,80 @@ void __fastcall TGeomForm::ChartGroupClick(TObject *Sender)
 {
     DrawChart(Series1,MainSolver,Line1_col_a,Line1_col_b);
     if (C1)
-        DrawChart(Series2,CompData1,Line2_col_a,Line2_col_b);
+		DrawChart(Series2,CompData1,Line2_col_a,Line2_col_b);
+}
+//---------------------------------------------------------------------------
+void TGeomForm::Rescale()
+{
+	GChart->Update();
+
+	double ymin=GChart->LeftAxis->Minimum;
+	double ymax=GChart->LeftAxis->Maximum;
+	double xmin=GChart->BottomAxis->Minimum;
+	double xmax=GChart->BottomAxis->Maximum;
+
+	xmax=mod(xmax)>mod(xmin)?mod(xmax):mod(xmin);
+	ymax=mod(ymax)>mod(ymin)?mod(ymax):mod(ymin);
+
+	GChart->LeftAxis->Automatic=false;
+	GChart->LeftAxis->Minimum=-ceil(ymax);
+	GChart->LeftAxis->Maximum=ceil(ymax);
+	GChart->BottomAxis->Automatic=false;
+	GChart->BottomAxis->Minimum=-ceil(xmax);
+	GChart->BottomAxis->Maximum=ceil(xmax);
+
+	GChart->Refresh();
+}
+//---------------------------------------------------------------------------
+void TGeomForm::Draw()
+{
+	if (!Beam) {
+        return;
+	}
+	try{
+		SetParameters();
+		GChart->LeftAxis->Automatic=true;
+		GChart->BottomAxis->Automatic=true;
+		if (EnvelopeCB->Checked){
+			DrawBeamEnvelope(EnvelopeSeries1,MainSolver,Envelope_col);
+            if (C1 && Compare1->Checked) {
+				DrawBeamEnvelope(EnvelopeSeries2,CompData1,clNavy);
+			}
+		}else{
+			EnvelopeSeries1->Clear();
+			EnvelopeSeries2->Clear();
+		}
+
+		if (BeamBox->Checked){
+			DrawBeam(BeamSeries1,MainSolver,Particle_col);
+			DrawBarChart(BarSeries1,MainSolver,clRed);
+			if (C1 && Compare1->Checked) {
+				DrawBeam(BeamSeries2,CompData1,clMaroon);
+			}
+		}else{
+			BeamSeries1->Clear();
+			BeamSeries2->Clear();
+			BarSeries1->Clear();
+		}
+	}
+	catch (...){
+		ShowMessage("There's an error while processing the data. May be some parameters are not correct.");
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TGeomForm::BeamGroupClick(TObject *Sender)
 {
-    try{
-        if (EnvelopeCB->Checked)
-            DrawBeamEnvelope(EnvelopeSeries1,MainSolver,Envelope_col);
-        else
-            EnvelopeSeries1->Clear();
-
-        if (BeamBox->Checked){
-            DrawBeam(BeamSeries1,MainSolver,Particle_col);
-            DrawBarChart(BarSeries1,MainSolver,clRed);
-        }else{
-            BeamSeries1->Clear();
-            BarSeries1->Clear();
-        }
-
-    }
-    catch (...){
-        ShowMessage("There's an error while processing the data. May be some parameters are not correct.");
-    }
+	Draw();
 }
 //---------------------------------------------------------------------------
-
-
-
+void __fastcall TGeomForm::BeamBoxClick(TObject *Sender)
+{
+	Draw();
+}
+//---------------------------------------------------------------------------
+void __fastcall TGeomForm::EnvelopeCBClick(TObject *Sender)
+{
+	Draw();
+}
+//---------------------------------------------------------------------------
 

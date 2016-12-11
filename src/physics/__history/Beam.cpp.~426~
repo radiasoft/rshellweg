@@ -864,7 +864,7 @@ TEllipse TBeam::GetEllipse(TBeamParameter P)
 TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 {
 	TTwiss T;
-	double *X=NULL,*Y=NULL, *Z=NULL;
+	double *X,*Y, *Z;
 	TGauss Gx,Gy,Gz;
 	bool Square=true;
 
@@ -938,9 +938,8 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 		T.epsilon=beta_gamma*T.epsilon;
 		T.beta=T.beta/beta_gamma;
 	}
-	DeleteArray(X);
-	DeleteArray(Y);
-	DeleteArray(Z);
+   /*	delete[] X;
+	delete[] Y;     */
 
 	//fclose(logFile);
 

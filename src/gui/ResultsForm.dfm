@@ -2,8 +2,8 @@ object ResForm: TResForm
   Left = 0
   Top = 0
   Caption = 'Results'
-  ClientHeight = 625
-  ClientWidth = 961
+  ClientHeight = 741
+  ClientWidth = 984
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -12,6 +12,7 @@ object ResForm: TResForm
   Font.Style = []
   Menu = MainMenu1
   OldCreateOrder = False
+  WindowState = wsMaximized
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
@@ -20,17 +21,18 @@ object ResForm: TResForm
   object GraphPanel: TPanel
     Left = 0
     Top = 0
-    Width = 776
-    Height = 535
+    Width = 766
+    Height = 639
     Align = alClient
     TabOrder = 0
     object PackChart: TChart
       Left = 1
       Top = 1
-      Width = 774
-      Height = 533
+      Width = 764
+      Height = 637
       AllowPanning = pmNone
       BackWall.Color = clWhite
+      Legend.Alignment = laTop
       Legend.CheckBoxesStyle = cbsRadio
       Legend.Font.Height = -24
       MarginTop = 5
@@ -72,18 +74,26 @@ object ResForm: TResForm
       ColorPaletteIndex = 13
       object PackSeries: TLineSeries
         Legend.Visible = False
+        ColorEachLine = False
         Depth = 0
         Marks.Font.Height = -24
+        SeriesColor = 8404992
+        Shadow.Visible = False
         ShowInLegend = False
         Title = 'Energy'
         Brush.BackColor = clDefault
-        LinePen.Color = clRed
+        ClickableLine = False
+        Dark3D = False
+        LinePen.Color = clBlue
+        LinePen.EndStyle = esFlat
+        LinePen.Visible = False
         Pointer.InflateMargins = True
         Pointer.Style = psRectangle
         XValues.Name = 'X'
         XValues.Order = loNone
         YValues.Name = 'Y'
         YValues.Order = loAscending
+        Transparency = 80
         Data = {
           00190000000000000000F876C00000000000687A400000000000387340000000
           00001875400000000000A87B4000000000003076400000000000687540000000
@@ -96,9 +106,10 @@ object ResForm: TResForm
       object AddSeries: TLineSeries
         ColorEachLine = False
         Marks.DrawEvery = 20
-        SeriesColor = 8453888
+        SeriesColor = 4227072
         Title = 'Additional'
         Brush.BackColor = clDefault
+        Dark3D = False
         LinePen.Width = 4
         Pointer.InflateMargins = True
         Pointer.Style = psRectangle
@@ -125,6 +136,7 @@ object ResForm: TResForm
         SeriesColor = clBlue
         Title = 'Field'
         Brush.BackColor = clDefault
+        Dark3D = False
         LinePen.Width = 5
         Pointer.InflateMargins = True
         Pointer.Style = psRectangle
@@ -151,14 +163,16 @@ object ResForm: TResForm
     object SpectrumChart: TChart
       Left = 1
       Top = 1
-      Width = 774
-      Height = 533
+      Width = 764
+      Height = 637
       Legend.Visible = False
       Title.Font.Height = -32
       Title.Text.Strings = (
         'TChart')
+      BottomAxis.AxisValuesFormat = '#,##0.0'
       BottomAxis.LabelsAngle = 90
       BottomAxis.LabelsFormat.Font.Height = -24
+      BottomAxis.LabelsSeparation = 0
       BottomAxis.Title.Font.Height = -29
       DepthAxis.Automatic = False
       DepthAxis.AutomaticMaximum = False
@@ -212,8 +226,8 @@ object ResForm: TResForm
     object BarsChart: TChart
       Left = 1
       Top = 1
-      Width = 774
-      Height = 533
+      Width = 764
+      Height = 637
       AllowPanning = pmNone
       Legend.Font.Height = -24
       Title.Font.Height = -32
@@ -311,8 +325,8 @@ object ResForm: TResForm
     object PieChart: TChart
       Left = 1
       Top = 1
-      Width = 774
-      Height = 533
+      Width = 764
+      Height = 637
       AllowPanning = pmNone
       Legend.Font.Height = -24
       Legend.TextStyle = ltsRightPercent
@@ -376,17 +390,18 @@ object ResForm: TResForm
     object BeamChart: TChart
       Left = 1
       Top = 1
-      Width = 774
-      Height = 533
+      Width = 764
+      Height = 637
       AllowPanning = pmNone
       Legend.Visible = False
       Title.Font.Height = -32
       Title.Text.Strings = (
         'Beam Portrait')
+      BottomAxis.AxisValuesFormat = '#,##0.0'
       BottomAxis.LabelsAngle = 90
       BottomAxis.LabelsFormat.Font.Height = -24
       BottomAxis.Title.Font.Height = -29
-      LeftAxis.AxisValuesFormat = '#,##0.000'
+      LeftAxis.AxisValuesFormat = '#,##0.0'
       LeftAxis.LabelsFormat.Font.Height = -24
       LeftAxis.Title.Font.Height = -29
       RightAxis.Title.Font.Height = -29
@@ -409,7 +424,7 @@ object ResForm: TResForm
         YValues.Order = loNone
       end
       object EnvelopeSeries: TLineSeries
-        SeriesColor = clBlue
+        SeriesColor = 16744448
         Brush.BackColor = clDefault
         LinePen.Width = 2
         Pointer.InflateMargins = True
@@ -423,187 +438,22 @@ object ResForm: TResForm
   end
   object BottomPanel: TPanel
     Left = 0
-    Top = 535
-    Width = 961
-    Height = 90
+    Top = 639
+    Width = 984
+    Height = 102
     Align = alBottom
     TabOrder = 1
-    DesignSize = (
-      961
-      90)
-    object EnergyButton: TSpeedButton
-      Left = 16
-      Top = 5
-      Width = 65
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Energy'
-      OnClick = EnergyButtonClick
-    end
-    object PhaseButton: TSpeedButton
-      Left = 16
-      Top = 33
-      Width = 65
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Phase'
-      OnClick = PhaseButtonClick
-    end
-    object RadiusButton: TSpeedButton
-      Left = 16
-      Top = 61
-      Width = 65
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Radius'
-      OnClick = RadiusButtonClick
-    end
-    object FieldButton: TSpeedButton
-      Left = 103
-      Top = 5
-      Width = 65
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Field'
-      OnClick = FieldButtonClick
-    end
-    object LossButton: TSpeedButton
-      Left = 519
-      Top = 34
-      Width = 83
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Loss Diagram'
-      OnClick = LossButtonClick
-    end
-    object LossPieButton: TSpeedButton
-      Left = 519
-      Top = 6
-      Width = 83
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Loss Pie'
-      OnClick = LossPieButtonClick
-    end
-    object FSpectrumButton: TSpeedButton
-      Left = 189
-      Top = 5
-      Width = 91
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Phase Spectrum'
-      OnClick = FSpectrumButtonClick
-    end
-    object WSpectrumButton: TSpeedButton
-      Left = 189
-      Top = 33
-      Width = 91
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Energy Spectrum'
-      OnClick = WSpectrumButtonClick
-    end
-    object LongtitudalButton: TSpeedButton
-      Left = 415
-      Top = 5
-      Width = 83
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Phase Space'
-      OnClick = LongtitudalButtonClick
-    end
-    object TransverseButton: TSpeedButton
-      Left = 302
-      Top = 6
-      Width = 91
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Transverse Space'
-      OnClick = TransverseButtonClick
-    end
-    object TransSectionButton: TSpeedButton
-      Left = 302
-      Top = 33
-      Width = 91
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Transv. Section'
-      OnClick = TransSectionButtonClick
-    end
-    object PowerButton: TSpeedButton
-      Left = 103
-      Top = 33
-      Width = 65
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Power'
-      OnClick = PowerButtonClick
-    end
-    object AvEnergyButton: TSpeedButton
-      Left = 103
-      Top = 61
-      Width = 65
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Av. Energy'
-      OnClick = AvEnergyButtonClick
-    end
-    object BettaButton: TSpeedButton
-      Left = 189
-      Top = 61
-      Width = 91
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Phase Velocity'
-      OnClick = BettaButtonClick
-    end
-    object LongtSectonButton: TSpeedButton
-      Left = 415
-      Top = 33
-      Width = 83
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Longt. Section'
-      OnClick = LongtSectonButtonClick
-    end
-    object MotionButton: TSpeedButton
-      Left = 415
-      Top = 61
-      Width = 83
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Longt. Motion'
-      OnClick = MotionButtonClick
-    end
-    object SlidingButton: TSpeedButton
-      Left = 519
-      Top = 62
-      Width = 83
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Phase Sliding'
-      OnClick = SlidingButtonClick
-    end
-    object AvRadiusButton: TSpeedButton
-      Left = 302
-      Top = 61
-      Width = 91
-      Height = 22
-      GroupIndex = 1
-      Caption = 'Beam Radius'
-      OnClick = AvRadiusButtonClick
-    end
     object TrackBox: TGroupBox
-      Left = 608
-      Top = 5
-      Width = 353
-      Height = 84
-      Anchors = [akLeft, akTop, akRight]
+      Left = 658
+      Top = 1
+      Width = 325
+      Height = 100
+      Align = alClient
       Caption = 'Seek Position'
       TabOrder = 0
       DesignSize = (
-        353
-        84)
+        325
+        100)
       object PrevButton: TSpeedButton
         Left = 42
         Top = 47
@@ -647,44 +497,286 @@ object ResForm: TResForm
         OnClick = NextButtonClick
       end
       object CellLabel: TLabel
-        Left = 289
+        Left = 261
         Top = 47
         Width = 46
         Height = 13
         Anchors = [akTop, akRight]
         Caption = 'Cell #001'
+        ExplicitLeft = 289
       end
       object PositionLabel: TLabel
-        Left = 275
+        Left = 247
         Top = 66
         Width = 60
         Height = 13
         Anchors = [akTop, akRight]
         Caption = 'z = 0.000cm'
+        ExplicitLeft = 275
       end
       object PositionTrackBar: TTrackBar
         Left = 15
         Top = 14
-        Width = 335
+        Width = 307
         Height = 27
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 0
         OnChange = PositionTrackBarChange
       end
     end
+    object RadiusGroup: TRadioGroup
+      Left = 569
+      Top = 1
+      Width = 89
+      Height = 100
+      Align = alLeft
+      Caption = 'Coordinate (r)'
+      ItemIndex = 0
+      Items.Strings = (
+        'r: Radial '
+        'x: Horizontal'
+        'y: Vertical')
+      TabOrder = 1
+      OnClick = RadiusGroupClick
+    end
+    object TraceGroup: TGroupBox
+      Left = 1
+      Top = 1
+      Width = 96
+      Height = 100
+      Align = alLeft
+      Caption = 'Particle Traces'
+      TabOrder = 2
+      object EnergyButton: TSpeedButton
+        Left = 16
+        Top = 19
+        Width = 65
+        Height = 22
+        GroupIndex = 1
+        Caption = 'Energy'
+        OnClick = EnergyButtonClick
+      end
+      object PhaseButton: TSpeedButton
+        Left = 16
+        Top = 47
+        Width = 65
+        Height = 22
+        GroupIndex = 1
+        Caption = 'Phase'
+        OnClick = PhaseButtonClick
+      end
+      object RadiusButton: TSpeedButton
+        Left = 16
+        Top = 75
+        Width = 65
+        Height = 22
+        GroupIndex = 1
+        Caption = 'Radius'
+        OnClick = RadiusButtonClick
+      end
+    end
+    object PlotGroup: TGroupBox
+      Left = 97
+      Top = 1
+      Width = 152
+      Height = 100
+      Align = alLeft
+      Caption = 'Parameter Plots'
+      TabOrder = 3
+      object PowerButton: TSpeedButton
+        Left = 77
+        Top = 18
+        Width = 65
+        Height = 22
+        GroupIndex = 1
+        Caption = 'Power'
+        OnClick = PowerButtonClick
+      end
+      object AvEnergyButton: TSpeedButton
+        Left = 6
+        Top = 18
+        Width = 65
+        Height = 22
+        GroupIndex = 1
+        Caption = 'Av. Energy'
+        OnClick = AvEnergyButtonClick
+      end
+      object FieldButton: TSpeedButton
+        Left = 77
+        Top = 46
+        Width = 65
+        Height = 22
+        GroupIndex = 1
+        Caption = 'Field'
+        OnClick = FieldButtonClick
+      end
+      object BettaButton: TSpeedButton
+        Left = 6
+        Top = 46
+        Width = 65
+        Height = 22
+        GroupIndex = 1
+        Caption = 'Velocity'
+        OnClick = BettaButtonClick
+      end
+      object AvRadiusButton: TButton
+        Left = 6
+        Top = 74
+        Width = 65
+        Height = 22
+        Caption = 'Av. Radius'
+        TabOrder = 0
+        OnClick = AvRadiusButtonClick
+      end
+      object EmittanceButton: TButton
+        Left = 77
+        Top = 74
+        Width = 65
+        Height = 22
+        Caption = 'Emittance'
+        TabOrder = 1
+        OnClick = EmittanceButtonClick
+      end
+    end
+    object SpectrumGroup: TGroupBox
+      Left = 249
+      Top = 1
+      Width = 96
+      Height = 100
+      Align = alLeft
+      Caption = 'Spectra'
+      TabOrder = 4
+      object WSpectrumButton: TSpeedButton
+        Left = 6
+        Top = 47
+        Width = 74
+        Height = 22
+        GroupIndex = 1
+        Caption = 'Energy Sp.'
+        OnClick = WSpectrumButtonClick
+      end
+      object FSpectrumButton: TSpeedButton
+        Left = 6
+        Top = 19
+        Width = 74
+        Height = 22
+        GroupIndex = 1
+        Caption = 'Phase Sp.'
+        OnClick = FSpectrumButtonClick
+      end
+      object RSpectrumButton: TButton
+        Left = 6
+        Top = 75
+        Width = 74
+        Height = 22
+        Caption = 'Radial Sp.'
+        TabOrder = 0
+        OnClick = RSpectrumButtonClick
+      end
+    end
+    object SpaceGroup: TGroupBox
+      Left = 345
+      Top = 1
+      Width = 144
+      Height = 100
+      Align = alLeft
+      Caption = 'Phase Spaces / Profiles'
+      TabOrder = 5
+      object TransverseButton: TSpeedButton
+        Left = 6
+        Top = 18
+        Width = 59
+        Height = 22
+        GroupIndex = 1
+        Caption = '(r) - (r)'#39
+        OnClick = TransverseButtonClick
+      end
+      object LongtitudalButton: TSpeedButton
+        Left = 71
+        Top = 18
+        Width = 59
+        Height = 22
+        GroupIndex = 1
+        Caption = 'W - phi'
+        OnClick = LongtitudalButtonClick
+      end
+      object LongtSectonButton: TSpeedButton
+        Left = 71
+        Top = 46
+        Width = 59
+        Height = 22
+        GroupIndex = 1
+        Caption = '(r) - phi'
+        OnClick = LongtSectonButtonClick
+      end
+      object TransSectionButton: TSpeedButton
+        Left = 6
+        Top = 46
+        Width = 59
+        Height = 22
+        GroupIndex = 1
+        Caption = 'x - y'
+        OnClick = TransSectionButtonClick
+      end
+      object MotionButton: TSpeedButton
+        Left = 6
+        Top = 74
+        Width = 59
+        Height = 22
+        GroupIndex = 1
+        Caption = 'z - (r)'
+        OnClick = MotionButtonClick
+      end
+      object SlidingButton: TSpeedButton
+        Left = 71
+        Top = 74
+        Width = 58
+        Height = 22
+        GroupIndex = 1
+        Caption = '(r)- phi (s)'
+        OnClick = SlidingButtonClick
+      end
+    end
+    object OtherGroup: TGroupBox
+      Left = 489
+      Top = 1
+      Width = 80
+      Height = 100
+      Align = alLeft
+      Caption = 'Other'
+      TabOrder = 6
+      object LossButton: TSpeedButton
+        Left = 6
+        Top = 18
+        Width = 66
+        Height = 22
+        GroupIndex = 1
+        Caption = 'Losses'
+        OnClick = LossButtonClick
+      end
+      object LossPieButton: TSpeedButton
+        Left = 6
+        Top = 46
+        Width = 66
+        Height = 22
+        GroupIndex = 1
+        Caption = 'Loss Pie'
+        OnClick = LossPieButtonClick
+      end
+    end
   end
   object RightPanel: TPanel
-    Left = 776
+    Left = 766
     Top = 0
-    Width = 185
-    Height = 535
+    Width = 218
+    Height = 639
     Align = alRight
     TabOrder = 2
-    object GroupBox1: TGroupBox
+    object OptionsBox: TGroupBox
       Left = 1
-      Top = 429
-      Width = 183
-      Height = 105
+      Top = 548
+      Width = 216
+      Height = 90
       Align = alBottom
       Caption = 'Options'
       TabOrder = 0
@@ -711,8 +803,8 @@ object ResForm: TResForm
         OnClick = ChartCheckClick
       end
       object HorFitCheck: TCheckBox
-        Left = 5
-        Top = 83
+        Left = 108
+        Top = 39
         Width = 97
         Height = 17
         Caption = 'Fit Horizontally'
@@ -722,8 +814,8 @@ object ResForm: TResForm
         OnClick = HorFitCheckClick
       end
       object VertFitCheck: TCheckBox
-        Left = 5
-        Top = 60
+        Left = 108
+        Top = 16
         Width = 97
         Height = 17
         Caption = 'Fit Vertically'
@@ -732,20 +824,29 @@ object ResForm: TResForm
         TabOrder = 3
         OnClick = VertFitCheckClick
       end
+      object TransparentCheck: TCheckBox
+        Left = 5
+        Top = 62
+        Width = 97
+        Height = 17
+        Caption = 'Depth'
+        TabOrder = 4
+        OnClick = TransparentCheckClick
+      end
     end
     object TableGroup: TGroupBox
       Left = 1
       Top = 1
-      Width = 183
-      Height = 428
+      Width = 216
+      Height = 415
       Align = alClient
       Caption = 'Parameters'
       TabOrder = 1
       object Table: TStringGrid
         Left = 2
         Top = 15
-        Width = 179
-        Height = 411
+        Width = 212
+        Height = 337
         Align = alClient
         ColCount = 2
         FixedCols = 0
@@ -775,6 +876,129 @@ object ResForm: TResForm
           24
           24
           24)
+      end
+      object BinsGroup: TGroupBox
+        Left = 2
+        Top = 352
+        Width = 212
+        Height = 61
+        Align = alBottom
+        Caption = 'Number of spectrum bins'
+        TabOrder = 1
+        object BinsMinLable: TLabel
+          Left = 5
+          Top = 45
+          Width = 12
+          Height = 13
+          Caption = '10'
+        end
+        object BinsMaxLabel: TLabel
+          Left = 185
+          Top = 45
+          Width = 18
+          Height = 13
+          Caption = '500'
+        end
+        object BinsLabel: TLabel
+          Left = 93
+          Top = 45
+          Width = 15
+          Height = 13
+          Caption = '???'
+        end
+        object BinsTrack: TTrackBar
+          Left = 2
+          Top = 15
+          Width = 208
+          Height = 28
+          Align = alTop
+          Position = 8
+          TabOrder = 0
+          OnChange = BinsTrackChange
+        end
+      end
+    end
+    object KernelBox: TGroupBox
+      Left = 1
+      Top = 487
+      Width = 216
+      Height = 61
+      Align = alBottom
+      Caption = 'Number of particles in the beam core'
+      TabOrder = 2
+      object KernelMinLabel: TLabel
+        Left = 5
+        Top = 45
+        Width = 17
+        Height = 13
+        Caption = '1%'
+      end
+      object KernelMaxLabel: TLabel
+        Left = 188
+        Top = 45
+        Width = 23
+        Height = 13
+        Caption = '99%'
+      end
+      object KernelLabel: TLabel
+        Left = 93
+        Top = 45
+        Width = 26
+        Height = 13
+        Caption = '???%'
+      end
+      object KernelTrack: TTrackBar
+        Left = 2
+        Top = 15
+        Width = 212
+        Height = 28
+        Align = alTop
+        Max = 99
+        Min = 1
+        Position = 90
+        TabOrder = 0
+        OnChange = KernelTrackChange
+      end
+    end
+    object AccuracyGroup: TGroupBox
+      Left = 1
+      Top = 416
+      Width = 216
+      Height = 71
+      Align = alBottom
+      Caption = 'Number of traces/points to skip'
+      TabOrder = 3
+      object AccuracyMinLabel: TLabel
+        Left = 5
+        Top = 52
+        Width = 57
+        Height = 13
+        Caption = 'Draw 100%'
+      end
+      object AccuracyMaxLabel: TLabel
+        Left = 162
+        Top = 52
+        Width = 51
+        Height = 13
+        Caption = 'Draw 10%'
+      end
+      object AccuracyLabel: TLabel
+        Left = 85
+        Top = 52
+        Width = 54
+        Height = 13
+        Caption = 'Draw ???%'
+      end
+      object AccuracyTrack: TTrackBar
+        Left = 2
+        Top = 15
+        Width = 212
+        Height = 34
+        Align = alTop
+        Max = 9
+        Position = 2
+        TabOrder = 0
+        OnChange = AccuracyTrackChange
       end
     end
   end

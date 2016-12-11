@@ -37,7 +37,7 @@ private:
 	double AngErr;
 	double dh;
 
-	int Np_beam,Nstat,Ngraph,Nav,Nliv;
+	int Np_beam,Nstat,Ngraph,Nav,Nliv,Nbars;
 	double I;
 
 	TSplineType SplineType;

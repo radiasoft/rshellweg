@@ -1,4 +1,4 @@
-//---------------------------------------------------------------------------
+﻿//---------------------------------------------------------------------------
 
 #include <vcl.h>
 #pragma hdrstop
@@ -19,7 +19,8 @@ __fastcall TResForm::TResForm(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TResForm::FormCreate(TObject *Sender)
 {
-    SolverLoaded=false;
+	SolverLoaded=false;
+	CreateTable();
 
  /* for (int i=0;i<100;i++)
         Series1->AddXY(i,i*i);
@@ -38,16 +39,18 @@ void __fastcall TResForm::FormShow(TObject *Sender)
 {
     Npts=Solver->GetNumberOfPoints();
     Np=Solver->GetNumberOfParticles();
-    Nb=Solver->GetNumberOfBars();
+    //Nb=Solver->GetNumberOfBars();
 
     PositionTrackBar->Max=Npts-1;
     PositionTrackBar->Position=PositionTrackBar->Max;
-    PositionChanged();
+ //   PositionChanged();
 
-    GetTransBoundaries();
-    CreateTable();
-    DrawField();
-    
+	GetTransBoundaries();
+	CreateTable();
+	//DrawField();
+	KernelChanged();
+	AccuracyChanged();
+	BinsChanged();
 
   /*    for (int i=0;i<Np;i++){
         Series1->AddNullXY(0,0);
@@ -62,26 +65,28 @@ void __fastcall TResForm::FormShow(TObject *Sender)
 void TResForm::CreateTable()
 {
     Table->RowCount=Npar+1;
-    Table->ColWidths[colName]=120;
+    Table->ColWidths[colName]=150;
     Table->ColWidths[colValue]=50;
 
     Table->Cells[colName][pZ]="Position, cm";
-    Table->Cells[colName][pWav]="Average Energy, MeV";
+	Table->Cells[colName][pWav]="Energy Spread (FWHM), MeV";
     Table->Cells[colName][pWm]="Maximum Energy, MeV";
     Table->Cells[colName][pI]="Beam Current, mA";
-    Table->Cells[colName][pkc]="Capture, %";
-    Table->Cells[colName][pr]="Beam Radius, mm";
-    Table->Cells[colName][pFav]="Average Phase, deg";
-    Table->Cells[colName][pdF]="Phase Length, deg";
-    Table->Cells[colName][pF]="Frequency, MHz";
-    Table->Cells[colName][pRa]="Aperture, mm";
-    Table->Cells[colName][pPb]="Beam Power, MW";
-    Table->Cells[colName][pvph]="Phase Velocity";
-    Table->Cells[colName][peps]="Emittance, cm*rad";
-    Table->Cells[colName][palpha]="alpha";
-    Table->Cells[colName][pbetta]="betta, cm/rad";
-    Table->Cells[colName][pdW]="Energy Spectrum, %";
-    Table->Cells[colName][pE]="Field Strength, MV/m";
+    Table->Cells[colName][pkc]="Transmitted, %";
+	Table->Cells[colName][pFav]="Average Phase, deg";
+	Table->Cells[colName][pdF]="Phase Length (rms), deg";
+	Table->Cells[colName][pF]="Frequency, MHz";
+	Table->Cells[colName][pRa]="Aperture, mm";
+	Table->Cells[colName][pPb]="Beam Power, MW";
+	Table->Cells[colName][pvph]="Phase Velocity (beta)";
+	Table->Cells[colName][pdW]="Energy Spectrum (FWHM), %";
+	Table->Cells[colName][pE]="Field Strength, MV/m";
+	Table->Cells[colName][pcoord]="Coordinate:";
+	Table->Cells[colName][pr]="Beam Radius (rms), mm";
+	Table->Cells[colName][peps]="Emittance, mm*mrad";
+	Table->Cells[colName][pepsn]="Emittance (norm), mm*mrad";
+	Table->Cells[colName][palpha]="alpha";
+	Table->Cells[colName][pbetta]="betta, cm/rad";
 
 }
 //---------------------------------------------------------------------------
@@ -208,49 +213,126 @@ void TResForm::SpectrumActive()
     SpecEnvSeries->Clear();
 }
 //---------------------------------------------------------------------------
+void TResForm::ResetAxis(TChartAxis *Axis,double NewMin,double NewMax,bool Auto)
+{
+	Axis->Automatic=Auto;
+
+	double x=0;
+	if (NewMin>NewMax) {
+		x=NewMin;
+		NewMin=NewMax;
+		NewMax=x;
+	}
+
+	if (NewMin>Axis->Maximum) {
+		Axis->Maximum=NewMax;
+		Axis->Minimum=NewMin;
+	} else {
+		Axis->Minimum=NewMin;
+		Axis->Maximum=NewMax;
+	}
+}
+//---------------------------------------------------------------------------
 void TResForm::DrawTrace(TBeamParameter P1)
 {
-	double z=0, y=0;
+	double x=0, y=0;
+	//int Nliv=0;
 	TGraph *T=NULL;
+	PackChart->AutoRepaint = false;
+
+	PackSeries->Transparency=TransparentCheck->Checked?70:0;
+
+   /*	DynamicArray<double> X;
+	DynamicArray<double> Y;
+
+	X.Length=Np*Npts;
+	Y.Length=Np*Npts;   */
+
+/*	PackSeries->XValues->Count = Np*Npts;
+	PackSeries->YValues->Count = Np*Npts;   */
+
+	int k=0;
 
 	for (int i=0;i<Np;i++){
+		if (SparceFactor!=0 && i%SparceFactor!=0)
+			continue;
 		PackSeries->AddNullXY(0,0);
 
 		T=Solver->GetTrace(i,Z0_PAR,P1);
 
+	   //	int Ntrace=0;
+
 		for (int j=0;j<Npts;j++){
-			if (!T[j].draw)
-				break;
+			if (SparceFactor!=0 && j%SparceFactor!=0)
+				continue;
 
-			z=T[j].x;
-			y=T[j].y;
-
-			//if (P1==Z0_PAR)
-				z*=100;//cm
-
-			switch (P1) {
-				case PHI_PAR:{
-					y=RadToDegree(y);
-					break;
+			if (T[j].draw){
+				x=100*T[j].x;
+				y=T[j].y;
+				switch (P1) {
+					case X_PAR:{ }
+					case Y_PAR:{ }
+					case R_PAR:{
+						y=1000*y;
+						break;
+					}
+					case PHI_PAR:{
+						y=RadToDegree(y);
+						break;
+					}
 				}
-				case R_PAR:{
-					y=y*Solver->GetWavelength(j);
-					break;
-				}
+				PackSeries->AddXY(x,y);
 			}
-			PackSeries->AddXY(z,y);
+	   /*		else{
+				x=0;
+				y=0;
+			}
+			X[k]=x;
+			Y[k]=y;
+			k++;     */
+			   //	break;
+		 //	Ntrace++;
 		}
+
+	 /*	X.Length=Ntrace;
+		Y.Length=Ntrace;
+
+		int k=0;
+		for (int j=0;j<Npts;j++){
+			if (T[j].draw){
+
+				PackSeries->AddXY(X[k],Y[k]);
+				k++;
+			} else
+				break;
+		}                   */
+
+	 /*	PackSeries->XValues->Value=X;
+		PackSeries->XValues->Count = Np*Npts;
+		PackSeries->XValues->Modified = true;
+		PackSeries->YValues->Value=Y;
+		PackSeries->YValues->Count = Np*Npts;
+		PackSeries->YValues->Modified = true;      */
+
+	   	PackChart->AutoRepaint = true;
+
 		delete[] T;
 	}
+
+
 }
 //---------------------------------------------------------------------------
 void TResForm::DrawSpace(int Nknot,TBeamParameter P1,TBeamParameter P2,bool sliding)
 {
+	AnsiString s;
+	double z=Solver->GetStructureParameter(Nknot,Z_PAR);
+	s=BeamChart->Title->Caption+" at position z="+s.FormatFloat("#0.000",100*z)+" cm";
+	BeamChart->Title->Caption=s;
+
 	TGraph *G=NULL;
 	G=Solver->GetSpace(Nknot,P1,P2);
 
-	double x=0,y=0,z=0;
-	z=100*Solver->GetStructureParameter(Nknot,Z0_PAR);
+	double x=0,y=0;
 
 	for (int i=0;i<Np;i++){
 		if (G[i].draw){
@@ -262,8 +344,9 @@ void TResForm::DrawSpace(int Nknot,TBeamParameter P1,TBeamParameter P2,bool slid
 				case R_PAR: {}
 				case X_PAR: {}
 				case Y_PAR:{x=1000*x;break;}
-				case Z0_PAR: {
+				case ZREL_PAR: {
 					x=100*(z+x);
+					break;
 				}
 			}
 			switch (P2) {
@@ -275,12 +358,17 @@ void TResForm::DrawSpace(int Nknot,TBeamParameter P1,TBeamParameter P2,bool slid
 					break;
 				}
 				case AR_PAR: {}
+				case AX_PAR: {}
+				case AY_PAR: {}
 				case X_PAR: {}
-				case Y_PAR:{x=1000*x;break;}
+				case Y_PAR:{y=1000*y;break;}
 			}
+			BeamSeries->AddXY(x,y);
 		}
-		BeamSeries->AddXY(x,y);
 	}
+
+	if (sliding)
+		BeamChart->ExchangeSeries(1,0);
 
 	delete[] G;
 }
@@ -299,19 +387,33 @@ void TResForm::DrawPlots(TStructureParameter P1,TStructureParameter P2)
 		double y=Y[i];
 
 		switch (P1) {
-			case PRF_PAR: {}
-			case PBEAM_PAR: {}
-			case ER_PAR: {}
+			//case PBEAM_PAR: {}
+			case EREAL_PAR: {}
 			case E0_PAR:{
-				x=1e-6*x;//MeV
+			   //	x=1e-6*x;//MeV
 				y=1e-6*y;
+			   //	break;
+			}
+			case PRF_PAR: {
+				x=1e-6*x;//MeV
 				break;
 			}
 			case RB_PAR: {}
 			case RA_PAR: {
-				x=100*x;//cm
-				y=100*y;
+				x=1000*x;//mm
+				y=1000*y;
+				break;
 			}
+			case ER_PAR: { }
+			case EX_PAR: { }
+			case EY_PAR: { }
+			case ENR_PAR: { }
+			case ENX_PAR: { }
+			case ENY_PAR: {
+				x=1e6*x;  //microns
+				y=1e6*y;
+				break;
+            }
 		}
 
 		LineSeries->AddXY(100*Z[i],x);
@@ -323,9 +425,71 @@ void TResForm::DrawPlots(TStructureParameter P1,TStructureParameter P2)
 	delete[] Y;
 }
 //---------------------------------------------------------------------------
+void TResForm::DrawSpectrum(int Nknot,TBeamParameter P1)
+{
+	AnsiString S;
+
+	int j=PositionTrackBar->Position;
+	double z=100*Solver->GetStructureParameter(j,Z0_PAR);
+	SpectrumChart->Title->Caption+=" at position z="+S.FormatFloat("#0.000",z)+" cm";
+
+	int Nmax=0;
+	double Ymax=0,PlotMax=0,x=0;
+	bool Smooth=true;
+	double *X;
+	X=new double[NumBins];
+
+	TSpectrumBar *Spectrum=Solver->GetSpectrum(j,P1,Smooth);
+	//=Solver->GetPhaseSpectrum(j,true,F,dF);
+
+	for (int i=0;i<NumBins;i++){
+		if (Spectrum[i].N>Nmax)
+			Nmax=Spectrum[i].N;
+		if (Spectrum[i].y>Ymax)
+			Ymax=Spectrum[i].y;
+		//X[i]=Spectrum[i].x;
+		switch (P1) {
+			case R_PAR: {}
+			case X_PAR: {}
+			case Y_PAR: {
+				X[i]=1000*Spectrum[i].x;
+				break;
+			}
+			case PHI_PAR:{
+				X[i]=RadToDegree(Spectrum[i].x);
+				break;
+			}
+			default: {
+				X[i]=Spectrum[i].x;
+			}
+		}
+	}
+	PlotMax=1.0*Nmax>Ymax?1.0*Nmax:Ymax;
+
+	ResetAxis(SpectrumChart->LeftAxis,0,PlotMax,VertFitCheck->Checked);
+  //  SpecEnvSeries->Clear();
+	if (EnvelopeCheck->Checked){
+		/*SpecEnvSeries->AddXY(MinPhase,0);
+		SpecEnvSeries->AddXY(MaxPhase,0);    */
+		SpecEnvSeries->AddXY(X[0]-1e-3,0);
+		for (int i=0;i<NumBins;i++){
+			SpecEnvSeries->AddXY(X[i],Spectrum[i].y);
+		}
+		SpecEnvSeries->AddXY(X[NumBins-1]+1e-3,0);
+    }
+
+    if (ChartCheck->Checked){
+		for (int i=0;i<NumBins;i++)
+			SpectrumSeries->AddXY(X[i],Spectrum[i].N);
+	}
+
+	delete[] Spectrum;
+	delete[] X;
+}
+//---------------------------------------------------------------------------
 void TResForm::DrawEnergy()
 {
-	gType=F_NONE;
+	gType=W_TRACE;
     PackActive();
 
     PackChart->Title->Caption="Particles Energy";
@@ -337,7 +501,7 @@ void TResForm::DrawEnergy()
 //---------------------------------------------------------------------------
 void TResForm::DrawPhase()
 {
-    gType=F_NONE;
+	gType=PHI_TRACE;
     PackActive();
 
     PackChart->Title->Caption="Particles Phase";
@@ -349,14 +513,37 @@ void TResForm::DrawPhase()
 //---------------------------------------------------------------------------
 void TResForm::DrawRadius()
 {
-    gType=F_NONE;
-    PackActive();
+	gType=R_TRACE;
+	PackActive();
 
-    PackChart->Title->Caption="Particles Radius";
-    PackChart->BottomAxis->Title->Caption="z,cm";
-    PackChart->LeftAxis->Title->Caption="r,mm";
+	PackChart->Title->Caption="Particles Radius";
+	PackChart->BottomAxis->Title->Caption="z,cm";
 
-	DrawTrace(R_PAR);
+	TBeamParameter P;
+	AnsiString Ytit;
+	switch (RadiusGroup->ItemIndex) {
+		case r_coord:{
+			P=R_PAR;
+			Ytit="r,mm";
+			break;
+		}
+		case x_coord:{
+			P=X_PAR;
+			Ytit="x,mm";
+			break;
+		}
+		case y_coord:{
+			P=Y_PAR;
+			Ytit="y,mm";
+			break;
+		}
+	}
+
+
+	PackChart->LeftAxis->Title->Caption=Ytit;
+
+	DrawTrace(P);
+	//AVERAGE RADIUS AS ENVELOPE!!!!
 }
 //---------------------------------------------------------------------------
 void TResForm::DrawField()
@@ -371,7 +558,7 @@ void TResForm::DrawField()
     LineSeries->Title="with beam load and losses";
     AddSeries->Title="no beam load and losses";
 
-	DrawPlots(E0_PAR,ER_PAR);
+	DrawPlots(E0_PAR,EREAL_PAR);
 }
 //---------------------------------------------------------------------------
 void TResForm::DrawPower()
@@ -383,7 +570,7 @@ void TResForm::DrawPower()
     PackChart->BottomAxis->Title->Caption="z,cm";
 	PackChart->LeftAxis->Title->Caption="P,MW";
 	PackSeries->Title="";
-	LineSeries->Title="Field Power";
+	LineSeries->Title="RF Power";
 	AddSeries->Title="Beam Power";
 
 	DrawPlots(PRF_PAR,PBEAM_PAR);
@@ -396,9 +583,9 @@ void TResForm::DrawBetta()
 
     PackChart->Title->Caption="Velocity";
     PackChart->BottomAxis->Title->Caption="z,cm";
-    PackChart->LeftAxis->Title->Caption="betta";
+	PackChart->LeftAxis->Title->Caption="Beta";
 
-    LineSeries->Title="Phase Velocity";
+    LineSeries->Title="Phase Velocity (RF)";
     AddSeries->Title="Beam Velocity";
 
 	DrawPlots(SBETA_PAR,BBETA_PAR);
@@ -426,7 +613,7 @@ void TResForm::DrawAvRadius()
 
     PackChart->Title->Caption="Radius";
     PackChart->BottomAxis->Title->Caption="z,cm";
-    PackChart->LeftAxis->Title->Caption="r,cm";
+    PackChart->LeftAxis->Title->Caption="r,mm";
 
     LineSeries->Title="Beam Radius (RMS)";
     AddSeries->Title="Aperture";
@@ -434,29 +621,70 @@ void TResForm::DrawAvRadius()
 	DrawPlots(RB_PAR,RA_PAR);
 }
 //---------------------------------------------------------------------------
+void TResForm::DrawEmittance()
+{
+    gType=F_NONE;
+	LineActive();
+	TStructureParameter P1,P2;
+	AnsiString Ytit;
+
+	PackChart->Title->Caption="Emittance";
+	PackChart->BottomAxis->Title->Caption="z,cm";
+
+	switch (RadiusGroup->ItemIndex) {
+		case r_coord:{
+			P1=ER_PAR;
+			P2=ENR_PAR;
+			Ytit="er,um";
+			break;
+		}
+		case x_coord:{
+			P1=EX_PAR;
+			P2=ENX_PAR;
+			Ytit="ex,um";
+			break;
+		}
+		case y_coord:{
+			P1=EY_PAR;
+			P2=ENY_PAR;
+			Ytit="ey,um";
+			break;
+		}
+	}
+
+	PackChart->LeftAxis->Title->Caption=Ytit;
+
+	LineSeries->Title="Actual (rms)";
+	AddSeries->Title="Normalized (rms)";
+
+	DrawPlots(P1,P2);
+}
+//---------------------------------------------------------------------------
 void TResForm::DrawLongtSection(bool sliding)
 {
     gType=sliding?PHASE_SLID:LONGT_SEC;
-    EnvelopeActive();
+	EnvelopeActive();
+	int j=PositionTrackBar->Position;
 
-    AnsiString s;
-    int j=PositionTrackBar->Position;
-	double z=100*Solver->GetStructureParameter(j,Z0_PAR);
-
-    BeamChart->Title->Caption="Longitudinal Section at position z="+s.FormatFloat("#0.000",z)+" cm";
+	BeamChart->Title->Caption="Longitudinal Section";// at position z="+s.FormatFloat("#0.000",z)+" cm";
     BeamChart->BottomAxis->Title->Caption="phi,deg";
-    BeamChart->LeftAxis->Title->Caption="r,mm";
-    BeamChart->LeftAxis->Automatic=VertFitCheck->Checked;
-    BeamChart->BottomAxis->Automatic=HorFitCheck->Checked;
-    BeamChart->LeftAxis->Minimum=-1000*Rmax;
-    BeamChart->LeftAxis->Maximum=1000*Rmax;
-    BeamChart->BottomAxis->Minimum=MinPhase;
-    BeamChart->BottomAxis->Maximum=MaxPhase;
+	BeamChart->LeftAxis->Title->Caption="r,mm";
+	ResetAxis(BeamChart->LeftAxis,-1000*Rmax,1000*Rmax,VertFitCheck->Checked);
+	ResetAxis(BeamChart->BottomAxis,MinPhase,MaxPhase,HorFitCheck->Checked);
+	/*BeamChart->LeftAxis->Automatic=VertFitCheck->Checked;
+	BeamChart->BottomAxis->Automatic=HorFitCheck->Checked;
+	BeamChart->LeftAxis->Minimum=-1000*Rmax;
+	BeamChart->LeftAxis->Maximum=1000*Rmax;
+	BeamChart->BottomAxis->Minimum=MinPhase;
+	BeamChart->BottomAxis->Maximum=MaxPhase;  */
+
+	double Phi_min=RadToDegree(Solver->GetMinPhase(j));
+	double Phi_max=RadToDegree(Solver->GetMaxPhase(j));
 
 	if (EnvelopeCheck->Checked){
-        for (int i=0;i<PointsNumber;i++){
-			double phi=MinPhase+i*(MaxPhase-MinPhase)/(PointsNumber-1);
-			EnvelopeSeries->AddXY(phi,250*Rmax*cos(HellwegTypes::DegToRad(phi)));
+		for (int i=0;i<PointsNumber;i++){
+			double phi=Phi_min+i*(Phi_max-Phi_min)/(PointsNumber-1);
+			EnvelopeSeries->AddXY(phi,250*Rmax*cos(DegreeToRad(phi)));
         }
     }
    //   sqr(A[j]*Wo/ELPi[j])
@@ -468,32 +696,30 @@ void TResForm::DrawLongtSpace()
 {
     gType=LONGT_SPACE;
     //ParticlesActive();
-    EnvelopeActive();
+	EnvelopeActive();
+	int j=PositionTrackBar->Position;
 
-    AnsiString s;
-    int j=PositionTrackBar->Position;
-	double z=100*Solver->GetStructureParameter(j,Z0_PAR);
-
-
-    BeamChart->Title->Caption="Longitudinal Phase Space at position z="+s.FormatFloat("#0.000",z)+" cm";
+	BeamChart->Title->Caption="Longitudinal Phase Space";// at position z="+s.FormatFloat("#0.000",z)+" cm";
     BeamChart->BottomAxis->Title->Caption="phi,deg";
     BeamChart->LeftAxis->Title->Caption="W,MeV";
-    BeamChart->LeftAxis->Automatic=false;//VertFitCheck->Checked;
-    BeamChart->BottomAxis->Automatic=HorFitCheck->Checked;
-    BeamChart->LeftAxis->Minimum=0;
 
-    if (VertFitCheck->Checked)
-        Wmax=Solver->GetMaxEnergy(j);
+		if (VertFitCheck->Checked)
+		Wmax=Solver->GetMaxEnergy(j);
 
+	ResetAxis(BeamChart->LeftAxis,0,Wmax,false);
+	ResetAxis(BeamChart->BottomAxis,MinPhase,MaxPhase,HorFitCheck->Checked);
+  /*	BeamChart->LeftAxis->Automatic=false;//VertFitCheck->Checked;
+	BeamChart->LeftAxis->Minimum=0;
 	BeamChart->LeftAxis->Maximum=Wmax;
-
+	BeamChart->BottomAxis->Automatic=HorFitCheck->Checked;
 	BeamChart->BottomAxis->Minimum=MinPhase;
-	BeamChart->BottomAxis->Maximum=MaxPhase;
+	BeamChart->BottomAxis->Maximum=MaxPhase; */
 
 	double Phi_min=RadToDegree(Solver->GetMinPhase(j));
 	double Phi_max=RadToDegree(Solver->GetMaxPhase(j));
 
 	if (EnvelopeCheck->Checked){
+		//EnvelopeSeries->Transparency=50;
         double H=0,W=0, gamma=0, phi=0;
 		double beta_w=Solver->GetStructureParameter(j,SBETA_PAR);
 		double A=Solver->GetStructureParameter(j,A_PAR);
@@ -539,7 +765,7 @@ void TResForm::DrawLongtSpace()
 							continue;
 					 // if (W>0 && W<Wmax) {
 							if (sep)
-                                EnvelopeSeries->AddNullXY(phi,W);
+								EnvelopeSeries->AddNullXY(phi,W);
                             else
                                 EnvelopeSeries->AddXY(phi,W);
                             sep=false;
@@ -562,30 +788,31 @@ void TResForm::DrawTransSection()
 {
     gType=TRANS_SEC;
     EnvelopeActive();
+	int j=PositionTrackBar->Position;
 
-    AnsiString s;
-    int j=PositionTrackBar->Position;
-	double z=100*Solver->GetStructureParameter(j,Z0_PAR);
+	BeamChart->Title->Caption="Transverse Section";
+	BeamChart->BottomAxis->Title->Caption="x,mm";
+	BeamChart->LeftAxis->Title->Caption="y,mm";
 
-    BeamChart->Title->Caption="Transverse Section at position z="+s.FormatFloat("#0.000",z)+" cm";
-    BeamChart->BottomAxis->Title->Caption="x,mm";
-    BeamChart->LeftAxis->Title->Caption="y,mm";
-    BeamChart->LeftAxis->Automatic=VertFitCheck->Checked;
-    BeamChart->BottomAxis->Automatic=HorFitCheck->Checked;
-    BeamChart->LeftAxis->Minimum=-1000*Rmax;
-    BeamChart->LeftAxis->Maximum=1000*Rmax;
+	ResetAxis(BeamChart->LeftAxis,-1000*Rmax,1000*Rmax,VertFitCheck->Checked);
+	ResetAxis(BeamChart->BottomAxis,-1000*Rmax,1000*Rmax,HorFitCheck->Checked);
+
+   /*	BeamChart->LeftAxis->Automatic=VertFitCheck->Checked;
+	BeamChart->BottomAxis->Automatic=HorFitCheck->Checked;
+	BeamChart->LeftAxis->Minimum=-1000*Rmax;
+	BeamChart->LeftAxis->Maximum=1000*Rmax;
     BeamChart->BottomAxis->Minimum=-1000*Rmax;
-    BeamChart->BottomAxis->Maximum=1000*Rmax;
+	BeamChart->BottomAxis->Maximum=1000*Rmax; */
 
-    double x=0,y=0,k=0,An=0;
+	double x=0,y=0,k=0,An=0,s=0;
     if (EnvelopeCheck->Checked){
-		double h=Solver->GetKernel();
+		double h=1;//Solver->GetKernel();
 		double R=1000*Solver->GetStructureParameter(j,RB_PAR);
         for (int i=0;i<PointsNumber;i++){
-            k=2.0*R/(PointsNumber/2-1);
+			k=2.0*R/(PointsNumber/2-1);
             if (i<PointsNumber/2){
                 x=-R+k*i;
-                s=1;
+				s=1;
             }else{
                 x=3*R-k*i;
                 s=-1;
@@ -606,92 +833,126 @@ void TResForm::DrawTransSection()
 void TResForm::DrawTransSpace()
 {
     gType=TRANS_SPACE;
-    EnvelopeActive();
+	EnvelopeActive();
+	int j=PositionTrackBar->Position;
+	TBeamParameter P1,P2;
+	AnsiString Xtit,Ytit;
 
-    AnsiString s;
-    int j=PositionTrackBar->Position;
-    double z=100*Solver->GetStructureParameter(j,Z0_PAR);
-
-    BeamChart->Title->Caption="Transverse Phase Space at position z="+s.FormatFloat("#0.000",z)+" cm";
-    BeamChart->BottomAxis->Title->Caption="x,mm";
-    BeamChart->LeftAxis->Title->Caption="x',mrad";
+	BeamChart->Title->Caption="Transverse Phase Space";// at position z="+s.FormatFloat("#0.000",100*z)+" cm";
+	switch (RadiusGroup->ItemIndex) {
+		case r_coord:{
+			P1=R_PAR;
+			P2=AR_PAR;
+			Xtit="r,mm";
+			Ytit="r',mrad";
+			break;
+		}
+		case x_coord:{
+			P1=X_PAR;
+			P2=AX_PAR;
+			Xtit="x,mm";
+			Ytit="x',mrad";
+			break;
+		}
+		case y_coord:{
+			P1=Y_PAR;
+			P2=AY_PAR;
+			Xtit="y,mm";
+			Ytit="y',mrad";
+			break;
+		}
+	}
+	BeamChart->BottomAxis->Title->Caption=Xtit;
+	BeamChart->LeftAxis->Title->Caption=Ytit;
    /*   BeamChart->LeftAxis->Automatic=true;
-    BeamChart->BottomAxis->Automatic=true; */
-    BeamChart->LeftAxis->Automatic=VertFitCheck->Checked;
+	BeamChart->BottomAxis->Automatic=true; */
+	ResetAxis(BeamChart->LeftAxis,-1000*Xmax,1000*Xmax,VertFitCheck->Checked);
+	ResetAxis(BeamChart->BottomAxis,-1000*Rmax,1000*Rmax,HorFitCheck->Checked);
+
+/*	BeamChart->LeftAxis->Automatic=VertFitCheck->Checked;
     BeamChart->BottomAxis->Automatic=HorFitCheck->Checked;
-    BeamChart->LeftAxis->Minimum=-1000*Xmax;
-    BeamChart->LeftAxis->Maximum=1000*Xmax;
-    BeamChart->BottomAxis->Minimum=-1000*Rmax;
+	BeamChart->LeftAxis->Minimum=-1000*;
+	BeamChart->LeftAxis->Maximum=1000*Xmax;
+	BeamChart->BottomAxis->Minimum=-1000*Rmax;
     BeamChart->BottomAxis->Maximum=1000*Rmax;
-    //BeamChart->SeriesUp(EnvelopeSeries);
+	//BeamChart->SeriesUp(EnvelopeSeries);      */
 
    //   sqr(A[j]*Wo/ELPi[j])
-	double k=0,x=0,y=0,An=0,x1=0,y1=0;
+	double k=0,x=0,y=0,An=0,x1=0,y1=0,s=0;
 	TEllipse E;
 
     if (EnvelopeCheck->Checked){
-		E=Solver->GetEllipse(j);
-        double h=Solver->GetKernel();
+		E=Solver->GetEllipse(j,P1);
 		E.x0*=1e3;
 		E.y0*=1e3;
-		E.ax*=1e3*h;
-		E.by*=1e3*h;
+		E.ax*=1e3*Hcore;
+		E.by*=1e3*Hcore;
 		for (int i=0;i<PointsNumber;i++){
 			k=2.0*E.ax/(PointsNumber/2-1);
 			if (i<PointsNumber/2){
-				x=-E.ax+k*i+E.x0;
+				x=-E.ax+k*i;//+E.x0;
 				s=1;
 			}else{
-				x=3*E.ax-k*i+E.x0;
+				x=3*E.ax-k*i;//+E.x0;
 				s=-1;
 			}
-			An=1-sqr((x-E.x0)/E.ax);
+			An=1-sqr((x/*-E.x0*/)/E.ax);
 			if (An>=0)
-				y=s*E.by*sqrt(An)+E.y0;
+				y=s*E.by*sqrt(An);//+E.y0;
 			else
-				y=E.y0;
+				y=0;//E.y0;
 			x1=x*cos(E.phi)-y*sin(E.phi);
 			y1=x*sin(E.phi)+y*cos(E.phi);
-            EnvelopeSeries->AddXY(x1,y1);
+			EnvelopeSeries->AddXY(x1+E.x0,y1+E.y0);
         }
     }
 
 	if (ChartCheck->Checked)
-		DrawSpace(j,R_PAR,AR_PAR);
+		DrawSpace(j,P1,P2);
 }
 //---------------------------------------------------------------------------
 void TResForm::DrawLongtMotion()
 {
     gType=LONGT_MOTION;
-    EnvelopeActive();
-
-    AnsiString s;
+	EnvelopeActive();
 	int j=PositionTrackBar->Position;
-	double z=100*Solver->GetStructureParameter(j,Z0_PAR);
-	double ksi=100*Solver->GetStructureParameter(j,KSI_PAR);
 
-    BeamChart->Title->Caption="Longitudinal Motion at position z="+s.FormatFloat("#0.000",z)+" cm";
-    BeamChart->BottomAxis->Title->Caption="z,cm";
-    BeamChart->LeftAxis->Title->Caption="r,mm";
-    BeamChart->LeftAxis->Automatic=VertFitCheck->Checked;
-    BeamChart->BottomAxis->Automatic=HorFitCheck->Checked;
-    BeamChart->LeftAxis->Minimum=-1000*Rmax;
+	double ksi=Solver->GetStructureParameter(j,KSI_PAR);
+	double zmin=100*Solver->GetStructureParameter(0,Z_PAR);
+	double zmax=100*Solver->GetStructureParameter(Npts-1,Z_PAR);
+
+	BeamChart->Title->Caption="Longitudinal Motion";// at position z="+s.FormatFloat("#0.000",z)+" cm";
+	BeamChart->BottomAxis->Title->Caption="z,cm";
+	BeamChart->LeftAxis->Title->Caption="r,mm";
+	ResetAxis(BeamChart->LeftAxis,-1000*Rmax,1000*Rmax,VertFitCheck->Checked);
+	ResetAxis(BeamChart->BottomAxis,zmin,zmax,HorFitCheck->Checked);
+
+
+   /*	BeamChart->LeftAxis->Automatic=VertFitCheck->Checked;
+	BeamChart->BottomAxis->Automatic=HorFitCheck->Checked;
+	BeamChart->LeftAxis->Minimum=-1000*Rmax;
 	BeamChart->LeftAxis->Maximum=1000*Rmax;
-	BeamChart->BottomAxis->Minimum=100*Solver->GetStructureParameter(0,Z0_PAR);
-	BeamChart->BottomAxis->Maximum=100*Solver->GetStructureParameter(Npts-1,Z0_PAR);
+	BeamChart->BottomAxis->Minimum=100*Solver->GetStructureParameter(0,Z_PAR);
+	BeamChart->BottomAxis->Maximum=100*Solver->GetStructureParameter(Npts-1,Z_PAR);*/
 
-    if (EnvelopeCheck->Checked){
+	if (EnvelopeCheck->Checked){
 		for (int i=0;i<Npts;i++){
 			double ksi0=Solver->GetStructureParameter(i,KSI_PAR);
-			double z0=Solver->GetStructureParameter(i,Z0_PAR);
+			double z0=Solver->GetStructureParameter(i,Z_PAR);
 			double phi=(ksi-ksi0)*2*pi;
-            if (phi>=DegreeToRad(MinPhase) && phi<=DegreeToRad(MaxPhase))
+			if (phi>=DegreeToRad(MinPhase) && phi<=DegreeToRad(MaxPhase))
 				EnvelopeSeries->AddXY(100*z0,250*Rmax*cos(phi));
-        }
-    }
+		}
+	}
+  /*			for (int i=0;i<Npts;i++){
+			double z0=100*Solver->Structure[i].ksi*Solver->Structure[i].lmb;
+			double phi=(z-z0)*2*pi/(100*Solver->Structure[i].lmb);
+			if (phi>=HellwegTypes::DegToRad(MinPhase) && phi<=HellwegTypes::DegToRad(MaxPhase))
+				EnvelopeSeries->AddXY(z0,250*Rmax*cos(phi));
+		}     */
 
 	if (ChartCheck->Checked){
-		DrawSpace(j,Z0_PAR,R_PAR);
+		DrawSpace(j,ZREL_PAR,R_PAR);
 		/*for (int i=0;i<Np;i++){
 			if (Solver->Beam[j]->Particle[i].lost==LIVE){
                 double r=1e3*Solver->Beam[j]->Particle[i].r*Solver->Structure[j].lmb;
@@ -704,49 +965,53 @@ void TResForm::DrawLongtMotion()
 	}
 }
 //---------------------------------------------------------------------------
+void TResForm::DrawRadialSpectrum()
+{
+	gType=R_SPEC;
+	SpectrumActive();
+	TBeamParameter P;
+	AnsiString Xtit;
+
+    int j=PositionTrackBar->Position;
+	SpectrumChart->Title->Caption="Radial Spectrum";// at position z="+s.FormatFloat("#0.000",z)+" cm";
+
+	switch (RadiusGroup->ItemIndex) {
+		case r_coord:{
+			P=R_PAR;
+			Xtit="r,mm";
+			break;
+		}
+		case x_coord:{
+			P=X_PAR;
+			Xtit="x,mm";
+			break;
+		}
+		case y_coord:{
+			P=Y_PAR;
+			Xtit="y,mm";
+			break;
+		}
+	}
+
+	SpectrumChart->BottomAxis->Title->Caption=Xtit;
+	SpectrumChart->LeftAxis->Title->Caption="N";
+	ResetAxis(SpectrumChart->BottomAxis,-1000*Rmax,1000*Rmax,HorFitCheck->Checked);
+
+	DrawSpectrum(j,P);
+}
+//---------------------------------------------------------------------------
 void TResForm::DrawPhaseSpectrum()
 {
     gType=F_SPEC;
     SpectrumActive();
 
-    AnsiString s;
     int j=PositionTrackBar->Position;
-	double z=100*Solver->GetStructureParameter(j,Z0_PAR);
+	SpectrumChart->Title->Caption="Phase Spectrum";// at position z="+s.FormatFloat("#0.000",z)+" cm";
+	SpectrumChart->BottomAxis->Title->Caption="phi,deg";
+	SpectrumChart->LeftAxis->Title->Caption="N";
+	ResetAxis(SpectrumChart->BottomAxis,MinPhase,MaxPhase,HorFitCheck->Checked);
 
-    SpectrumChart->Title->Caption="Phase Spectrum at position z="+s.FormatFloat("#0.000",z)+" cm";
-    SpectrumChart->BottomAxis->Title->Caption="phi,deg";
-    SpectrumChart->LeftAxis->Title->Caption="N";
-    SpectrumChart->LeftAxis->Automatic=VertFitCheck->Checked;
-    SpectrumChart->BottomAxis->Automatic=HorFitCheck->Checked;
-    SpectrumChart->LeftAxis->Minimum=0;
-    SpectrumChart->LeftAxis->Maximum=1;
-    SpectrumChart->BottomAxis->Minimum=MinPhase;
-    SpectrumChart->BottomAxis->Maximum=MaxPhase;
-   //   SpectrumChart->LeftAxis->Grid->Hide();
-
-    int Nmax=0;
-    double Ymax=0;
-    for (int i=0;i<Nb;i++){
-        if (FSpectrum[i].N>Nmax)
-            Nmax=FSpectrum[i].N;
-        if (FSpectrum[i].y>Ymax)
-            Ymax=FSpectrum[i].y;
-    }
-
-    if (EnvelopeCheck->Checked){
-        SpecEnvSeries->AddXY(MinPhase,0);
-        SpecEnvSeries->AddXY(FSpectrum[0].x-1e-3,0);
-        for (int i=0;i<Nb;i++)
-            SpecEnvSeries->AddXY(FSpectrum[i].x,FSpectrum[i].y/Ymax);
-        SpecEnvSeries->AddXY(FSpectrum[Nb-1].x+1e-3,0);
-        SpecEnvSeries->AddXY(MaxPhase,0);
-    }
-
-    if (ChartCheck->Checked){
-        for (int i=0;i<Nb;i++)
-            SpectrumSeries->AddXY(FSpectrum[i].x,1.0*FSpectrum[i].N/Nmax);
-    }
-    
+   	DrawSpectrum(j,PHI_PAR);
 }
 //---------------------------------------------------------------------------
 void TResForm::DrawEnergySpectrum()
@@ -754,27 +1019,33 @@ void TResForm::DrawEnergySpectrum()
     gType=W_SPEC;
     SpectrumActive();
 
-    AnsiString s;
+	AnsiString s;
     int j=PositionTrackBar->Position;
-	double z=100*Solver->GetStructureParameter(j,Z0_PAR);
+   //	double z=100*Solver->GetStructureParameter(j,Z0_PAR);
 
-    SpectrumChart->Title->Caption="Energy Spectrum at position z="+s.FormatFloat("#0.000",z)+" cm";
+	SpectrumChart->Title->Caption="Energy Spectrum";// at position z="+s.FormatFloat("#0.000",z)+" cm";
     SpectrumChart->BottomAxis->Title->Caption="W,MeV";
-    SpectrumChart->LeftAxis->Title->Caption="N";
-    SpectrumChart->LeftAxis->Automatic=VertFitCheck->Checked;
+	SpectrumChart->LeftAxis->Title->Caption="N";
+
+	//ResetAxis(BeamChart->LeftAxis,0,1,VertFitCheck->Checked);
+	ResetAxis(BeamChart->BottomAxis,0,Wmax,HorFitCheck->Checked);
+
+   /* SpectrumChart->LeftAxis->Automatic=VertFitCheck->Checked;
     SpectrumChart->BottomAxis->Automatic=HorFitCheck->Checked;
     SpectrumChart->LeftAxis->Minimum=0;
     SpectrumChart->LeftAxis->Maximum=1;
     SpectrumChart->BottomAxis->Minimum=0;
-    SpectrumChart->BottomAxis->Maximum=Wmax;
+	SpectrumChart->BottomAxis->Maximum=Wmax; */
   //    SpectrumChart->LeftAxis->Grid->Hide();
 
-    double X,dX;
+	DrawSpectrum(j,W_PAR);
+
+ /*   double X,dX;
 
     int Nmax=0;
     double Ymax=0;
     for (int i=0;i<Nb;i++){
-        if (WSpectrum[i].N>Nmax)
+		if (WSpectrum[i].N>Nmax)
             Nmax=WSpectrum[i].N;
         if (WSpectrum[i].y>Ymax)
             Ymax=WSpectrum[i].y;
@@ -786,107 +1057,133 @@ void TResForm::DrawEnergySpectrum()
         SpecEnvSeries->AddXY(0,0);
         SpecEnvSeries->AddXY(WSpectrum[0].x-1e-3,0);
         for (int i=0;i<Nb;i++)
-            SpecEnvSeries->AddXY(WSpectrum[i].x,WSpectrum[i].y/*/Ymax*/);
+			SpecEnvSeries->AddXY(WSpectrum[i].x,WSpectrum[i].y);
         SpecEnvSeries->AddXY(WSpectrum[Nb-1].x+1e-3,0);
         SpecEnvSeries->AddXY(Wmax,0);
     }
 
     if (ChartCheck->Checked){
         for (int i=0;i<Nb;i++)
-            SpectrumSeries->AddXY(WSpectrum[i].x,1.0*WSpectrum[i].N/*/Nmax*/);
+			SpectrumSeries->AddXY(WSpectrum[i].x,1.0*WSpectrum[i].N/);
 
-    }
+	}   */
     
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::EnergyButtonClick(TObject *Sender)
 {
-    PlayButton->Down=false;
-    DrawEnergy();
+	PlayButton->Down=false;
+	TrackBox->Enabled=false;
+	DrawEnergy();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::PhaseButtonClick(TObject *Sender)
 {
-    PlayButton->Down=false;
+	PlayButton->Down=false;
+	TrackBox->Enabled=false;
     DrawPhase();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::RadiusButtonClick(TObject *Sender)
 {
-    PlayButton->Down=false;
-    DrawRadius();
+	PlayButton->Down=false;
+	TrackBox->Enabled=false;
+	DrawRadius();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::FieldButtonClick(TObject *Sender)
 {
-    PlayButton->Down=false;
+	PlayButton->Down=false;
+	TrackBox->Enabled=false;
     DrawField();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::PowerButtonClick(TObject *Sender)
 {
-    PlayButton->Down=false;
+	PlayButton->Down=false;
+	TrackBox->Enabled=false;
     DrawPower();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::BettaButtonClick(TObject *Sender)
 {
-    PlayButton->Down=false;
-    DrawBetta();
+	PlayButton->Down=false;
+	TrackBox->Enabled=false;
+	DrawBetta();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::AvEnergyButtonClick(TObject *Sender)
 {
-    PlayButton->Down=false;
+	PlayButton->Down=false;
+	TrackBox->Enabled=false;
     DrawAvEnergy();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::AvRadiusButtonClick(TObject *Sender)
 {
-    PlayButton->Down=false;
-    DrawAvRadius();
+	PlayButton->Down=false;
+	TrackBox->Enabled=false;
+	DrawAvRadius();
+}
+//---------------------------------------------------------------------------
+void __fastcall TResForm::EmittanceButtonClick(TObject *Sender)
+{
+	PlayButton->Down=false;
+	TrackBox->Enabled=false;
+	DrawEmittance();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::TransSectionButtonClick(TObject *Sender)
 {
-    DrawTransSection();
+	TrackBox->Enabled=true;
+	DrawTransSection();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::LongtSectonButtonClick(TObject *Sender)
 {
-    DrawLongtSection();
+	TrackBox->Enabled=true;
+	DrawLongtSection();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::MotionButtonClick(TObject *Sender)
 {
-    DrawLongtMotion();
+	TrackBox->Enabled=true;
+	DrawLongtMotion();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::SlidingButtonClick(TObject *Sender)
 {
-    DrawLongtSection(true);
+	TrackBox->Enabled=true;
+	DrawLongtSection(true);
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::TransverseButtonClick(TObject *Sender)
 {
-    DrawTransSpace();
+	TrackBox->Enabled=true;
+	DrawTransSpace();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::LongtitudalButtonClick(TObject *Sender)
 {
-    DrawLongtSpace();
+    TrackBox->Enabled=true;
+	DrawLongtSpace();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::FSpectrumButtonClick(TObject *Sender)
 {
-    gType=F_SPEC;
-    PositionChanged();
+	//gType=F_SPEC;
+	DrawPhaseSpectrum();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::WSpectrumButtonClick(TObject *Sender)
 {
-    gType=W_SPEC;
-    PositionChanged();
+	//gType=W_SPEC;
+	DrawEnergySpectrum();
+}
+//---------------------------------------------------------------------------
+void __fastcall TResForm::RSpectrumButtonClick(TObject *Sender)
+{
+	DrawRadialSpectrum();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::LossButtonClick(TObject *Sender)
@@ -946,17 +1243,14 @@ void __fastcall TResForm::LossPieButtonClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void TResForm::ShowParameters()
 {
-    AnsiString s;
+	AnsiString s,Coord;
 	int j=PositionTrackBar->Position;
-	double z=100*Solver->GetStructureParameter(j,Z0_PAR);
+	double z=Solver->GetStructureParameter(j,Z_PAR);
+	bool FWHM=true;
+	TBeamParameter Par;
 
-	TGauss Gw=Solver->GetEnergyStats(j);
-	/*double Ws=0;
-	WSpectrum=Solver->GetEnergySpectrum(j,true,W,Ws);
-    if (W!=0)
-        dW=100*Ws/W;
-    else
-		dW=100; */
+	TGauss Gw=Solver->GetEnergyStats(j,FWHM);
+	TGauss Gphi=Solver->GetPhaseStats(j);
 
 	double Np=Solver->GetLivingNumber(j);
 	double N0=Solver->GetLivingNumber(0);
@@ -964,50 +1258,99 @@ void TResForm::ShowParameters()
 	double Wm=Solver->GetMaxEnergy(j);
 	double I=Solver->GetCurrent(j);
 
-    double kc=100*Np/N0;
-	double r=1e3*Solver->GetBeamRadius(j);
+	double kc=100*Np/N0;
 
-	TGauss Gphi=Solver->GetPhaseStats(j);
 	//FSpectrum=Solver->GetPhaseSpectrum(j,true,F,dF);
-	double f=1e-6*c/Solver->GetWavelength(j);
-	double Ra=100*Solver->GetStructureParameter(j,RA_PAR);
+	double f=Solver->GetFrequency(j);
+	double Ra=Solver->GetStructureParameter(j,RA_PAR);
 	//double Ra=1e3*Solver->Structure[j].Ra*Solver->Structure[j].lmb;
 	double P=Solver->GetStructureParameter(j,PBEAM_PAR);
 	double v=Solver->GetStructureParameter(j,SBETA_PAR);
-	double E=1e-6*Solver->GetStructureParameter(j,E0_PAR);
+	double E=Solver->GetStructureParameter(j,E0_PAR);
 
 	TTwiss T;
-	T=Solver->GetTwiss(j);
+	switch (RadiusGroup->ItemIndex){
+		case r_coord:{
+			Par=R_PAR;
+			Coord="R";
+			break;
+		}
+		case x_coord:{
+			Par=X_PAR;
+			Coord="X";
+			break;
+		}
+		case y_coord:{
+			Par=Y_PAR;
+			Coord="Y";
+			break;
+		}
+	}
 
-    Table->Cells[colValue][pZ]=s.FormatFloat("#0.000",z);
+	T=Solver->GetTwiss(j,Par);
+	double r=Solver->GetBeamRadius(j,Par);
+	double beta_gamma=MeVToVelocity(Gw.mean)*MeVToGamma(Gw.mean);
+
+	Table->Cells[colValue][pZ]=s.FormatFloat("#0.000",100*z);
 	Table->Cells[colValue][pWav]=s.FormatFloat("#0.000",Gw.mean);
 	Table->Cells[colValue][pdW]=s.FormatFloat("#0.00",Gw.sigma);
-    Table->Cells[colValue][pWm]=s.FormatFloat("#0.000",Wm);
+	Table->Cells[colValue][pWm]=s.FormatFloat("#0.000",Wm);
 	Table->Cells[colValue][pI]=s.FormatFloat("#0.00",1e3*I);
     Table->Cells[colValue][pkc]=s.FormatFloat("#0.00",kc);
-    Table->Cells[colValue][pr]=s.FormatFloat("#0.00",r);
-	Table->Cells[colValue][pFav]=s.FormatFloat("#0.00",Gphi.mean);
-	Table->Cells[colValue][pdF]=s.FormatFloat("#0.00",Gphi.sigma);
-    Table->Cells[colValue][pF]=s.FormatFloat("#0.0",f);
-    Table->Cells[colValue][pRa]=s.FormatFloat("#0.00",Ra);
-    Table->Cells[colValue][pPb]=s.FormatFloat("#0.0000",P);
-    Table->Cells[colValue][pvph]=s.FormatFloat("#0.000",v);
-    Table->Cells[colValue][pE]=s.FormatFloat("#0.00",E);
-	Table->Cells[colValue][peps]=s.FormatFloat("#0.0000",100*T.epsilon);
+	Table->Cells[colValue][pr]=s.FormatFloat("#0.00",1e3*r);
+	Table->Cells[colValue][pFav]=s.FormatFloat("#0.00",RadToDegree(Gphi.mean));
+	Table->Cells[colValue][pdF]=s.FormatFloat("#0.00",RadToDegree(Gphi.sigma));
+	Table->Cells[colValue][pF]=s.FormatFloat("#0.0",1e-6*f);
+	Table->Cells[colValue][pRa]=s.FormatFloat("#0.00",1e3*Ra);
+	Table->Cells[colValue][pPb]=s.FormatFloat("#0.0000",P);
+	Table->Cells[colValue][pvph]=s.FormatFloat("#0.000",v);
+	Table->Cells[colValue][pE]=s.FormatFloat("#0.00",1e-6*E);
+	Table->Cells[colValue][pcoord]=Coord;
+	Table->Cells[colValue][peps]=s.FormatFloat("#0.0000",1e6*T.epsilon);
+	Table->Cells[colValue][pepsn]=s.FormatFloat("#0.0000",1e6*beta_gamma*T.epsilon);
 	Table->Cells[colValue][palpha]=s.FormatFloat("#0.000",T.alpha);
-    Table->Cells[colValue][pbetta]=s.FormatFloat("#0.000",100*T.beta);
+	Table->Cells[colValue][pbetta]=s.FormatFloat("#0.000",100*T.beta);
 }
 //---------------------------------------------------------------------------
-void TResForm::DeleteTemp()
+/*void TResForm::DeleteTemp()
 {
     delete WSpectrum;
-    delete FSpectrum;
+	delete FSpectrum;
+}   */
+//---------------------------------------------------------------------------
+void TResForm::BinsChanged()
+{
+	AnsiString S;
+	int Pos=BinsTrack->Position;
+	double Nb=pow(10,1+Pos/6.0);
+	int Order=1+Pos/6;
+	double Nround=round(Nb/pow(10,Order))*pow(10,Order);
+	NumBins=Nround;
+	BinsLabel->Caption=S.FormatFloat("0",NumBins);
+    Solver->SetBarsNumber(NumBins);
+}
+//---------------------------------------------------------------------------
+void TResForm::AccuracyChanged()
+{
+	AnsiString S;
+	int Pos=AccuracyTrack->Position;
+	AccuracyLabel->Caption=S.FormatFloat("0%",100/(Pos+1));
+	SparceFactor=Pos;
+}
+//---------------------------------------------------------------------------
+void TResForm::KernelChanged()
+{
+	AnsiString S;
+	int Pos=KernelTrack->Position;
+	KernelLabel->Caption=S.FormatFloat("0%",Pos);
+	Kernel=1.0*Pos/100;
+	Hcore=sqrt(-2*ln(1-Kernel));
 }
 //---------------------------------------------------------------------------
 void TResForm::PositionChanged()
 {
 	int j=PositionTrackBar->Position;
-	double z=100*Solver->GetStructureParameter(j,Z0_PAR);
+	double z=100*Solver->GetStructureParameter(j,Z_PAR);
 	int N=Solver->GetStructureParameter(j,NUM_PAR);
     AnsiString s,Z;
 
@@ -1024,11 +1367,15 @@ void TResForm::PositionChanged()
         case LONGT_MOTION: DrawLongtMotion();break;
         case TRANS_SPACE: DrawTransSpace();break;
         case LONGT_SPACE: DrawLongtSpace();break;
-        case F_SPEC: DrawPhaseSpectrum();break;
-        case W_SPEC: DrawEnergySpectrum();break;
+		case F_SPEC: DrawPhaseSpectrum();break;
+		case W_SPEC: DrawEnergySpectrum();break;
+        case R_SPEC: DrawRadialSpectrum();break;
+		case R_TRACE: DrawRadius();break;
+		case PHI_TRACE: DrawPhase();break;
+		case W_TRACE: DrawEnergy();break;
     }
 
-    DeleteTemp();
+   // DeleteTemp();
 }
 //---------------------------------------------------------------------------
 void TResForm::IncrementPosition()
@@ -1196,6 +1543,38 @@ void TResForm::LoadData()
 void __fastcall TResForm::OpenFile1Click(TObject *Sender)
 {
     LoadData();
+}
+//---------------------------------------------------------------------------
+void __fastcall TResForm::RadiusGroupClick(TObject *Sender)
+{
+	PositionChanged();
+}
+//---------------------------------------------------------------------------
+void __fastcall TResForm::KernelTrackChange(TObject *Sender)
+{
+	KernelChanged();
+	PositionChanged();
+}
+//---------------------------------------------------------------------------
+void __fastcall TResForm::AccuracyTrackChange(TObject *Sender)
+{
+	AccuracyChanged();
+	PositionChanged();
+}
+//---------------------------------------------------------------------------
+void __fastcall TResForm::TransparentCheckClick(TObject *Sender)
+{
+	switch (gType) {
+		case R_TRACE: DrawRadius();break;
+		case PHI_TRACE: DrawPhase();break;
+		case W_TRACE: DrawEnergy();break;
+	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TResForm::BinsTrackChange(TObject *Sender)
+{
+	BinsChanged();
+	PositionChanged();
 }
 //---------------------------------------------------------------------------
 

@@ -148,7 +148,7 @@ public:
 
     TError CreateBeam();
     int CreateGeometry();
-    void SetBarsNumber(double Nbin);
+    void SetBarsNumber(int Nbin);
     void ChangeInputCurrent(double Ib);
 
     //GET INITIAL PARAMETERS

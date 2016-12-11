@@ -43,7 +43,7 @@ void TOptForm::DrawEnergy()
     for (int i=0;i<N;i++){
         TOptResult Structure;
         Structure=Optimizer.GetResult(i);
-        LineSeries->AddXY(Structure.x,Structure.Result.AverageEnergy);
+		LineSeries->AddXY(Structure.x,Structure.Result.Energy.mean);
         AddSeries->AddXY(Structure.x,Structure.Result.MaximumEnergy);
     }
 }
@@ -74,7 +74,7 @@ void TOptForm::DrawSpectrum()
     for (int i=0;i<N;i++){
         TOptResult Structure;
         Structure=Optimizer.GetResult(i);
-        LineSeries->AddXY(Structure.x,Structure.Result.EnergySpectrum);
+		LineSeries->AddXY(Structure.x,Structure.Result.Energy.sigma);
     }
 }
 //---------------------------------------------------------------------------
@@ -89,7 +89,7 @@ void TOptForm::DrawPhase()
     for (int i=0;i<N;i++){
         TOptResult Structure;
         Structure=Optimizer.GetResult(i);
-        LineSeries->AddXY(Structure.x,Structure.Result.PhaseLength);
+        LineSeries->AddXY(Structure.x,Structure.Result.Phase.FWHM);
     }
 }
 //---------------------------------------------------------------------------

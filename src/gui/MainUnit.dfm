@@ -31,6 +31,7 @@ object MainForm: TMainForm
       Width = 83
       Height = 25
       Caption = 'View Geometry'
+      Enabled = False
       TabOrder = 0
       OnClick = ViewGeometryButtonClick
     end
@@ -334,6 +335,7 @@ object MainForm: TMainForm
         Width = 75
         Height = 25
         Caption = 'Optimizer'
+        Enabled = False
         TabOrder = 0
         OnClick = OptButtonClick
       end

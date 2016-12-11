@@ -46,6 +46,7 @@ private:
 	TGauss GetStatistics(double *X,bool FWHM=false);
 	TSpectrum *GetSpectrum(TBeamParameter P);
 	TSpectrum *GetSpectrum(double *X);
+	TSpectrumBar *GetSpectrumBar(TBeamParameter P,bool Smooth=false);
 	TSpectrumBar *GetSpectrumBar(double *X,bool Smooth=false);
 	double GetDeviation(TBeamParameter P,TDeviation D=D_RMS);
 	double GetMean(TBeamParameter P);
@@ -65,8 +66,9 @@ public:
 	double lmb,h,Cmag;
     bool Reverse;
 	int Np;
+    
     void SetKernel(double Ker);
-
+    void SetBarsNumber(int N);
 
 	// BEAM CREATION
 	bool BeamFromCST(TBeamInput *BeamPar);
@@ -78,13 +80,11 @@ public:
 	void GeneratePhase(TGauss G);
 	void GenerateAzimuth(TGauss G);
 	bool ImportEnergy(TBeamInput *BeamPar);
-
 	void SetCurrent(double I);
 	void SetInputCurrent(double I);
-	void SetBarsNumber(int N);
 
 		//GET OUTPUT PARAMETERS
-   	TTwiss GetTwiss(TBeamParameter P=R_PAR,bool Norm=false);
+   	TTwiss GetTwiss(TBeamParameter P=R_PAR);
 	TTwiss GetTwissDirect(TBeamParameter P=R_PAR);
 	TEllipse GetEllipse(TBeamParameter P=R_PAR);
 	TEllipse GetEllipseDirect(TBeamParameter P=R_PAR);
@@ -99,9 +99,6 @@ public:
 
 	double GetRadius(TBeamParameter P=R_PAR,TDeviation D=D_RMS);
 	double GetDivergence(TBeamParameter P=AR_PAR,TDeviation D=D_RMS);
-
-	TSpectrumBar *GetSpectrumBar(TBeamParameter P,bool Smooth=false);
-	//DELETE
 	TSpectrumBar *GetRSpectrum(bool Smooth);
 	TSpectrumBar *GetXSpectrum(bool Smooth);
 	TSpectrumBar *GetYSpectrum(bool Smooth);
@@ -115,6 +112,7 @@ public:
 	double GetMaxDivergence();
 	double GetCurrent();
 	double GetInputCurrent();
+	double GetRFPower();
 
     double iGetAverageEnergy(TIntParameters& Par,TIntegration *I);
     double iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices, bool SpectrumOutput=false);

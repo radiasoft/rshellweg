@@ -34,12 +34,14 @@
 #define xpx_chart 1
 #define ypy_chart 2
 #define xy_chart 3
-#define thpth_chart 4
-#define rth_chart 5
-#define portrait_chart 6
-#define section_chart 7
-#define energy_chart 8
-#define phase_chart 9
+#define rth_chart 4
+#define thpth_chart 5
+#define wphi_chart 6
+#define w_chart 7
+#define phi_chart 8
+#define r_chart 9
+#define x_chart 10
+#define y_chart 11
 
 //---------------------------------------------------------------------------
 class TGeomForm : public TForm
@@ -63,21 +65,24 @@ __published:    // IDE-managed Components
     TRadioGroup *ChartGroup;
     TLineSeries *Series1;
     TRadioGroup *BeamGroup;
-    TPointSeries *BeamSeries1;
-    TCheckBox *EnvelopeCB;
-    TCheckBox *BeamBox;
-    TLineSeries *EnvelopeSeries1;
-    TGroupBox *ParametersGroup;
-    TBarSeries *BarSeries1;
-    TLabel *aParLabel;
-    TLabel *bParLabel;
-    TLabel *eParLabel;
-    TLabel *WavParLabel;
-    TLabel *dWParLabel;
-    TLabel *FavParLabel;
-    TLabel *dFParLabel;
-    TLabel *rParLabel;
-    void __fastcall FormShow(TObject *Sender);
+	TPointSeries *BeamSeries1;
+	TPointSeries *BeamSeries2;
+	TCheckBox *EnvelopeCB;
+	TCheckBox *BeamBox;
+	TLineSeries *EnvelopeSeries1;
+	TGroupBox *ParametersGroup;
+	TBarSeries *BarSeries1;
+	TLabel *aParLabel;
+	TLabel *bParLabel;
+	TLabel *eParLabel;
+	TLabel *WavParLabel;
+	TLabel *dWParLabel;
+	TLabel *FavParLabel;
+	TLabel *dFParLabel;
+	TLabel *rParLabel;
+	TLabel *enParLabel;
+	TLineSeries *EnvelopeSeries2;
+	void __fastcall FormShow(TObject *Sender);
     void __fastcall Exit1Click(TObject *Sender);
     void __fastcall OpenButton1Click(TObject *Sender);
     void __fastcall FormCreate(TObject *Sender);
@@ -85,12 +90,18 @@ __published:    // IDE-managed Components
     void __fastcall Compare1Click(TObject *Sender);
     void __fastcall ChartGroupClick(TObject *Sender);
     void __fastcall BeamGroupClick(TObject *Sender);
+	void __fastcall BeamBoxClick(TObject *Sender);
+	void __fastcall EnvelopeCBClick(TObject *Sender);
 private:    // User declarations
-    AnsiString Path;
+	AnsiString Path;
     TBeamSolver *CompData1;
     bool C1;
     int Np_max;
-    double h;
+	double h;
+	void Draw();
+	void Rescale();
+	bool IsSpace(int index);
+    bool IsSpectrum(int index);
     void DrawChart(TLineSeries *Series0,TBeamSolver *Solver,TColor Col1, TColor Col2);
     void DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1);
 	void DrawBeamEnvelope(TLineSeries *Series0,TBeamSolver *Solver,TColor Col1);

@@ -2835,7 +2835,7 @@ double TBeamSolver::GetStructureParameter(int Nknot, TStructureParameter P)
 			x=Structure[Nknot].A*We0/Structure[Nknot].lmb;
 			break;
 		}
-		case (EREAL_PAR):{
+		case (ER_PAR):{
 			double P=Structure[Nknot].P>0?Structure[Nknot].P:0;
 			x=sqrt(2*Structure[Nknot].Rp)*sqrt(P)/Structure[Nknot].lmb;
 			break;
@@ -2886,32 +2886,32 @@ double TBeamSolver::GetStructureParameter(int Nknot, TStructureParameter P)
 			break;
 		}
 		case (ER_PAR):{
-			T=Beam[Nknot]->GetTwiss(R_PAR,false);
+			T=Beam[Nknot]->GetTwiss(R_PAR);
 			x=T.epsilon;
 			break;
 		}
 		case (EX_PAR):{
-			T=Beam[Nknot]->GetTwiss(X_PAR,false);
+			T=Beam[Nknot]->GetTwiss(X_PAR);
 			x=T.epsilon;
 			break;
 		}
 		case (EY_PAR):{
-			T=Beam[Nknot]->GetTwiss(Y_PAR,false);
+			T=Beam[Nknot]->GetTwiss(Y_PAR);
 			x=T.epsilon;
 			break;
 		}
-		case (ENR_PAR):{
-			T=Beam[Nknot]->GetTwiss(R_PAR,true);
+		case (ER_PAR):{
+			T=Beam[Nknot]->GetTwiss(R_PAR);
 			x=T.epsilon;
 			break;
 		}
-		case (ENX_PAR):{
-			T=Beam[Nknot]->GetTwiss(X_PAR,true);
+		case (EX_PAR):{
+			T=Beam[Nknot]->GetTwiss(X_PAR);
 			x=T.epsilon;
 			break;
 		}
-		case (ENY_PAR):{
-			T=Beam[Nknot]->GetTwiss(Y_PAR,true);
+		case (EY_PAR):{
+			T=Beam[Nknot]->GetTwiss(Y_PAR);
 			x=T.epsilon;
 			break;
 		}
