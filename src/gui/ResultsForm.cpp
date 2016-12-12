@@ -39,7 +39,11 @@ void __fastcall TResForm::FormShow(TObject *Sender)
 {
     Npts=Solver->GetNumberOfPoints();
     Np=Solver->GetNumberOfParticles();
-    //Nb=Solver->GetNumberOfBars();
+	//Nb=Solver->GetNumberOfBars();
+
+	KernelChanged();
+	AccuracyChanged();
+	BinsChanged();
 
     PositionTrackBar->Max=Npts-1;
     PositionTrackBar->Position=PositionTrackBar->Max;
@@ -48,9 +52,7 @@ void __fastcall TResForm::FormShow(TObject *Sender)
 	GetTransBoundaries();
 	CreateTable();
 	//DrawField();
-	KernelChanged();
-	AccuracyChanged();
-	BinsChanged();
+	
 
   /*    for (int i=0;i<Np;i++){
         Series1->AddNullXY(0,0);
@@ -806,8 +808,8 @@ void TResForm::DrawTransSection()
 
 	double x=0,y=0,k=0,An=0,s=0;
     if (EnvelopeCheck->Checked){
-		double h=1;//Solver->GetKernel();
-		double R=1000*Solver->GetStructureParameter(j,RB_PAR);
+		//double h=1;//Solver->GetKernel();
+		double R=1000*Hcore*Solver->GetStructureParameter(j,RB_PAR);
         for (int i=0;i<PointsNumber;i++){
 			k=2.0*R/(PointsNumber/2-1);
             if (i<PointsNumber/2){
@@ -1342,8 +1344,15 @@ void TResForm::KernelChanged()
 {
 	AnsiString S;
 	int Pos=KernelTrack->Position;
-	KernelLabel->Caption=S.FormatFloat("0%",Pos);
-	Kernel=1.0*Pos/100;
+	Kernel=5*Pos;
+	if (Kernel==0)
+		Kernel=1;
+	if (Kernel==100)
+		Kernel=99;
+
+	KernelLabel->Caption=S.FormatFloat("0%",Kernel);
+
+	Kernel/=100.0;
 	Hcore=sqrt(-2*ln(1-Kernel));
 }
 //---------------------------------------------------------------------------

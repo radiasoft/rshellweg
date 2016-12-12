@@ -204,9 +204,9 @@ double TSpectrum::GetWidth()
     if (!EnvelopeReady)
         MakeEnvelope();
 
-    if (!WidthReady){
-        double *X0,*Y0,Ymax=0;
-        double x1=0,x2=0,y0=SpecLevel;
+	if (!WidthReady){
+		double *X0=NULL,*Y0=NULL,Ymax=0;
+		double x1=0,x2=0,y0=SpecLevel;
 
         X0=new double [Nbars+2];
         Y0=new double [Nbars+2];
@@ -266,7 +266,10 @@ double TSpectrum::GetWidth()
             }
         }
 
-        dX=mod(x2-x1);
+		dX=mod(x2-x1);
+
+		delete[] X0;
+		delete[] Y0;
 
         WidthReady=true;
     }

@@ -472,13 +472,20 @@ void TGeomForm::DrawBarChart(TBarSeries *Series0,TBeamSolver *Solver,TColor Col1
 			case (r_chart):{}
 			case (x_chart):{}
 			case (y_chart):{
-				x=1000*x*Solver->GetInputWavelength();
+				x=1000*x;
 				break;
 			}
 		}
 		Series0->AddXY(x,n);
-		if (Smooth)
+		if (Smooth){
+			if (i==0) {
+				EnvelopeSeries1->AddXY(x-1e-3,0,clBlue);
+			}
 			EnvelopeSeries1->AddXY(x,y,clBlue);
+			if (i==Nb-1) {
+				EnvelopeSeries1->AddXY(x+1e-3,0,clBlue);
+			}
+		}
 	}
 
 	if (Spectrum!=NULL)

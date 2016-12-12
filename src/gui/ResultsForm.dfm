@@ -953,9 +953,8 @@ object ResForm: TResForm
         Width = 212
         Height = 28
         Align = alTop
-        Max = 99
-        Min = 1
-        Position = 90
+        Max = 20
+        Position = 18
         TabOrder = 0
         OnChange = KernelTrackChange
       end

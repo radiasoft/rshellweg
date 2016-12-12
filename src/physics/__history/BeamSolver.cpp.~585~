@@ -20,7 +20,10 @@ __fastcall TBeamSolver::TBeamSolver()
 //---------------------------------------------------------------------------
 __fastcall TBeamSolver::~TBeamSolver()
 {
-    delete[] StructPar.Cells;
+	delete[] StructPar.Cells;
+	for (inr i = 0; i < StructPar.NSections; i++)
+		delete[] StructPar.Section;
+
     delete[] Structure;
 
     for (int i=0;i<Npoints;i++)
@@ -51,7 +54,7 @@ void TBeamSolver::Initialize()
     SplineType=LSPLINE;
     Nstat=100;
     Ngraph=500;
-	//Nbars=100;
+	//Nbars=100; //default
     Nav=10;
     Smooth=0.95;
     Npoints=1;
@@ -124,7 +127,7 @@ void TBeamSolver::SaveToFile(AnsiString& Fname)
 
     fwrite(&Npoints,sizeof(int),1,F);
 	fwrite(&BeamPar.NParticles,sizeof(int),1,F);
-    fwrite(&Nbars,sizeof(int),1,F);
+	//fwrite(&Nbars,sizeof(int),1,F);
 
 	fwrite(Structure,sizeof(TStructure),Npoints,F);
 
@@ -161,7 +164,7 @@ bool TBeamSolver::LoadFromFile(AnsiString& Fname)
     try{
         fread(&Npoints,sizeof(int),1,F);
 		fread(&BeamPar.NParticles,sizeof(int),1,F);
-        fread(&Nbars,sizeof(int),1,F);
+	  //  fread(&Nbars,sizeof(int),1,F);
 
         Structure=new TStructure[Npoints];
         Beam=new TBeam*[Npoints];
@@ -238,9 +241,9 @@ void TBeamSolver::LoadIniConstants()
 	int Nstat=round(100.0/stat);
 	AngErr=UserIni->ReadFloat("NUMERIC","Angle Error",AngErr);
     Smooth=UserIni->ReadFloat("NUMERIC","Smoothing",Smooth);
-    Ngraph=UserIni->ReadInteger("OTHER","Chart Points",Nbars);
-    Nbars=UserIni->ReadInteger("NUMERIC","Hystogram Bars",Ngraph);
-    Nav=UserIni->ReadInteger("NUMERIC","Averaging Points",Nav);
+	Ngraph=UserIni->ReadInteger("OTHER","Chart Points",Ngraph);
+	//Nbars=UserIni->ReadInteger("NUMERIC","Hystogram Bars",Ngraph);
+	Nav=UserIni->ReadInteger("NUMERIC","Averaging Points",Nav);
 }
 //---------------------------------------------------------------------------
 int TBeamSolver::GetNumberOfPoints()
@@ -268,10 +271,10 @@ int TBeamSolver::GetNumberOfChartPoints()
     return Ngraph;
 }
 //---------------------------------------------------------------------------
-int TBeamSolver::GetNumberOfBars()
+/*int TBeamSolver::GetNumberOfBars()
 {
-    return Nbars;
-}
+	return Nbars;
+}   */
 //---------------------------------------------------------------------------
 int TBeamSolver::GetNumberOfCells()
 {
@@ -2022,7 +2025,7 @@ double *TBeamSolver::LinearInterpolation(double *x,double *X,double *Y,int Nbase
 {
     TSpline *Spline;
     double *y;
-    y=new double[Nint];
+	//y=new double[Nint];
 
     Spline=new TSpline;
     Spline->MakeLinearSpline(X,Y,Nbase);
@@ -2394,8 +2397,8 @@ TError TBeamSolver::CreateBeam()
     Beam=new TBeam*[Npoints];
 	for (int i=0;i<Npoints;i++){
 		Beam[i]=new TBeam(BeamPar.NParticles);
-        Beam[i]->SetBarsNumber(Nbars);
-        Beam[i]->SetKernel(Kernel);
+      //  Beam[i]->SetBarsNumber(Nbars);
+		//Beam[i]->SetKernel(Kernel);
 		Beam[i]->lmb=Structure[i].lmb;
 		Beam[i]->SetInputCurrent(BeamPar.Current);
 		Beam[i]->Reverse=StructPar.Reverse;
@@ -2812,6 +2815,7 @@ double *TBeamSolver::GetBeamParameters(int Nknot,TBeamParameter P)
 double TBeamSolver::GetStructureParameter(int Nknot, TStructureParameter P)
 {
 	double x=0;
+	TTwiss T;
 
 	switch (P) {
 		case (KSI_PAR):{
@@ -2834,7 +2838,7 @@ double TBeamSolver::GetStructureParameter(int Nknot, TStructureParameter P)
 			x=Structure[Nknot].A*We0/Structure[Nknot].lmb;
 			break;
 		}
-		case (ER_PAR):{
+		case (EREAL_PAR):{
 			double P=Structure[Nknot].P>0?Structure[Nknot].P:0;
 			x=sqrt(2*Structure[Nknot].Rp)*sqrt(P)/Structure[Nknot].lmb;
 			break;
@@ -2884,6 +2888,36 @@ double TBeamSolver::GetStructureParameter(int Nknot, TStructureParameter P)
 			x=Structure[Nknot].CellNumber;
 			break;
 		}
+		case (ER_PAR):{
+			T=Beam[Nknot]->GetTwiss(R_PAR,false);
+			x=T.epsilon;
+			break;
+		}
+		case (EX_PAR):{
+			T=Beam[Nknot]->GetTwiss(X_PAR,false);
+			x=T.epsilon;
+			break;
+		}
+		case (EY_PAR):{
+			T=Beam[Nknot]->GetTwiss(Y_PAR,false);
+			x=T.epsilon;
+			break;
+		}
+		case (ENR_PAR):{
+			T=Beam[Nknot]->GetTwiss(R_PAR,true);
+			x=T.epsilon;
+			break;
+		}
+		case (ENX_PAR):{
+			T=Beam[Nknot]->GetTwiss(X_PAR,true);
+			x=T.epsilon;
+			break;
+		}
+		case (ENY_PAR):{
+			T=Beam[Nknot]->GetTwiss(Y_PAR,true);
+			x=T.epsilon;
+			break;
+		}
 		/*case (LMB_PAR):{
             x=Structure[Nknot].lmb;
 			break;
@@ -2905,10 +2939,10 @@ double *TBeamSolver::GetStructureParameters(TStructureParameter P)
 	return X;
 }
 //---------------------------------------------------------------------------
-double TBeamSolver::GetKernel()
+/*double TBeamSolver::GetKernel()
 {
 	return Beam[0]->h;
-}
+} */
 
 //---------------------------------------------------------------------------
 void TBeamSolver::Abort()

@@ -20,7 +20,10 @@ __fastcall TBeamSolver::TBeamSolver()
 //---------------------------------------------------------------------------
 __fastcall TBeamSolver::~TBeamSolver()
 {
-    delete[] StructPar.Cells;
+	delete[] StructPar.Cells;
+	for (int i = 0; i < StructPar.NSections; i++)
+		delete[] StructPar.Sections;
+
     delete[] Structure;
 
     for (int i=0;i<Npoints;i++)
@@ -2022,7 +2025,7 @@ double *TBeamSolver::LinearInterpolation(double *x,double *X,double *Y,int Nbase
 {
     TSpline *Spline;
     double *y;
-    y=new double[Nint];
+	//y=new double[Nint];
 
     Spline=new TSpline;
     Spline->MakeLinearSpline(X,Y,Nbase);

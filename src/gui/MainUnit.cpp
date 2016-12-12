@@ -225,7 +225,7 @@ void __fastcall TMainForm::FormCreate(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormDestroy(TObject *Sender)
 {
-    delete Solver;  
+//    delete Solver;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::SelectFileButtonClick(TObject *Sender)

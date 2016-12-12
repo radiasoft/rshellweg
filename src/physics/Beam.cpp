@@ -1117,7 +1117,7 @@ TGauss TBeam::GetStatistics(double *X,bool FWHM)
 	G.sigma=Spectrum->GetSquareDeviation();
 
 	delete Spectrum;
-	delete[] X;
+	//delete[] X;
 
 	return G;
 }
@@ -1168,7 +1168,7 @@ TSpectrumBar *TBeam::GetSpectrumBar(double *X,bool Smooth)
 	}
 
 	delete Spectrum;
-	delete[] X;
+	//delete[] X;
 
 	return SpectrumArray;
 }
@@ -1330,7 +1330,7 @@ double TBeam::GetMaxValue(TBeamParameter P)
 //---------------------------------------------------------------------------
 double TBeam::GetRadius(TBeamParameter P,TDeviation D)
 {
-	double Rb=2*GetDeviation(P,D);
+	double Rb=GetDeviation(P,D);
 
 	return Rb;
 }
@@ -1437,9 +1437,9 @@ double TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices, b
     double L=1,Fmin=1e32,Fmax=-1e32;
     int j=0;
 
-    double *F,Fav=0,dF=0;
-	double phi=0;
-	double *R;
+	/*double F=NULL;*/
+	double phi=0,Fav=0,dF=0;;
+	/*double R=NULL;*/
 	double r=0;
 	double FavPhase=0,dPhase=0;
     TSpectrumBar *SpectrumPhase;
@@ -1453,14 +1453,14 @@ double TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices, b
 
     CountLiving();
 
-    F=new double[Nliv];
-    R=new double[Nliv];
+  /*  F=new double[Nliv];
+    R=new double[Nliv];   */
     for (int i=0;i<Np;i++){
         if (Particle[i].lost==LIVE){
             phi=Particle[i].phi+I[i].phi*Par.h;
 			r=Particle[i].r+I[i].r*Par.h;
-            F[j]=phi;
-			R[j]=r;
+		 //   F[j]=phi;
+		  //	R[j]=r;
             j++; 
 //            double phi=Particle[i].phi+I[i].phi*Par.h;
             if (phi>Fmax)
