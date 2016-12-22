@@ -2441,15 +2441,12 @@ TError TBeamSolver::CreateBeam()
 		//Beam[i]->Cmag=c*Cmag/(Structure[i].lmb*We0); //Cmag = c*B*lmb/Wo * (1/lmb^2 from r normalization)
 		for (int j=0;j<BeamPar.NParticles;j++){
 			Beam[i]->Particle[j].lost=LIVE;
-			Beam[i]->Particle[j].beta0=0;
-			Beam[i]->Particle[j].beta.z=0;
-			Beam[i]->Particle[j].beta.r=0;
-			Beam[i]->Particle[j].beta.th=0;
-			//Beam[i]->Particle[j].Br=0;
+			Beam[i]->Particle[j].beta=0;
+			Beam[i]->Particle[j].Br=0;
 			Beam[i]->Particle[j].phi=0;
-		   //	Beam[i]->Particle[j].Bth=0;
+			Beam[i]->Particle[j].Bth=0;
 			Beam[i]->Particle[j].r=0;
-			//Beam[i]->Particle[j].Cmag=0;
+			Beam[i]->Particle[j].Cmag=0;
 			Beam[i]->Particle[j].Th=0;
 		}
 	}
@@ -3064,10 +3061,15 @@ void TBeamSolver::Integrate(int Si, int Sj)
 	double Aqz=0,Aqr=0;
 
 	Par[Sj].Eq=new TField[BeamPar.NParticles];
+ /*	Par[Sj].Aqz=new double[BeamPar.NParticles];
+	Par[Sj].Aqr=new double[BeamPar.NParticles];  */
+
 	for (int i=0;i<BeamPar.NParticles;i++){
 		Par[Sj].Eq[i].z=0;
 		Par[Sj].Eq[i].r=0;
 		Par[Sj].Eq[i].th=0;
+	   /*	Par[Sj].Aqz[i]=0;
+		Par[Sj].Aqr[i]=0;  */
 		if (Particle[i].lost==LIVE){
 			phi=Particle[i].phi+K[Sj][i].phi*Par[Sj].h;
 			r=(Particle[i].r+K[Sj][i].r*Par[Sj].h)*lmb;
@@ -3081,6 +3083,11 @@ void TBeamSolver::Integrate(int Si, int Sj)
 						Par[Sj].Eq[i].z=(-2)*2*kFc*(3*Icur*lmb)*(Mr*z/V);                         // Es; corrected (YuE) expression
 						Par[Sj].Eq[i].z*=(lmb/We0);  //A
 
+					   /*	Par[Sj].Aqz[i]=(-2)*2*kFc*(3*Icur*lmb)*(Mr*z/V);                         // Es; corrected (YuE) expression
+						Par[Sj].Aqz[i]*=(lmb/We0);  //A   */
+
+						//Par[Sj].Aqr=sqr(lmb)*(1-Mr)*r*lmb*(Icur/Ia)/(sqr(gamma)*sqr(Rb)*Lb);   // old expression
+						//Par[Sj].Aqr[i]=kFc*(3*Icur*lmb/sqr(gamma))*(0.5*(1-Mr)*r/V);           // E; original Hellweg expression
 						Par[Sj].Eq[i].r=2*kFc*(3*Icur*lmb)/gamma*(0.5*(1+Mr)*r/V);                // E; corrected (YuE) expression
 						Par[Sj].Eq[i].r*=(lmb/We0);  //A
 
@@ -3097,11 +3104,10 @@ void TBeamSolver::Integrate(int Si, int Sj)
 						break;
 					}
 					case SPCH_GW: {
-						Par[Sj].Eq[i].z=kFc*Icur*lmb*GaussIntegration(r,z,Rb,Lb,3);  // E;  (YuE) expression
-						Par[Sj].Eq[i].z*=(lmb/We0);                     // A
-						Par[Sj].Eq[i].r=kFc*Icur*lmb*GaussIntegration(r,z,Rb,Lb,1);  // E;  (YuE) expression
-						Par[Sj].Eq[i].r*=(lmb/We0);                     // A
-				  // A
+						Par[Sj].Aqz[i]=kFc*Icur*lmb*GaussIntegration(r,z,Rb,Lb,3);  // E;  (YuE) expression
+						Par[Sj].Aqz[i]*=(lmb/We0);                     // A
+						Par[Sj].Aqr[i]=kFc*Icur*lmb*GaussIntegration(r,z,Rb,Lb,1);  // E;  (YuE) expression
+						Par[Sj].Aqr[i]*=(lmb/We0);                     // A
 						/*FILE *Fout;
 						if ((i == 0) || (i == 999)) {
 							Fout=fopen("yeDebug_GW.log","a");
@@ -3119,8 +3125,8 @@ void TBeamSolver::Integrate(int Si, int Sj)
 	}
 
 	Beam[Si]->Integrate(Par[Sj],K,Sj);
-	delete[] Par[Sj].Eq;
-	//delete[] Par[Sj].Aqr;
+	delete[] Par[Sj].Aqz;
+	delete[] Par[Sj].Aqr;
 }
 //---------------------------------------------------------------------------
  double TBeamSolver::GaussIntegration(double r,double z,double Rb,double Lb,int component)
@@ -3235,7 +3241,7 @@ void TBeamSolver::DumpFile(ofstream &fo,int Si,int j)
 			fo<<s.c_str();
 		}
 		if (Structure[Si].DumpParameters.Energy){
-			s=s.FormatFloat("#0.00\t\t\t",VelocityToMeV(Beam[Si]->Particle[j].beta0));
+			s=s.FormatFloat("#0.00\t\t\t",VelocityToMeV(Beam[Si]->Particle[j].beta));
 			fo<<s.c_str();
 		}
 		if (Structure[Si].DumpParameters.Radius){
@@ -3247,7 +3253,7 @@ void TBeamSolver::DumpFile(ofstream &fo,int Si,int j)
 			fo<<s.c_str();
 		}
 		if (Structure[Si].DumpParameters.Vx){
-			s=s.FormatFloat("#0.00\t\t",Beam[Si]->Particle[j].beta.r*c);
+			s=s.FormatFloat("#0.00\t\t",Beam[Si]->Particle[j].Br*c);
 			fo<<s.c_str();
 		}
 		 /*	s=s.FormatFloat("#0.00\t\t",Beam[i]->Particle[j].Bth*c);
@@ -3379,15 +3385,15 @@ void TBeamSolver::Step(int Si)
     Par[0].h=0;
     Par[1].h=dh/2;
     Par[2].h=Par[1].h;
-	Par[3].h=dh;
+    Par[3].h=dh;
 
-	double db=Structure[Si+1].betta-Structure[Si].betta;
+    double db=Structure[Si+1].betta-Structure[Si].betta;
     Par[0].bw=Structure[Si].betta;
     Par[1].bw=Structure[Si].betta+db/2;
     Par[2].bw=Par[1].bw;
     Par[3].bw=Structure[Si+1].betta;
 
-	double dw=Structure[Si+1].alpha-Structure[Si].alpha;
+    double dw=Structure[Si+1].alpha-Structure[Si].alpha;
     Par[0].w=Structure[Si].alpha*lmb;
     Par[1].w=(Structure[Si].alpha+dw/2)*lmb;
     Par[2].w=Par[1].w;
@@ -3466,22 +3472,18 @@ void TBeamSolver::Step(int Si)
     }
 
 	double dBzx=Structure[Si+1].Hext.z-Structure[Si].Hext.z;
+	double d2Bzx=0;
 	Par[0].Hext.z=Structure[Si].Hext.z;
 	Par[1].Hext.z=Structure[Si].Hext.z+dBzx/2;
 	Par[2].Hext.z=Par[1].Hext.z;
 	Par[3].Hext.z=Structure[Si+1].Hext.z;
 
 	double dBrx=Structure[Si+1].Hext.r-Structure[Si].Hext.r;
+	double d2Brx=0;
 	Par[0].Hext.r=Structure[Si].Hext.r;
 	Par[1].Hext.r=Structure[Si].Hext.r+dBrx/2;
 	Par[2].Hext.r=Par[1].Hext.r;
 	Par[3].Hext.r=Structure[Si+1].Hext.r;
-
-	double dBthx=Structure[Si+1].Hext.th-Structure[Si].Hext.th;
-	Par[0].Hext.th=Structure[Si].Hext.th;
-	Par[1].Hext.th=Structure[Si].Hext.th+dBthx/2;
-	Par[2].Hext.th=Par[1].Hext.th;
-	Par[3].Hext.th=Structure[Si+1].Hext.th;
 
   /*	if (Si==0)
 		Par[0].dH=dBzx/dh;

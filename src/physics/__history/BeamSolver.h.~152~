@@ -51,6 +51,7 @@ private:
 	int Mode_N,Mode_M,MaxCells,Nmesh,Npoints;//,Ncells,Nlim;
 	double Rb,Lb,phi0,dphi,w,betta0; //create new structure TStructure
 
+	void DefineBr();
 	int GetSolenoidPoints();
 	bool ReadSolenoid(int Nz,double *Z,double* B);
 
@@ -172,7 +173,7 @@ public:
 	TTwiss GetInputTwiss(TBeamParameter P);
 	double GetInputWavelength();
 
-	//bool CheckMagnetization();
+	bool CheckMagnetization();
 	bool CheckReverse();
 	bool CheckDrift(int Nknot);
 	TSpaceCharge GetSpaceChargeInfo();

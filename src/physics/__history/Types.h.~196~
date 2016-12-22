@@ -142,7 +142,7 @@ struct TParticle
 	double Bz;    */
 	double phi;
 	double z;
-	double beta0; //full beta. distinguish beta from bz!
+	double beta0; //distinguish beta from bz!
 	TLoss lost;
 };
 

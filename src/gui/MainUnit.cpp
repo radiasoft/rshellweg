@@ -119,8 +119,8 @@ void TMainForm::DisplayInputData()
 	switch (Solenoid.ImportType) {
 		case ANALYTIC_0D:{
 			Label_B0->Caption="Mangetic Field = "+s.FormatFloat("#0.00",1e4*Solenoid.BField)+" Gs";
-			Label_Length->Caption="Effective Length = "+s.FormatFloat("#0.00",100*Solenoid.StartPos)+" cm";
-			Label_Position->Caption="Start Position = "+s.FormatFloat("#0.00",100*Solenoid.Length)+" cm";
+			Label_Length->Caption="Effective Length = "+s.FormatFloat("#0.00",100*Solenoid.Length)+" cm";
+			Label_Position->Caption="Start Position = "+s.FormatFloat("#0.00",100*Solenoid.StartPos)+" cm";
 			break;
 		}
 		case IMPORT_1D:{
@@ -188,8 +188,8 @@ void TMainForm::DisplayInputData()
 		};
 	}
 
-	if (Solver->CheckMagnetization())
-		L+="MAGNETIZED ";
+  /*	if (Solver->CheckMagnetization())
+		L+="MAGNETIZED ";  */
 	if (Solver->CheckReverse())
 		L+="REVERSE ";
 

@@ -98,13 +98,11 @@ private:
     void GetDimensions(TCell& Cell);
 
 	//INTEGRATION
-	void DumpHeader(ofstream &fo,int Si,int jmin,int jmax);
-	void DumpFile(ofstream &fo,int Si,int j);
-	void DumpCST(TBeamType T,ofstream &fo,int Si,int j);
-	void DumpBeam(int Si,TBeamType T=NOBEAM);
-	void Step(int Si);
+	void ExportBeam(int Si,TBeamType T=NOBEAM);
+	void DumpBeam(int Si);
+    void Step(int Si);
     void Integrate(int Si, int Sj);
-	void CountLiving(int Si);
+    void CountLiving(int Si);
 	TIntegration **K;
 	TIntParameters *Par;
 
@@ -172,7 +170,7 @@ public:
 	TTwiss GetInputTwiss(TBeamParameter P);
 	double GetInputWavelength();
 
-	//bool CheckMagnetization();
+	bool CheckMagnetization();
 	bool CheckReverse();
 	bool CheckDrift(int Nknot);
 	TSpaceCharge GetSpaceChargeInfo();

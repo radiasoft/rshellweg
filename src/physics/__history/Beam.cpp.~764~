@@ -1034,8 +1034,8 @@ double TBeam::GetParameter(int i,TBeamParameter P)
 
 	switch (P) {
 		case (R_PAR):{
-			x=mod(Particle[i].r*lmb);
-			//x=Particle[i].r*lmb;
+			//x=mod(Particle[i].r*lmb);
+			x=Particle[i].r*lmb;
 			//x=C.x*lmb;
 			break;
 		}
@@ -1056,7 +1056,6 @@ double TBeam::GetParameter(int i,TBeamParameter P)
 
 		case (BR_PAR):{
 			x=Particle[i].beta.r;//*sign(Particle[i].r);
-			x=Particle[i].beta.r*sign(Particle[i].r);
 			//x=C.px;
 			break;
 		}
@@ -1635,20 +1634,18 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 	double rev=1;
 	TField E;
 	TField H;
-	TField Hx;
 	TField beta;
 	TField k_beta;
 	//logFile=fopen("beam.log","a");
 
 	if (Reverse)
-		rev=-1;
+        rev=-1;
 
-	Sj=(Si+1<Ncoef)?Si+1:0;
+    Sj=(Si+1<Ncoef)?Si+1:0;
 
-	CountLiving();
+    CountLiving();
 
-	Par.B*=Ib;
-	Hx=Par.Hext;
+    Par.B*=Ib;
 
     if (Par.drift)
         I[Sj][0].A=0;//I[Si][0].A;
@@ -1687,15 +1684,11 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 
 			th_dot=beta.th/r;
 
-			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th-beta.z*E.r)-beta.th*(H.r+beta.z*E.th)+beta.z*Hx.th-beta.th*Hx.r*r)/(gamma*beta.z);
-			k_beta.r=((1-sqr(beta.r))*E.r+beta.z*(H.th+beta.r*E.z)+beta.th*(H.z+beta.r*E.th)+beta.th*Hx.z-beta.z*Hx.th)/(gamma*beta.z)+sqr(beta.th)/(r*beta.z);
-			k_beta.th=((1-sqr(beta.th))*E.th-beta.r*(H.z+beta.th*E.r)+beta.z*(H.r-beta.th*E.z)+beta.z*Hx.r*r-beta.r*Hx.z)/(gamma*beta.z)-beta.th*beta.r/(r*beta.z);
-		   /*
 			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th-beta.z*E.r)-beta.th*r*Par.Hext.r)/(gamma*beta.z); //k_bz = dbz/dz  ; Br=-Bz'/2!;
 			k_beta.r=((E.r-beta.z*H.th-beta.r*(beta.z*E.z+beta.r*E.r))+beta.th*Par.Hext.z)/(gamma*beta.z)+r*sqr(th_dot)/(beta.z);
 			k_beta.th=(-beta.r*H.z+beta.z*H.r-beta.th*(beta.z*E.z+beta.r*E.r))/(gamma*beta.z)-beta.r*beta.th/(r*beta.z);
 			//k_bth=-(br*(C/sqr(r)+Par.Bz_ext)+r*bz*Par.dH)/(2*gamma*bz);
-			//k_bth=-br*bth/(r*bz);    */
+			//k_bth=-br*bth/(r*bz);
 
 
 			//k_r=PulseToAngle(br,bz);  //I don't understand why, but without it, the emittance doesn't preserve

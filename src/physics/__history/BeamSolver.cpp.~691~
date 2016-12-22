@@ -3465,6 +3465,7 @@ void TBeamSolver::Step(int Si)
         }
     }
 
+
 	double dBzx=Structure[Si+1].Hext.z-Structure[Si].Hext.z;
 	Par[0].Hext.z=Structure[Si].Hext.z;
 	Par[1].Hext.z=Structure[Si].Hext.z+dBzx/2;

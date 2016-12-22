@@ -49,6 +49,8 @@ const int colValue=1;
 const int r_coord=0;
 const int x_coord=1;
 const int y_coord=2;
+const int r4D_coord=3;
+const int th_coord=4;
 //---------------------------------------------------------------------------
 class TResForm : public TForm
 {
@@ -142,6 +144,7 @@ __published:    // IDE-managed Components
 	TLabel *BinsLabel;
 	TTrackBar *BinsTrack;
 	TButton *EmittanceButton;
+	TBarSeries *BarSeries7;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormShow(TObject *Sender);
     void __fastcall EnergyButtonClick(TObject *Sender);
@@ -208,6 +211,7 @@ private:    // User declarations
 	void DrawSpace(int Nknot,TBeamParameter P1,TBeamParameter P2,bool sliding=false);
 	void DrawSpectrum(int Nknot,TBeamParameter P1);
 
+	void Draw();
     void DrawPhase();
     void DrawEnergy();
     void DrawRadius();

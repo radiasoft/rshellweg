@@ -86,7 +86,7 @@ public:
 		//GET OUTPUT PARAMETERS
 	TTwiss GetTwiss(TBeamParameter P=R_PAR,bool Norm=false);
 	TTwiss GetTwissDirect(TBeamParameter P=R_PAR);
-	double Get4DEmittance(bool Norm=false);
+	TTwiss Get4DEmittance(bool Norm=false);
 	TEllipse GetEllipse(TBeamParameter P=R_PAR);
 	TEllipse GetEllipseDirect(TBeamParameter P=R_PAR);
 

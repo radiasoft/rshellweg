@@ -15,8 +15,7 @@ const int PID_LENGTH=9;
 
 //PHYSICAL
 const double c=2.99792458e8;
-//const double pi=3.1415926;
-const double pi=M_PI;
+const double pi=3.1415926;
 const double We0=0.5110034e6;
 const double Ia=17068;//Alfen Current
 const double eps0=8.85418782e-12;
@@ -52,7 +51,6 @@ const TColor Line2_col_a=clBlue;
 const TColor Line2_col_b=clNavy;
 const TColor Particle_col=clRed;
 const TColor Envelope_col=clBlue;
-const TColor clOrange=0x000080FF;
 #endif
 
 //FILES

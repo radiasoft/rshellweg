@@ -124,25 +124,17 @@ struct TBeamInput
    //	bool Magnetized;
 };
 
-struct TField
-{
-	double r;
-	double th;
-	double z;
-};
-
 struct TParticle
 {
 	double r;  //x/lmb (-Rb<x<Rb) - rename to r
 	double Cmag;
 	double Th;
-	TField beta;
-  /*	double Br;
+	double Br;
 	double Bth;
-	double Bz;    */
+	double Bz;
 	double phi;
 	double z;
-	double beta0; //full beta. distinguish beta from bz!
+	double beta; //distinguish beta from bz!
 	TLoss lost;
 };
 
@@ -182,6 +174,12 @@ struct TCell
 	bool First;
 	bool Dump;
 	TDump DumpParameters;
+};
+struct TField
+{
+	double r;
+	double th;
+	double z;
 };
 struct TStructure
 {
@@ -291,13 +289,12 @@ struct TIntegration
 	double phi;
 	TField E;
 	TField H;
-	TField beta;
 	/*double Az;
     double Ar;
-	double Hth;
+	double Hth;  */
 	double br;
 	double bth;
-	double bz;   */
+	double bz;
 	double r;
     double th;
     double A;

@@ -172,7 +172,7 @@ public:
 	TTwiss GetInputTwiss(TBeamParameter P);
 	double GetInputWavelength();
 
-	//bool CheckMagnetization();
+	bool CheckMagnetization();
 	bool CheckReverse();
 	bool CheckDrift(int Nknot);
 	TSpaceCharge GetSpaceChargeInfo();

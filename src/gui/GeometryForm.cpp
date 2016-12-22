@@ -289,41 +289,64 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
     Series0->Clear();
 
     int Np=Solver->GetNumberOfParticles();
-	double *X0=NULL,*Y0=NULL,*Z0=NULL,*A0=NULL,*B0=NULL;
+	double *X0=NULL,*Y0=NULL;
 	double x=0,y=0,r=0,th=0,br=0,bth=0,beta=0;
 	bool NoGraph=false;
 	TPhaseSpace R,C;
+	TBeamParameter P1,P2;
 
 	if (IsSpace(BeamGroup->ItemIndex)) {
 
-		if (BeamGroup->ItemIndex==wphi_chart) {
-			X0=Solver->GetBeamParameters(0,PHI_PAR);
-			Y0=Solver->GetBeamParameters(0,W_PAR);
-		} else {
-			X0=Solver->GetBeamParameters(0,R_PAR);
-			Y0=Solver->GetBeamParameters(0,BR_PAR);
-			A0=Solver->GetBeamParameters(0,TH_PAR);
-			B0=Solver->GetBeamParameters(0,BTH_PAR);
-			Z0=Solver->GetBeamParameters(0,BETA_PAR);
-		}
-		for (int i=0;i<Np;i++){
-			if (BeamGroup->ItemIndex!=wphi_chart){
-				beta=Z0[i];
-				C.x=1e3*X0[i];
-				C.px=1e3*PulseToAngle(Y0[i],beta);
-				C.y=A0[i];
-				C.py=1e3*PulseToAngle(B0[i],beta);
-				R=CylinricalToCartesian(C);
+		switch (BeamGroup->ItemIndex) {
+			case (rpr_chart):{
+				P1=R_PAR;
+				P2=AR_PAR;
+				break;
+			}
+			case (xpx_chart):{
+				P1=X_PAR;
+				P2=AX_PAR;
+				break;
+			}
+			case (ypy_chart):{
+				P1=Y_PAR;
+				P2=AY_PAR;
+				break;
+			}
+			case (xy_chart):{
+				P1=X_PAR;
+				P2=Y_PAR;
+				break;
+			}
+			case (thpth_chart):{
+				P1=TH_PAR;
+				P2=ATH_PAR;
+				break;
+			}
+			case (rth_chart):{
+				P1=R_PAR;
+				P2=TH_PAR;
+				break;
+			}
+			case (wphi_chart):{
+				P1=W_PAR;
+				P2=PHI_PAR;
+				break;
 			}
 
+		}
+		X0=Solver->GetBeamParameters(0,P1);
+		Y0=Solver->GetBeamParameters(0,P2);
+
+		for (int i=0;i<Np;i++){
 			switch (BeamGroup->ItemIndex) {
 				case (rpr_chart):{
 					GChart->Title->Caption="Radial Phase Space";
 					GChart->BottomAxis->Title->Caption="r,mm";
 					GChart->LeftAxis->Title->Caption="r',mrad";
 
-					X0[i]=C.x;
-					Y0[i]=C.px;
+					X0[i]*=1000;
+					Y0[i]*=1000;
 					break;
 				}
 				case (xpx_chart):{
@@ -331,8 +354,8 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
 					GChart->BottomAxis->Title->Caption="x,mm";
 					GChart->LeftAxis->Title->Caption="x',mrad";
 
-					X0[i]=R.x;
-					Y0[i]=R.px;
+					X0[i]*=1000;
+					Y0[i]*=1000;
 					break;
 				}
 				case (ypy_chart):{
@@ -340,8 +363,8 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
 					GChart->BottomAxis->Title->Caption="y,mm";
 					GChart->LeftAxis->Title->Caption="y',mrad";
 
-					X0[i]=R.y;
-					Y0[i]=R.py;
+					X0[i]*=1000;
+					Y0[i]*=1000;
 					break;
 				}
 				case (xy_chart):{
@@ -349,8 +372,8 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
 					GChart->BottomAxis->Title->Caption="x,mm";
 					GChart->LeftAxis->Title->Caption="y,mm";
 
-					X0[i]=R.x;
-					Y0[i]=R.y;
+					X0[i]*=1000;
+					Y0[i]*=1000;
 					break;
 				}
 				case (thpth_chart):{
@@ -358,8 +381,8 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
 					GChart->BottomAxis->Title->Caption="theta,deg";
 					GChart->LeftAxis->Title->Caption="theta',mrad";
 
-					X0[i]=RadToDegree(C.y);
-					Y0[i]=C.py;
+					X0[i]=RadToDegree(X0[i]);
+					Y0[i]*=1000;
 					break;
 				}
 				case (rth_chart):{
@@ -367,8 +390,8 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
 					GChart->BottomAxis->Title->Caption="theta,deg";
 					GChart->LeftAxis->Title->Caption="r,mm";
 
-					X0[i]=RadToDegree(C.y);
-					Y0[i]=C.x;
+					X0[i]=RadToDegree(X0[i]);
+					Y0[i]*=1000;
 					break;
 				}
 				case (wphi_chart):{
@@ -377,7 +400,7 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
 					GChart->LeftAxis->Title->Caption="W,MeV";
 
 					X0[i]=RadToDegree(X0[i]);
-					Y0[i]=Y0[i];
+					//Y0[i]=Y0[i];
 					break;
 				}
 				default:{
@@ -395,9 +418,6 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
 
 	DeleteArray(X0);
 	DeleteArray(Y0);
-	DeleteArray(A0);
-	DeleteArray(B0);
-	DeleteArray(Z0);
 }
 //---------------------------------------------------------------------------
 void TGeomForm::DrawBarChart(TBarSeries *Series0,TBeamSolver *Solver,TColor Col1)

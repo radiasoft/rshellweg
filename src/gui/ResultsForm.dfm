@@ -312,6 +312,18 @@ object ResForm: TResForm
       object BarSeries6: TBarSeries
         BarPen.Visible = False
         Marks.Visible = False
+        SeriesColor = 33023
+        Title = 'Bth Loss'
+        BarWidthPercent = 100
+        MultiBar = mbStacked
+        XValues.Name = 'X'
+        XValues.Order = loAscending
+        YValues.Name = 'Bar'
+        YValues.Order = loNone
+      end
+      object BarSeries7: TBarSeries
+        BarPen.Visible = False
+        Marks.Visible = False
         SeriesColor = clSilver
         Title = 'Step Loss'
         BarWidthPercent = 100
@@ -413,9 +425,9 @@ object ResForm: TResForm
       DefaultCanvas = 'TGDIPlusCanvas'
       ColorPaletteIndex = 13
       object BeamSeries: TPointSeries
+        SeriesColor = clRed
         Title = 'Portrait'
         ClickableLine = False
-        Pointer.Brush.Color = clRed
         Pointer.InflateMargins = True
         Pointer.Style = psCircle
         XValues.Name = 'X'
@@ -444,15 +456,15 @@ object ResForm: TResForm
     Align = alBottom
     TabOrder = 1
     object TrackBox: TGroupBox
-      Left = 658
+      Left = 665
       Top = 1
-      Width = 325
+      Width = 318
       Height = 100
       Align = alClient
       Caption = 'Seek Position'
       TabOrder = 0
       DesignSize = (
-        325
+        318
         100)
       object PrevButton: TSpeedButton
         Left = 42
@@ -497,7 +509,7 @@ object ResForm: TResForm
         OnClick = NextButtonClick
       end
       object CellLabel: TLabel
-        Left = 261
+        Left = 254
         Top = 47
         Width = 46
         Height = 13
@@ -506,7 +518,7 @@ object ResForm: TResForm
         ExplicitLeft = 289
       end
       object PositionLabel: TLabel
-        Left = 247
+        Left = 240
         Top = 66
         Width = 60
         Height = 13
@@ -517,7 +529,7 @@ object ResForm: TResForm
       object PositionTrackBar: TTrackBar
         Left = 15
         Top = 14
-        Width = 307
+        Width = 300
         Height = 27
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 0
@@ -527,7 +539,7 @@ object ResForm: TResForm
     object RadiusGroup: TRadioGroup
       Left = 569
       Top = 1
-      Width = 89
+      Width = 96
       Height = 100
       Align = alLeft
       Caption = 'Coordinate (r)'
@@ -535,7 +547,9 @@ object ResForm: TResForm
       Items.Strings = (
         'r: Radial '
         'x: Horizontal'
-        'y: Vertical')
+        'y: Vertical'
+        '4D: Radial'
+        'th: Azimuthal')
       TabOrder = 1
       OnClick = RadiusGroupClick
     end

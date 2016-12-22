@@ -3379,15 +3379,15 @@ void TBeamSolver::Step(int Si)
     Par[0].h=0;
     Par[1].h=dh/2;
     Par[2].h=Par[1].h;
-	Par[3].h=dh;
+    Par[3].h=dh;
 
-	double db=Structure[Si+1].betta-Structure[Si].betta;
+    double db=Structure[Si+1].betta-Structure[Si].betta;
     Par[0].bw=Structure[Si].betta;
     Par[1].bw=Structure[Si].betta+db/2;
     Par[2].bw=Par[1].bw;
     Par[3].bw=Structure[Si+1].betta;
 
-	double dw=Structure[Si+1].alpha-Structure[Si].alpha;
+    double dw=Structure[Si+1].alpha-Structure[Si].alpha;
     Par[0].w=Structure[Si].alpha*lmb;
     Par[1].w=(Structure[Si].alpha+dw/2)*lmb;
     Par[2].w=Par[1].w;
@@ -3466,22 +3466,18 @@ void TBeamSolver::Step(int Si)
     }
 
 	double dBzx=Structure[Si+1].Hext.z-Structure[Si].Hext.z;
+	double d2Bzx=0;
 	Par[0].Hext.z=Structure[Si].Hext.z;
 	Par[1].Hext.z=Structure[Si].Hext.z+dBzx/2;
 	Par[2].Hext.z=Par[1].Hext.z;
 	Par[3].Hext.z=Structure[Si+1].Hext.z;
 
 	double dBrx=Structure[Si+1].Hext.r-Structure[Si].Hext.r;
+	double d2Brx=0;
 	Par[0].Hext.r=Structure[Si].Hext.r;
 	Par[1].Hext.r=Structure[Si].Hext.r+dBrx/2;
 	Par[2].Hext.r=Par[1].Hext.r;
 	Par[3].Hext.r=Structure[Si+1].Hext.r;
-
-	double dBthx=Structure[Si+1].Hext.th-Structure[Si].Hext.th;
-	Par[0].Hext.th=Structure[Si].Hext.th;
-	Par[1].Hext.th=Structure[Si].Hext.th+dBthx/2;
-	Par[2].Hext.th=Par[1].Hext.th;
-	Par[3].Hext.th=Structure[Si+1].Hext.th;
 
   /*	if (Si==0)
 		Par[0].dH=dBzx/dh;

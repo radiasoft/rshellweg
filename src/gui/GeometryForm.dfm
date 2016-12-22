@@ -244,7 +244,7 @@ object GeomForm: TGeomForm
           'Geometry Parameters')
         BottomAxis.AxisValuesFormat = '#0.##'
         BottomAxis.GridCentered = True
-        BottomAxis.Increment = 0.100000000000000000
+        BottomAxis.Increment = 0.010000000000000000
         BottomAxis.LabelsAngle = 90
         BottomAxis.LabelsFormat.Font.Height = -37
         BottomAxis.LabelStyle = talValue
