@@ -134,7 +134,7 @@ struct TField
 struct TParticle
 {
 	double r;  //x/lmb (-Rb<x<Rb) - rename to r
-	double Cmag;
+	//double Cmag;
 	double Th;
 	TField beta;
   /*	double Br;

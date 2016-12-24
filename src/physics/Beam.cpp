@@ -1055,7 +1055,7 @@ double TBeam::GetParameter(int i,TBeamParameter P)
 		}
 
 		case (BR_PAR):{
-			x=Particle[i].beta.r;//*sign(Particle[i].r);
+			//x=Particle[i].beta.r;//*sign(Particle[i].r);
 			x=Particle[i].beta.r*sign(Particle[i].r);
 			//x=C.px;
 			break;

@@ -409,7 +409,7 @@ void TResForm::DrawPlots(TStructureParameter P1,TStructureParameter P2)
 			}
 			case RB_PAR: {}
 			case RA_PAR: {
-				x=1000*x;//mm
+				x=2000*x;//mm
 				y=1000*y;
 				break;
 			}
@@ -850,15 +850,15 @@ void TResForm::DrawTransSection()
 		Ey=Solver->GetEllipse(j,Y_PAR);
 		Ex.y0*=1e3;
 		Ey.y0*=1e3;
-		Ex.by*=1e3*Hcore;
+	   /*	Ex.by*=1e3*Hcore;
 		Ey.by*=1e3*Hcore;
 		double rx=Ex.by;
-		double ry=Ey.by;
-		/*TTwiss Tx,Ty;
+		double ry=Ey.by;        */
+		TTwiss Tx,Ty;
 		Tx=Solver->GetTwiss(j,X_PAR);
 		Ty=Solver->GetTwiss(j,Y_PAR);
-		double rx=1000*sqrt(Tx.epsilon*Tx.beta);
-		double ry=1000*sqrt(Ty.epsilon*Ty.beta);*/
+		double rx=1000*Hcore*sqrt(Tx.epsilon*Tx.beta);
+		double ry=1000*Hcore*sqrt(Ty.epsilon*Ty.beta);
 		for (int i=0;i<PointsNumber;i++){
 			k=2.0*rx/(PointsNumber/2-1);
 			if (i<PointsNumber/2){
@@ -1358,10 +1358,12 @@ void TResForm::ShowParameters()
 	double E=Solver->GetStructureParameter(j,E0_PAR);
 
 	TTwiss T;
+	int k=1;
 	switch (RadiusGroup->ItemIndex){
 		case r_coord:{
 			Par=R_PAR;
 			Coord="R";
+			k=2;
 			break;
 		}
 		case x_coord:{
@@ -1388,7 +1390,7 @@ void TResForm::ShowParameters()
 
 	T=Solver->GetTwiss(j,Par);
 	//double r=Solver->GetBeamRadius(j,Par);
-    double r=sqrt(T.epsilon*T.beta);
+    double r=k*sqrt(T.epsilon*T.beta);
 	double beta_gamma=MeVToVelocity(Gw.mean)*MeVToGamma(Gw.mean);
 
 	Table->Cells[colValue][pZ]=s.FormatFloat("#0.000",100*z);
