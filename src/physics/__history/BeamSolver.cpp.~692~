@@ -663,10 +663,8 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 	int i=-1,j=0;
 
     FILE *logFile;
-	while (!fs.eof()){
-		L=GetLine(fs);   //Now reads line by line
-		S=ReadWord(L,1);
-	   //	S=GetLine(fs);   //Hid common actions inside the function
+    while (!fs.eof()){
+		S=GetWord(fs);   //Hid common actions inside the function
 		if (S=="")
 			continue;
 		if(IsKeyWord(S) || S[1]=='!'){

@@ -1158,63 +1158,63 @@ void TResForm::DrawEnergySpectrum()
 void __fastcall TResForm::EnergyButtonClick(TObject *Sender)
 {
 	PlayButton->Down=false;
-	TrackBox->Enabled=false;
+   //	TrackBox->Enabled=false;
 	DrawEnergy();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::PhaseButtonClick(TObject *Sender)
 {
 	PlayButton->Down=false;
-	TrackBox->Enabled=false;
+	//TrackBox->Enabled=false;
     DrawPhase();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::RadiusButtonClick(TObject *Sender)
 {
 	PlayButton->Down=false;
-	TrackBox->Enabled=false;
+   //	TrackBox->Enabled=false;
 	DrawRadius();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::FieldButtonClick(TObject *Sender)
 {
 	PlayButton->Down=false;
-	TrackBox->Enabled=false;
+	//TrackBox->Enabled=false;
     DrawField();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::PowerButtonClick(TObject *Sender)
 {
 	PlayButton->Down=false;
-	TrackBox->Enabled=false;
+	//TrackBox->Enabled=false;
     DrawPower();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::BettaButtonClick(TObject *Sender)
 {
 	PlayButton->Down=false;
-	TrackBox->Enabled=false;
+   //	TrackBox->Enabled=false;
 	DrawBetta();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::AvEnergyButtonClick(TObject *Sender)
 {
 	PlayButton->Down=false;
-	TrackBox->Enabled=false;
+  //	TrackBox->Enabled=false;
     DrawAvEnergy();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::AvRadiusButtonClick(TObject *Sender)
 {
 	PlayButton->Down=false;
-	TrackBox->Enabled=false;
+   //	TrackBox->Enabled=false;
 	DrawAvRadius();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::EmittanceButtonClick(TObject *Sender)
 {
 	PlayButton->Down=false;
-	TrackBox->Enabled=false;
+	//TrackBox->Enabled=false;
 	DrawEmittance();
 }
 //---------------------------------------------------------------------------
