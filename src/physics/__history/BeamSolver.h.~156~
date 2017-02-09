@@ -37,13 +37,14 @@ private:
 	double AngErr;
 	double dh;
 
-	int Np_beam,Nstat,Ngraph,Nav,Nliv;
+	int Np_beam,Nstat,Ngraph,Nav,Nliv,Ndump;
 	double I;
 
 	TSplineType SplineType;
 	//STRUCTURE
 	TStructure *Structure;
 	TStringList *InputStrings,*ParsedStrings;
+	TDump *BeamExport;
 	TStructureInput StructPar;
 	int ChangeCells(int N);
 	void ResetStructure();
@@ -98,11 +99,14 @@ private:
     void GetDimensions(TCell& Cell);
 
 	//INTEGRATION
-	void ExportBeam(int Si,TBeamType T=NOBEAM);
-	void DumpBeam(int Si);
-    void Step(int Si);
+	void DumpHeader(ofstream &fo,int Sn,int jmin,int jmax);
+	void DumpFile(ofstream &fo,int Sn,int j);
+	void DumpASTRA(ofstream &fo,int Sn,int j,int jref);
+	void DumpCST(ofstream &fo,int Sn,int j);
+	void DumpBeam(int Si,TBeamType T=NOBEAM);
+	void Step(int Si);
     void Integrate(int Si, int Sj);
-    void CountLiving(int Si);
+	void CountLiving(int Si);
 	TIntegration **K;
 	TIntParameters *Par;
 
@@ -170,7 +174,7 @@ public:
 	TTwiss GetInputTwiss(TBeamParameter P);
 	double GetInputWavelength();
 
-	bool CheckMagnetization();
+	//bool CheckMagnetization();
 	bool CheckReverse();
 	bool CheckDrift(int Nknot);
 	TSpaceCharge GetSpaceChargeInfo();

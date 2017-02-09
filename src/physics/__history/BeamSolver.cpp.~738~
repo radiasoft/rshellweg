@@ -57,7 +57,8 @@ void TBeamSolver::Initialize()
 	//Nbars=100; //default
     Nav=10;
     Smooth=0.95;
-    Npoints=1;
+	Npoints=1;
+	Ndump=0;
 
 	//Np=1;
    //	NpEnergy=0;
@@ -93,7 +94,9 @@ void TBeamSolver::Initialize()
     Structure=new TStructure[Npoints];
 
     InputStrings=new TStringList;
-    ParsedStrings=new TStringList;
+	ParsedStrings=new TStringList;
+
+	BeamExport=NULL;
 
     #ifndef RSLINAC
     SmartProgress=NULL;
@@ -111,6 +114,20 @@ void TBeamSolver::ResetStructure()
 	if (StructPar.Cells!=NULL) {
 		delete[] StructPar.Cells;
 		StructPar.Cells=NULL;
+	}
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::ResetDump(int Ns)
+{
+	if (BeamExport!=NULL){
+		delete[] BeamExport;
+		BeamExport=NULL;
+	}
+
+	Ndump=Ns;
+
+	if (Ns>0) {
+		BeamExport=new TDump[Ndump];
 	}
 }
 //---------------------------------------------------------------------------
@@ -660,25 +677,31 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 	TInputLine *Lines;
 	std::ifstream fs(FileName);
 	TInputParameter P;
-	int i=-1,j=0;
+	int i=-1,j=0,Ns;
 
     FILE *logFile;
-    while (!fs.eof()){
-		S=GetWord(fs);   //Hid common actions inside the function
+	while (!fs.eof()){
+		L=GetLine(fs);   //Now reads line by line
+		S=ReadWord(L,1);
+	   //	S=GetLine(fs);   //Hid common actions inside the function
 		if (S=="")
 			continue;
 		if(IsKeyWord(S) || S[1]=='!'){
 			N++;
+			if (S=="SAVE") {
+				Ns++;
+			}
 		}
 /*        logFile=fopen("BeamSolver.log","a");
-        fprintf(logFile,"ParseFile: N=%i, S=%s\n",N,S);
+		fprintf(logFile,"ParseFile: N=%i, S=%s\n",N,S);
         fclose(logFile); */
     }
 
     fs.clear();
     fs.seekg(std::ios::beg);
 
-    Lines=new TInputLine[N];
+	Lines=new TInputLine[N];
+	ResetDump(Ns);
 
 	while (!fs.eof()){
 		L=GetLine(fs);   //Now reads line by line
@@ -1490,72 +1513,86 @@ TError TBeamSolver::ParsePower(TInputLine *Line,int Nsec)
 	return ERR_NO;
 }
 //---------------------------------------------------------------------------
-TError TBeamSolver::ParseDump(TInputLine *Line, int Ni)
+TError TBeamSolver::ParseDump(TInputLine *Line, int Ns, int Ni)
 {
 	bool DefaultSet=true;
 	int Nkey=1; // the word from which the flags are checked
-	AnsiString F="SAVE ", S;
+	AnsiString F="SAVE ",F0, S;
 
 	if (Line->N>=1 && Line->N<=9){
-		StructPar.Cells[Ni].Dump=true;
-		StructPar.Cells[Ni].DumpParameters.File=Line->S[0].c_str();
-		StructPar.Cells[Ni].DumpParameters.LiveOnly=true;
-		StructPar.Cells[Ni].DumpParameters.PID=false;
-		StructPar.Cells[Ni].DumpParameters.Phase=false;
-		StructPar.Cells[Ni].DumpParameters.Energy=false;
-		StructPar.Cells[Ni].DumpParameters.Radius=false;
-		StructPar.Cells[Ni].DumpParameters.Azimuth=false;
-		StructPar.Cells[Ni].DumpParameters.Vx=false;
+		BeamExport[Ns].NElement=Ni;
+		BeamExport[Ns].File=Line->S[0].c_str();
+		BeamExport[Ns].LiveOnly=true;
+		BeamExport[Ns].SpecialFormat=NOBEAM;
+		BeamExport[Ns].Phase=false;
+		BeamExport[Ns].Energy=false;
+		BeamExport[Ns].Radius=false;
+		BeamExport[Ns].Azimuth=false;
+		BeamExport[Ns].Divergence=false;
 
 		F+=Line->S[0];
+		F0=F;
 			if (Line->N>=2 && IsNumber(Line->S[1])) {
-				StructPar.Cells[Ni].DumpParameters.N1=Line->S[1].ToDouble();
+				BeamExport[Ns].N1=Line->S[1].ToDouble();
 				F=F+" "+Line->S[1];
 				Nkey=2;
 				if (Line->N>=3 && IsNumber(Line->S[2])){
-					StructPar.Cells[Ni].DumpParameters.N2=Line->S[2].ToDouble();
+					BeamExport[Ns].N2=Line->S[2].ToDouble();
 					F=F+" "+Line->S[2];
 					Nkey=3;
 				} else
-					StructPar.Cells[Ni].DumpParameters.N2=0;
+					BeamExport[Ns].N2=0;
 			}  else {
-				StructPar.Cells[Ni].DumpParameters.N1=0;
-				StructPar.Cells[Ni].DumpParameters.N2=0;
+				BeamExport[Ns].N1=0;
+				BeamExport[Ns].N2=0;
 			}
 			if (Line->N>=2 && Line->N<=9) {
 				for (int j=Nkey;j<Line->N;j++){
 					if (Line->S[j]=="PID") {
-						StructPar.Cells[Ni].DumpParameters.PID=true;
-						F=F+" PID";
+						BeamExport[Ns].SpecialFormat=CST_PID;
+						F=F0+" PID";
 						DefaultSet=false;
+						break;
+					}
+					else if (Line->S[j]=="PIT") {
+						BeamExport[Ns].SpecialFormat=CST_PIT;
+						F=F0+" PIT";
+						DefaultSet=false;
+						break;
+					}
+					else if (Line->S[j]=="ASTRA") {
+						BeamExport[Ns].SpecialFormat=ASTRA;
+						F=F0+" ASTRA";
+						DefaultSet=false;
+						break;
 					}
 					else if (Line->S[j]=="LOST") {
-						StructPar.Cells[Ni].DumpParameters.LiveOnly=false;
+						BeamExport[Ns].LiveOnly=false;
 						F=F+" LOST";
 					}
 					else if (Line->S[j]=="PHASE") {
-						StructPar.Cells[Ni].DumpParameters.Phase=true;
+						BeamExport[Ns].Phase=true;
 						F=F+" PHASE";
 						DefaultSet=false;
 					}
 					else if (Line->S[j]=="ENERGY") {
-						StructPar.Cells[Ni].DumpParameters.Energy=true;
+						BeamExport[Ns].Energy=true;
 						F=F+" ENERGY";
 						DefaultSet=false;
 					}
 					else if (Line->S[j]=="RADIUS") {
-						StructPar.Cells[Ni].DumpParameters.Radius=true;
+						BeamExport[Ns].Radius=true;
 						F=F+" RADIUS";
 						DefaultSet=false;
 					}
 					else if (Line->S[j]=="AZIMUTH") {
-						StructPar.Cells[Ni].DumpParameters.Azimuth=true;
+						BeamExport[Ns].Azimuth=true;
 						F=F+" AZIMUTH";
 						DefaultSet=false;
 					}
-					else if (Line->S[j]=="VX") {
-						StructPar.Cells[Ni].DumpParameters.Vx=true;
-						F=F+" VX";
+					else if (Line->S[j]=="DIVERGENCE") {
+						BeamExport[Ns].Divergence=true;
+						F=F+" DIVERGENCE";
 						DefaultSet=false;
 					} else {
 						S="WARNING: The keyword "+Line->S[j]+" in SAVE line is not recognized and will be ignored";
@@ -1565,31 +1602,31 @@ TError TBeamSolver::ParseDump(TInputLine *Line, int Ni)
 			}
 
 			if (DefaultSet) {
-				StructPar.Cells[Ni].DumpParameters.Phase=true;
-				StructPar.Cells[Ni].DumpParameters.Energy=true;
-				StructPar.Cells[Ni].DumpParameters.Radius=true;
-				StructPar.Cells[Ni].DumpParameters.Azimuth=true;
-				StructPar.Cells[Ni].DumpParameters.Vx=true;
+				BeamExport[Ns].Phase=true;
+				BeamExport[Ns].Energy=true;
+				BeamExport[Ns].Radius=true;
+				BeamExport[Ns].Azimuth=true;
+				BeamExport[Ns].Divergence=true;
 			}
 
-	   /*		if (StructPar.Cells[Ni].DumpParameters.PID) {
-				StructPar.Cells[Ni].DumpParameters.Phase=false;
-				StructPar.Cells[Ni].DumpParameters.Energy=false;
-				StructPar.Cells[Ni].DumpParameters.Radius=false;
-				StructPar.Cells[Ni].DumpParameters.Azimuth=false;
-				StructPar.Cells[Ni].DumpParameters.Vx=false;
-			}   */
+		 /*	if (BeamExport[Ns].SpecialFormat!=NOBEAM) {
+				BeamExport[Ns].Phase=false;
+				BeamExport[Ns].Energy=false;
+				BeamExport[Ns].Radius=false;
+				BeamExport[Ns].Azimuth=false;
+				BeamExport[Ns].Divergence=false;
+			}         */
 
 			//check the numbers
-			if (StructPar.Cells[Ni].DumpParameters.N1<0 || StructPar.Cells[Ni].DumpParameters.N2<0) {
+			if (BeamExport[Ns].N1<0 || BeamExport[Ns].N2<0) {
 				S="WARNING: The particle numbers in SAVE line can not be negative. The region will be ignored.";
 				ShowError(S);
-				StructPar.Cells[Ni].DumpParameters.N1=0;
-				StructPar.Cells[Ni].DumpParameters.N2=0;
-			} else if (StructPar.Cells[Ni].DumpParameters.N2!=0 && StructPar.Cells[Ni].DumpParameters.N1>StructPar.Cells[Ni].DumpParameters.N2) {
-				int temp=StructPar.Cells[Ni].DumpParameters.N2; //switch the numbers
-				StructPar.Cells[Ni].DumpParameters.N2=StructPar.Cells[Ni].DumpParameters.N1;
-				StructPar.Cells[Ni].DumpParameters.N1=temp;
+				BeamExport[Ns].N1=0;
+				BeamExport[Ns].N2=0;
+			} else if (BeamExport[Ns].N2!=0 && BeamExport[Ns].N1>BeamExport[Ns].N2) {
+				int temp=BeamExport[Ns].N2; //switch the numbers
+				BeamExport[Ns].N2=BeamExport[Ns].N1;
+				BeamExport[Ns].N1=temp;
 			}
 		ParsedStrings->Add(F);
 	} else {    // else skip the line
@@ -1602,7 +1639,7 @@ TError TBeamSolver::ParseDump(TInputLine *Line, int Ni)
 //---------------------------------------------------------------------------
 TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 {
-	int Ni=0, Nsec=0;
+	int Ni=0, Nsec=0, Ns=0;
 	double dF=0;
 	double F_last=0, P_last=0;
 
@@ -1698,7 +1735,8 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				break;
 			}
 			case DUMP:{
-				Error=ParseDump(&Lines[k],Ni);
+				Error=ParseDump(&Lines[k],Ns,Ni);
+				Ns++;
 				break;
 			}
 			case COMMENT:{
@@ -1778,7 +1816,7 @@ TError TBeamSolver::LoadData(int Nlim)
 
 	StructPar.Cells = new TCell[StructPar.NElements+1];  //+1 - end point
 	for (int k=0;k<StructPar.NElements+1;k++){
-		StructPar.Cells[k].Dump=false;
+		//StructPar.Cells[k].Dump=false;
 		StructPar.Cells[k].Drift=false;
 		StructPar.Cells[k].First=false;
 	}
@@ -2151,22 +2189,27 @@ int TBeamSolver::CreateGeometry()
 				Structure[k].Ra=StructPar.Cells[i].AkL;//*lmb;
             Structure[k].jump=false;
 			Structure[k].CellNumber=i;
-			Structure[k].Dump=false;
+			//Structure[k].Dump=false;
 			z+=zm;
             k++;
         }
 		if (StructPar.Cells[i].First)
 			Structure[k0].jump=true;
-		if (StructPar.Cells[i].Dump){
+		for (int j=0; j < Ndump; j++) {
+			if (BeamExport[j].NElement==i) {
+				BeamExport[j].Nmesh=k0;
+			}
+		}
+	  /*	if (StructPar.Cells[i].Dump){
 			Structure[k0].Dump=true;
 			Structure[k0].DumpParameters=StructPar.Cells[i].DumpParameters;
 		  //	strcpy(Structure[k0].DumpParameters.File, Cells[i].DumpParameters.File);
-		}
+		}    */
 	}
-	if (StructPar.Cells[StructPar.NElements].Dump){
+   /*	if (StructPar.Cells[StructPar.NElements].Dump){
 		Structure[k-1].Dump=true;  //was k0+Nmesh
 		Structure[k-1].DumpParameters=StructPar.Cells[StructPar.NElements].DumpParameters; //was k0+Nmesh
-	}
+	}    */
 
 	//   int Njmp=0;
 //  Structure[0].jump=true;
@@ -3176,14 +3219,16 @@ void TBeamSolver::CountLiving(int Si)
     }
 }
 //---------------------------------------------------------------------------
-void TBeamSolver::DumpHeader(ofstream &fo,int Si,int jmin,int jmax)
+void TBeamSolver::DumpHeader(ofstream &fo,int Sn,int jmin,int jmax)
 {
 	AnsiString s;
 	fo<<"List of ";
 
+	int Si=BeamExport[Sn].Nmesh;
+
 	if (jmin==0 && jmax==BeamPar.NParticles)
 		fo<<"ALL ";
-	if (Structure[Si].DumpParameters.LiveOnly)
+	if (BeamExport[Sn].LiveOnly)
 		fo<<"LIVE ";
 
 	fo<<"particles ";
@@ -3201,67 +3246,133 @@ void TBeamSolver::DumpHeader(ofstream &fo,int Si,int jmin,int jmax)
 	fo<<" cm\n";
 
 	fo<<"Particle #\t";
-	if (!Structure[Si].DumpParameters.LiveOnly)
+	if (!BeamExport[Sn].LiveOnly)
 		fo<<"Lost\t";
-	if (Structure[Si].DumpParameters.Phase)
+	if (BeamExport[Sn].Phase)
 		fo<<"Phase [deg]\t";
-	if (Structure[Si].DumpParameters.Energy)
+	if (BeamExport[Sn].Energy)
 		fo<<"Energy [MeV]\t";
-	if (Structure[Si].DumpParameters.Radius)
+	if (BeamExport[Sn].Radius)
 		fo<<"Radius [mm]\t";
-	if (Structure[Si].DumpParameters.Azimuth)
+	if (BeamExport[Sn].Azimuth)
 		fo<<"Azimuth [deg]\t";
-	if (Structure[Si].DumpParameters.Vx)
-		fo<<"Vx	[m/s]\t";
+	if (BeamExport[Sn].Divergence)
+		fo<<"Divergence	[mrad]\t";
 				//fo<<"Vth [m/s]\t";
 	fo<<"\n";
 }
 //---------------------------------------------------------------------------
-void TBeamSolver::DumpFile(ofstream &fo,int Si,int j)
+void TBeamSolver::DumpFile(ofstream &fo,int Sn,int j)
 {
 	AnsiString s;
-	if(!Structure[Si].DumpParameters.LiveOnly || (Structure[Si].DumpParameters.LiveOnly && !Beam[Si]->Particle[j].lost)){
+	int Si=BeamExport[Sn].Nmesh;
+
+	if(!BeamExport[Sn].LiveOnly || (BeamExport[Sn].LiveOnly && !Beam[Si]->Particle[j].lost)){
 		s=s.FormatFloat("#0000\t\t",j+1);
 		fo<<s.c_str();
 
-		if (!Structure[Si].DumpParameters.LiveOnly) {
+		if (!BeamExport[Sn].LiveOnly) {
 			if (Beam[Si]->Particle[j].lost)
 				fo<<"LOST\t";
 			else
 				fo<<"LIVE\t";
 		}
-		if (Structure[Si].DumpParameters.Phase){
-			s=s.FormatFloat("#0.00\t\t",RadToDegree(Beam[Si]->Particle[j].phi));
+		if (BeamExport[Sn].Phase){
+			s=s.FormatFloat("#0.00\t\t",RadToDegree(Beam[Si]->GetParameter(j,PHI_PAR)));
 			fo<<s.c_str();
 		}
-		if (Structure[Si].DumpParameters.Energy){
-			s=s.FormatFloat("#0.00\t\t\t",VelocityToMeV(Beam[Si]->Particle[j].beta0));
+		if (BeamExport[Sn].Energy){
+			s=s.FormatFloat("#0.00\t\t\t",Beam[Si]->GetParameter(j,W_PAR));
 			fo<<s.c_str();
 		}
-		if (Structure[Si].DumpParameters.Radius){
-			s=s.FormatFloat("#0.00\t\t\t",1000*Beam[Si]->Particle[j].r*Structure[Si].lmb);
+		if (BeamExport[Sn].Radius){
+			s=s.FormatFloat("#0.00\t\t\t",1000*Beam[Si]->GetParameter(j,R_PAR));
 			fo<<s.c_str();
 		}
-		if (Structure[Si].DumpParameters.Azimuth){
-			s=s.FormatFloat("#0.00\t\t",RadToDegree(Beam[Si]->Particle[j].Th));
+		if (BeamExport[Sn].Azimuth){
+			s=s.FormatFloat("#0.00\t\t",RadToDegree(Beam[Si]->GetParameter(j,TH_PAR)));
 			fo<<s.c_str();
 		}
-		if (Structure[Si].DumpParameters.Vx){
-			s=s.FormatFloat("#0.00\t\t",Beam[Si]->Particle[j].beta.r*c);
+		if (BeamExport[Sn].Divergence){
+			s=s.FormatFloat("#0.00\t\t",1000*Beam[Si]->GetParameter(j,AR_PAR));
 			fo<<s.c_str();
 		}
-		 /*	s=s.FormatFloat("#0.00\t\t",Beam[i]->Particle[j].Bth*c);
-		 fo<<s.c_str();  */
 		fo<<"\n";
 	}
 }
 //---------------------------------------------------------------------------
-void TBeamSolver::DumpCST(TBeamType T,ofstream &fo,int Si,int j)
+void TBeamSolver::DumpASTRA(ofstream &fo,int Sn,int j,int jref)
+{
+	AnsiString s;
+	double x=0, y=0, z=0;
+	double px=0, py=0, pz=0;
+	double q=0, I=0, clock=0;
+	int  status=0, index=1;   //1 - electrons, 2 - positrons, 3 - protons, 4 - heavy ions;
+
+	int Si=BeamExport[Sn].Nmesh;
+
+	x=Beam[Si]->GetParameter(j,X_PAR);
+	y=Beam[Si]->GetParameter(j,Y_PAR);
+	z=Beam[Si]->GetParameter(j,PHI_PAR)*Structure[Si].lmb/(2*pi);
+	clock=Beam[Si]->GetParameter(j,PHI_PAR)*Structure[Si].lmb/(2*pi*c);
+
+	double W=Beam[Si]->GetParameter(j,W_PAR);
+	double gamma=MeVToGamma(W);
+
+	px=We0*gamma*Beam[Si]->GetParameter(j,BX_PAR);
+	py=We0*gamma*Beam[Si]->GetParameter(j,BY_PAR);
+	pz=We0*gamma*Beam[Si]->GetParameter(j,BZ_PAR);
+
+	I=BeamPar.Current/BeamPar.NParticles;
+	q=I*Structure[Si].lmb/c;
+
+	if (j==jref) {
+	   x=0;
+	   y=0;
+	   z=0;
+
+	   clock=0;
+	   status=5;  //reference particle
+	}  else {
+	   z=z-Beam[Si]->GetParameter(jref,PHI_PAR)*Structure[Si].lmb/(2*pi);
+	   pz=pz-We0*gamma*Beam[Si]->GetParameter(jref,BZ_PAR);
+	   clock=clock-Beam[Si]->GetParameter(jref,PHI_PAR)*Structure[Si].lmb/(2*pi*c);
+
+	   status=3; //regular
+	}
+
+	s=s.FormatFloat("#.##############e+0 ",x);
+	fo<<s.c_str();
+	s=s.FormatFloat("#.##############e+0 ",y);
+	fo<<s.c_str();
+	s=s.FormatFloat("#.##############e+0 ",z);
+	fo<<s.c_str();
+	s=s.FormatFloat("#.##############e+0 ",px);
+	fo<<s.c_str();
+	s=s.FormatFloat("#.##############e+0 ",py);
+	fo<<s.c_str();
+	s=s.FormatFloat("#.##############e+0 ",pz);
+	fo<<s.c_str();
+	s=s.FormatFloat("#.##############e+0 ",1e9*clock);
+	fo<<s.c_str();
+	s=s.FormatFloat("#.##############e+0 ",q);
+	fo<<s.c_str();
+	s=s.FormatFloat("0 ",index);
+	fo<<s.c_str();
+	s=s.FormatFloat("0 ",status);
+	fo<<s.c_str();
+
+	fo<<"\n";
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::DumpCST(ofstream &fo,int Sn,int j)
 {
 	AnsiString s;
 	double x=0, y=0, z=0;
 	double px=0, py=0, pz=0;
 	double m=0, q=0, I=0,t=0;
+
+	int Si=BeamExport[Sn].Nmesh;
 
 	x=Beam[Si]->GetParameter(j,X_PAR);
 	y=Beam[Si]->GetParameter(j,Y_PAR);
@@ -3293,11 +3404,11 @@ void TBeamSolver::DumpCST(TBeamType T,ofstream &fo,int Si,int j)
 	fo<<s.c_str();
 	s=s.FormatFloat("#.##############e+0 ",q);
 	fo<<s.c_str();
-	if (T==CST_PID) {
+	if (BeamExport[Sn].SpecialFormat==CST_PID) {
 		s=s.FormatFloat("#.##############e+0",I);
 		fo<<s.c_str();
-	} else if (T==CST_PIT) {
-		s=s.FormatFloat("#.##############e+0",I*Structure[Si].lmb/c);
+	} else if (BeamExport[Sn].SpecialFormat==CST_PIT) {
+		s=s.FormatFloat("#.##############e+0 ",I*Structure[Si].lmb/c);
 		fo<<s.c_str();
 		s=s.FormatFloat("#.##############e+0",t);
 		fo<<s.c_str();
@@ -3306,30 +3417,31 @@ void TBeamSolver::DumpCST(TBeamType T,ofstream &fo,int Si,int j)
 
 }
 //---------------------------------------------------------------------------
-void TBeamSolver::DumpBeam(int Si,TBeamType T)
+void TBeamSolver::DumpBeam(int Sn)
 {
-	AnsiString F=Structure[Si].DumpParameters.File.c_str();
+	int Si=BeamExport[Sn].Nmesh;
+	AnsiString F=BeamExport[Sn].File.c_str();
 	AnsiString s;
 
 	switch (T) {
 		case CST_PID:{F+=".pid";break;}
 		case CST_PIT:{F+=".pit";break;}
+		case ASTRA:{F+=".ini";break;}
 		case NOBEAM:{}
 		default: {F+=".dat";break;}
 	}
 
 	std::ofstream fo(F.c_str());
 
-
 	int jmin=0;
 	int jmax=BeamPar.NParticles;
 
-	if (Structure[Si].DumpParameters.N1>0 && Structure[Si].DumpParameters.N2==0) {
+	if (BeamExport[Sn].N1>0 && BeamExport[Sn].N2==0) {
 		jmin=0;
-		jmax=Structure[Si].DumpParameters.N1;
-	} else if (Structure[Si].DumpParameters.N1>0 && Structure[Si].DumpParameters.N2>0) {
-		jmin=Structure[Si].DumpParameters.N1-1;
-		jmax=Structure[Si].DumpParameters.N2;
+		jmax=BeamExport[Sn].N1;
+	} else if (BeamExport[Sn].N1>0 && BeamExport[Sn].N2>0) {
+		jmin=BeamExport[Sn].N1-1;
+		jmax=BeamExport[Sn].N2;
 	}
 
 	if (jmin>BeamPar.NParticles || jmax>BeamPar.NParticles) {
@@ -3342,14 +3454,19 @@ void TBeamSolver::DumpBeam(int Si,TBeamType T)
 		case CST_PIT: {}
 		case CST_PID: {
 			for (int j=jmin;j<jmax;j++)
-				DumpCST(T,fo,Si,j);
+				DumpCST(fo,Sn,j);
+			break;
+		}
+		case ASTRA: {
+			for (int j=jmin;j<jmax;j++)
+				DumpASTRA(fo,Sn,j,jmin);
 			break;
 		}
 		case NOBEAM:{}
 		default:{
-			DumpHeader(fo,Si,jmin,jmax);
+			DumpHeader(fo,Sn,jmin,jmax);
 			for (int j=jmin;j<jmax;j++)
-				DumpFile(fo,Si,j);
+				DumpFile(fo,Sn,j);
 		}
 	}
 	fo.close();
@@ -3465,7 +3582,6 @@ void TBeamSolver::Step(int Si)
         }
     }
 
-
 	double dBzx=Structure[Si+1].Hext.z-Structure[Si].Hext.z;
 	Par[0].Hext.z=Structure[Si].Hext.z;
 	Par[1].Hext.z=Structure[Si].Hext.z+dBzx/2;
@@ -3480,7 +3596,7 @@ void TBeamSolver::Step(int Si)
 
 	double dBthx=Structure[Si+1].Hext.th-Structure[Si].Hext.th;
 	Par[0].Hext.th=Structure[Si].Hext.th;
-	Par[1].Hext.th=Structure[Si].Hext.th+dBthrx/2;
+	Par[1].Hext.th=Structure[Si].Hext.th+dBthx/2;
 	Par[2].Hext.th=Par[1].Hext.th;
 	Par[3].Hext.th=Structure[Si+1].Hext.th;
 
@@ -3541,11 +3657,10 @@ void TBeamSolver::Solve()
 
             //if (i==0)
            //   Nliv=Beam[i]->GetLivingNumber();
-
-		if (Structure[i].Dump) {
-			DumpBeam(i);
-			if (Structure[i].DumpParameters.PID)
-				DumpBeam(i,CST_PID);
+		for (int j = 0; j < Ndump; j++) {
+			if (BeamExport[j].Nmesh==i) {
+				DumpBeam(j);
+			}
 		}
 
 		if (i==Npoints-1) break; // Nowhere to iterate

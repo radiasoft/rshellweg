@@ -57,7 +57,8 @@ void TBeamSolver::Initialize()
 	//Nbars=100; //default
     Nav=10;
     Smooth=0.95;
-    Npoints=1;
+	Npoints=1;
+	Ndump=0;
 
 	//Np=1;
    //	NpEnergy=0;
@@ -93,7 +94,9 @@ void TBeamSolver::Initialize()
     Structure=new TStructure[Npoints];
 
     InputStrings=new TStringList;
-    ParsedStrings=new TStringList;
+	ParsedStrings=new TStringList;
+
+	BeamExport=NULL;
 
     #ifndef RSLINAC
     SmartProgress=NULL;
@@ -111,6 +114,20 @@ void TBeamSolver::ResetStructure()
 	if (StructPar.Cells!=NULL) {
 		delete[] StructPar.Cells;
 		StructPar.Cells=NULL;
+	}
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::ResetDump(int Ns)
+{
+	if (BeamExport!=NULL){
+		delete[] BeamExport;
+		BeamExport=NULL;
+	}
+
+	Ndump=Ns;
+
+	if (Ns>0) {
+		BeamExport=new TDump[Ndump];
 	}
 }
 //---------------------------------------------------------------------------
@@ -660,25 +677,31 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 	TInputLine *Lines;
 	std::ifstream fs(FileName);
 	TInputParameter P;
-	int i=-1,j=0;
+	int i=-1,j=0,Ns;
 
     FILE *logFile;
-    while (!fs.eof()){
-		S=GetWord(fs);   //Hid common actions inside the function
+	while (!fs.eof()){
+		L=GetLine(fs);   //Now reads line by line
+		S=ReadWord(L,1);
+	   //	S=GetLine(fs);   //Hid common actions inside the function
 		if (S=="")
 			continue;
 		if(IsKeyWord(S) || S[1]=='!'){
 			N++;
+			if (S=="SAVE") {
+				Ns++;
+			}
 		}
 /*        logFile=fopen("BeamSolver.log","a");
-        fprintf(logFile,"ParseFile: N=%i, S=%s\n",N,S);
+		fprintf(logFile,"ParseFile: N=%i, S=%s\n",N,S);
         fclose(logFile); */
     }
 
     fs.clear();
     fs.seekg(std::ios::beg);
 
-    Lines=new TInputLine[N];
+	Lines=new TInputLine[N];
+	ResetDump(Ns);
 
 	while (!fs.eof()){
 		L=GetLine(fs);   //Now reads line by line
@@ -1602,7 +1625,7 @@ TError TBeamSolver::ParseDump(TInputLine *Line, int Ni)
 //---------------------------------------------------------------------------
 TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 {
-	int Ni=0, Nsec=0;
+	int Ni=0, Nsec=0, Ns=0;
 	double dF=0;
 	double F_last=0, P_last=0;
 
@@ -1698,7 +1721,8 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				break;
 			}
 			case DUMP:{
-				Error=ParseDump(&Lines[k],Ni);
+				Error=ParseDump(&Lines[k],Ns,Ni);
+				Ns++;
 				break;
 			}
 			case COMMENT:{

@@ -50,7 +50,7 @@ enum TLoss {LIVE,RADIUS_LOST,PHASE_LOST,BZ_LOST,BR_LOST,BTH_LOST,BETA_LOST,STEP_
 enum TGraphType {TRANS_SEC,LONGT_SEC,TRANS_SPACE,LONGT_SPACE,LONGT_MOTION,PHASE_SLID,W_SPEC,F_SPEC,R_SPEC,
 				R_TRACE,PHI_TRACE,W_TRACE,E_PLOT,EPS_PLOT,P_PLOT,W_PLOT,BETA_PLOT,R_PLOT,F_NONE};
 enum TOptType {BUNCHER,ACCELERATOR};
-enum TBeamType {NOBEAM,CST_PID,CST_PIT,TWISS_2D,TWISS_4D,SPH_2D,ELL_2D,FILE_1D,FILE_2D,TWO_FILES_2D,FILE_4D,NORM_1D,NORM_2D};
+enum TBeamType {NOBEAM,ASTRA,CST_PID,CST_PIT,TWISS_2D,TWISS_4D,SPH_2D,ELL_2D,FILE_1D,FILE_2D,TWO_FILES_2D,FILE_4D,NORM_1D,NORM_2D};
 
 enum TImportType {NO_ELEMENT,ANALYTIC_0D,IMPORT_1D};
 enum TSpaceChargeType {SPCH_NO,SPCH_ELL,SPCH_GW};
@@ -124,17 +124,25 @@ struct TBeamInput
    //	bool Magnetized;
 };
 
+struct TField
+{
+	double r;
+	double th;
+	double z;
+};
+
 struct TParticle
 {
 	double r;  //x/lmb (-Rb<x<Rb) - rename to r
-	double Cmag;
+	//double Cmag;
 	double Th;
-	double Br;
+	TField beta;
+  /*	double Br;
 	double Bth;
-	double Bz;
+	double Bz;    */
 	double phi;
 	double z;
-	double beta; //distinguish beta from bz!
+	double beta0; //full beta. distinguish beta from bz!
 	TLoss lost;
 };
 
@@ -157,7 +165,7 @@ struct TDump
    bool Energy;
    bool Radius;
    bool Azimuth;
-   bool Vx;
+   bool Divergence;
 };
 struct TCell
 {
@@ -172,14 +180,8 @@ struct TCell
 	int Mesh;
     bool Drift;
 	bool First;
-	bool Dump;
-	TDump DumpParameters;
-};
-struct TField
-{
-	double r;
-	double th;
-	double z;
+   /*	bool Dump;
+	TDump DumpParameters;  */
 };
 struct TStructure
 {
@@ -194,14 +196,14 @@ struct TStructure
     double alpha;
     double betta;
 	double Ra;
-	TField B_ext;
+	TField Hext;
    /*	double Bz_ext;
 	double Br_ext;   */
     bool jump;
     bool drift;
 	int CellNumber;
-	bool Dump;
-	TDump DumpParameters;
+  /*	bool Dump;
+	TDump DumpParameters;    */
 };
 
 struct TMagnetParameters
@@ -289,12 +291,13 @@ struct TIntegration
 	double phi;
 	TField E;
 	TField H;
+	TField beta;
 	/*double Az;
     double Ar;
-	double Hth;  */
+	double Hth;
 	double br;
 	double bth;
-	double bz;
+	double bz;   */
 	double r;
     double th;
     double A;
@@ -309,15 +312,17 @@ struct TIntParameters
     double dA;
 	double B;
 	double E;
-	TField B_ext;
+	TField Hext;
+	//TField dHext;
 	/*double Bz_ext;
 	double Br_ext;  */
 	double dH;
 	//double Cmag;
     double SumSin;
-    double SumCos;
-    double *Aqz;
-    double *Aqr;
+	double SumCos;
+	TField *Eq;
+	/*double *Aqz;
+	double *Aqr;  */
     double gamma;
     bool drift;
 };

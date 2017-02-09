@@ -37,16 +37,18 @@ private:
 	double AngErr;
 	double dh;
 
-	int Np_beam,Nstat,Ngraph,Nav,Nliv;
+	int Np_beam,Nstat,Ngraph,Nav,Nliv,Ndump;
 	double I;
 
 	TSplineType SplineType;
 	//STRUCTURE
 	TStructure *Structure;
 	TStringList *InputStrings,*ParsedStrings;
+	TDump *BeamExport;
 	TStructureInput StructPar;
 	int ChangeCells(int N);
 	void ResetStructure();
+	void ResetDump(int Ns);
 
 	int Mode_N,Mode_M,MaxCells,Nmesh,Npoints;//,Ncells,Nlim;
 	double Rb,Lb,phi0,dphi,w,betta0; //create new structure TStructure
@@ -78,7 +80,7 @@ private:
 	TError ParseMultipleCells (TInputLine *Line,int Ni,int Nsec, bool NewCell);
 	TError ParseDrift (TInputLine *Line,int Ni,int Nsec);
 	TError ParsePower (TInputLine *Line,int Nsec);
-	TError ParseDump (TInputLine *Line,int Ni);
+	TError ParseDump (TInputLine *Line,int Ns, int Ni);
 
 	TError ParsePID (TInputLine *Line, AnsiString &F);
 	TError ParsePIT (TInputLine *Line, AnsiString &F);
@@ -98,10 +100,11 @@ private:
     void GetDimensions(TCell& Cell);
 
 	//INTEGRATION
-	void DumpHeader(ofstream &fo,int Si,int jmin,int jmax);
-	void DumpFile(ofstream &fo,int Si,int j);
-	void DumpCST(TBeamType T,ofstream &fo,int Si,int j);
-	void DumpBeam(int Si,TBeamType T=NOBEAM);
+	void DumpHeader(ofstream &fo,int Sn,int jmin,int jmax);
+	void DumpFile(ofstream &fo,int Sn,int j);
+	void DumpASTRA(ofstream &fo,int Sn,int j,int jref);
+	void DumpCST(ofstream &fo,int Sn,int j);
+	void DumpBeam(int Sn);
 	void Step(int Si);
     void Integrate(int Si, int Sj);
 	void CountLiving(int Si);

@@ -124,17 +124,25 @@ struct TBeamInput
    //	bool Magnetized;
 };
 
+struct TField
+{
+	double r;
+	double th;
+	double z;
+};
+
 struct TParticle
 {
 	double r;  //x/lmb (-Rb<x<Rb) - rename to r
-	double Cmag;
+	//double Cmag;
 	double Th;
-	double Br;
+	TField beta;
+  /*	double Br;
 	double Bth;
-	double Bz;
+	double Bz;    */
 	double phi;
 	double z;
-	double beta; //distinguish beta from bz!
+	double beta0; //full beta. distinguish beta from bz!
 	TLoss lost;
 };
 
@@ -175,12 +183,6 @@ struct TCell
 	bool Dump;
 	TDump DumpParameters;
 };
-struct TField
-{
-	double r;
-	double th;
-	double z;
-};
 struct TStructure
 {
     double ksi;
@@ -194,7 +196,7 @@ struct TStructure
     double alpha;
     double betta;
 	double Ra;
-	TField B_ext;
+	TField Hext;
    /*	double Bz_ext;
 	double Br_ext;   */
     bool jump;
@@ -287,14 +289,15 @@ struct TSpectrumBar
 struct TIntegration
 {
 	double phi;
-	TField A;
+	TField E;
 	TField H;
+	TField beta;
 	/*double Az;
     double Ar;
-	double Hth;  */
+	double Hth;
 	double br;
 	double bth;
-	double bz;
+	double bz;   */
 	double r;
     double th;
     double A;
@@ -309,15 +312,17 @@ struct TIntParameters
     double dA;
 	double B;
 	double E;
-	TField B_ext;
+	TField Hext;
+	//TField dHext;
 	/*double Bz_ext;
 	double Br_ext;  */
 	double dH;
 	//double Cmag;
     double SumSin;
-    double SumCos;
-    double *Aqz;
-    double *Aqr;
+	double SumCos;
+	TField *Eq;
+	/*double *Aqz;
+	double *Aqr;  */
     double gamma;
     bool drift;
 };

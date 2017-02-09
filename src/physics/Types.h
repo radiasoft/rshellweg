@@ -50,7 +50,7 @@ enum TLoss {LIVE,RADIUS_LOST,PHASE_LOST,BZ_LOST,BR_LOST,BTH_LOST,BETA_LOST,STEP_
 enum TGraphType {TRANS_SEC,LONGT_SEC,TRANS_SPACE,LONGT_SPACE,LONGT_MOTION,PHASE_SLID,W_SPEC,F_SPEC,R_SPEC,
 				R_TRACE,PHI_TRACE,W_TRACE,E_PLOT,EPS_PLOT,P_PLOT,W_PLOT,BETA_PLOT,R_PLOT,F_NONE};
 enum TOptType {BUNCHER,ACCELERATOR};
-enum TBeamType {NOBEAM,CST_PID,CST_PIT,TWISS_2D,TWISS_4D,SPH_2D,ELL_2D,FILE_1D,FILE_2D,TWO_FILES_2D,FILE_4D,NORM_1D,NORM_2D};
+enum TBeamType {NOBEAM,ASTRA,CST_PID,CST_PIT,TWISS_2D,TWISS_4D,SPH_2D,ELL_2D,FILE_1D,FILE_2D,TWO_FILES_2D,FILE_4D,NORM_1D,NORM_2D};
 
 enum TImportType {NO_ELEMENT,ANALYTIC_0D,IMPORT_1D};
 enum TSpaceChargeType {SPCH_NO,SPCH_ELL,SPCH_GW};
@@ -157,15 +157,17 @@ struct TPhaseSpace
 struct TDump
 {
    std::string File;//char *File;
-   int N1;
+   int NElement;
+   int Nmesh;
+   int N1;  //limits
    int N2;
-   bool PID;
+   TBeamType SpecialFormat;
    bool LiveOnly;
    bool Phase;
    bool Energy;
    bool Radius;
    bool Azimuth;
-   bool Vx;
+   bool Divergence;
 };
 struct TCell
 {
@@ -180,8 +182,8 @@ struct TCell
 	int Mesh;
     bool Drift;
 	bool First;
-	bool Dump;
-	TDump DumpParameters;
+   /*	bool Dump;
+	TDump DumpParameters;  */
 };
 struct TStructure
 {
@@ -202,8 +204,8 @@ struct TStructure
     bool jump;
     bool drift;
 	int CellNumber;
-	bool Dump;
-	TDump DumpParameters;
+  /*	bool Dump;
+	TDump DumpParameters;    */
 };
 
 struct TMagnetParameters
