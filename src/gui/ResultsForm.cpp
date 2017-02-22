@@ -1426,7 +1426,7 @@ void TResForm::BinsChanged()
 	int Pos=BinsTrack->Position;
 	double Nb=pow(10,1+Pos/6.0);
 	int Order=1+Pos/6;
-	double Nround=round(Nb/pow(10,Order))*pow(10,Order);
+	double Nround=round(Nb/pow(10.,Order))*pow(10.,Order);
 	NumBins=Nround;
 	BinsLabel->Caption=S.FormatFloat("0",NumBins);
     Solver->SetBarsNumber(NumBins);
