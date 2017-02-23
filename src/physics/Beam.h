@@ -3,6 +3,7 @@
 #ifndef BeamH
 #define BeamH
 
+#include "Functions.h"
 #include "Spectrum.h"
 #include "SpectrumPhase.h"
 #include <stdlib.h>
@@ -43,7 +44,8 @@ private:
 
 	double *GetLivingParameter(TBeamParameter P);
 	TGauss GetStatistics(TBeamParameter P,bool FWHM=false);
-	TGauss GetStatistics(double *X,bool FWHM=false);
+	TGauss GetStatistics(double *X,bool FWHM=false,bool Core=false);
+
 	TSpectrum *GetSpectrum(TBeamParameter P);
 	TSpectrum *GetSpectrum(double *X);
 	TSpectrumBar *GetSpectrumBar(double *X,bool Smooth=false);
@@ -117,10 +119,13 @@ public:
 	double GetCurrent();
 	double GetInputCurrent();
 
-    double iGetAverageEnergy(TIntParameters& Par,TIntegration *I);
-    double iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices, bool SpectrumOutput=false);
-    double iGetBeamRadius(TIntParameters& Par,TIntegration *I, bool SpectrumOutput=false);
-    double iGetAveragePhase(TIntParameters& Par,TIntegration *I);
+	double iGetAverageEnergy(TIntParameters& Par,TIntegration *I);
+	//double iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices, bool SpectrumOutput=false);
+	//double iGetBeamRadius(TIntParameters& Par,TIntegration *I, bool SpectrumOutput=false);
+	//double iGetAveragePhase(TIntParameters& Par,TIntegration *I);
+
+	TGauss iGetBeamRadius(TIntParameters& Par,TIntegration *I,TBeamParameter P=R_PAR);
+	TGauss iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices=1);
 
     double SinSum(TIntParameters& Par,TIntegration *I);
     double CosSum(TIntParameters& Par,TIntegration *I);

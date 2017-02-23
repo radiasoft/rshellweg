@@ -8,6 +8,7 @@
 // #include "Spline.h"
 // #include "Matrix.h"
 
+#include "Functions.h"
 #include "Beam.h"
 #include "Matrix.h"
 #include "Spline.h"
@@ -97,7 +98,9 @@ private:
 	double *LinearInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
     double *SplineInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
     double *SmoothInterpolation(double *x,double *X,double *Y,int Nbase,int Nint,double p0,double *W=NULL);
-    void GetDimensions(TCell& Cell);
+	void GetDimensions(TCell& Cell);
+	double FormFactor(double ryrx, double rxrz, TBeamParameter P, double s=0);
+	double GetEigenFactor(double x, double y, double z,double a, double b, double c);
 
 	//INTEGRATION
 	void DumpHeader(ofstream &fo,int Sn,int jmin,int jmax);

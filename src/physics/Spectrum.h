@@ -3,6 +3,7 @@
 #ifndef SpectrumH
 #define SpectrumH
 
+#include "Functions.h"
 #include "Spline.h"
 // #include "Types.h"
 
@@ -34,7 +35,10 @@ public:
     double GetAverage();
     double GetDispersion();
     double GetSquareDeviation();
-    double GetWidth();
+	double GetWidth();
+	int GetCorePoints(double Rcore);
+	double GetCore(double Rcore);
+	double GetCore();
 };
 
 //---------------------------------------------------------------------------

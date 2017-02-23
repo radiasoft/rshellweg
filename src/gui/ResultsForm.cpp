@@ -10,7 +10,7 @@
 
 TResForm *ResForm;
 
-using namespace HellwegTypes;
+//using namespace HellwegTypes;
 //---------------------------------------------------------------------------
 __fastcall TResForm::TResForm(TComponent* Owner)
     : TForm(Owner)
@@ -71,7 +71,7 @@ void TResForm::CreateTable()
     Table->ColWidths[colValue]=50;
 
     Table->Cells[colName][pZ]="Position, cm";
-	Table->Cells[colName][pWav]="Energy Spread (FWHM), MeV";
+	Table->Cells[colName][pWav]="Average Energy, MeV";
     Table->Cells[colName][pWm]="Maximum Energy, MeV";
     Table->Cells[colName][pI]="Beam Current, mA";
     Table->Cells[colName][pkc]="Transmitted, %";
@@ -81,7 +81,8 @@ void TResForm::CreateTable()
 	Table->Cells[colName][pRa]="Aperture, mm";
 	Table->Cells[colName][pPb]="Beam Power, MW";
 	Table->Cells[colName][pvph]="Phase Velocity (beta)";
-	Table->Cells[colName][pdW]="Energy Spectrum (FWHM), %";
+	Table->Cells[colName][pdW]="Energy Spread (FWHM), MeV";
+	Table->Cells[colName][pdWp]="Energy Spectrum (FWHM), %";
 	Table->Cells[colName][pE]="Field Strength, MV/m";
 	Table->Cells[colName][pcoord]="Coordinate:";
 	Table->Cells[colName][pr]="Beam Radius (rms), mm";
@@ -1396,6 +1397,7 @@ void TResForm::ShowParameters()
 	Table->Cells[colValue][pZ]=s.FormatFloat("#0.000",100*z);
 	Table->Cells[colValue][pWav]=s.FormatFloat("#0.000",Gw.mean);
 	Table->Cells[colValue][pdW]=s.FormatFloat("#0.00",Gw.sigma);
+	Table->Cells[colValue][pdWp]=s.FormatFloat("#0.000",100*Gw.sigma/Gw.mean);
 	Table->Cells[colValue][pWm]=s.FormatFloat("#0.000",Wm);
 	Table->Cells[colValue][pI]=s.FormatFloat("#0.00",1e3*I);
     Table->Cells[colValue][pkc]=s.FormatFloat("#0.00",kc);

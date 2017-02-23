@@ -22,26 +22,27 @@
 
 #include "BeamSolver.h"
 
-const int Npar=18;
+const int Npar=20;
 const int pZ=0;
 const int pWav=1;
 const int pWm=2;
 const int pdW=3;
-const int pI=4;
-const int pkc=5;
-const int pFav=6;
-const int pdF=7;
-const int pF=8;
-const int pRa=9;
-const int pE=10;
-const int pPb=11;
-const int pvph=12;
-const int pcoord=13;
-const int pr=14;
-const int palpha=15;
-const int pbetta=16;
-const int peps=17;
-const int pepsn=18;
+const int pdWp=4;
+const int pI=5;
+const int pkc=6;
+const int pFav=7;
+const int pdF=8;
+const int pF=9;
+const int pRa=10;
+const int pE=11;
+const int pPb=12;
+const int pvph=13;
+const int pcoord=14;
+const int pr=15;
+const int palpha=16;
+const int pbetta=17;
+const int peps=18;
+const int pepsn=19;
 
 const int colName=0;
 const int colValue=1;

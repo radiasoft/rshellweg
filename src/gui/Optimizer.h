@@ -5,7 +5,7 @@
 
 #include "Types.h"
 
-using namespace HellwegTypes;
+//using namespace HellwegTypes;
 
 class TOptimizer
 {

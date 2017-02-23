@@ -13,6 +13,7 @@
 #include <Vcl.Dialogs.hpp>
 
 #include "Types.h"
+#include "Functions.h"
 #include "BeamSolver.h"
 #include "GeometryForm.h"
 #include "ResultsForm.h"

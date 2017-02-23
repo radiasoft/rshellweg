@@ -169,7 +169,7 @@ object ResForm: TResForm
       Title.Font.Height = -32
       Title.Text.Strings = (
         'TChart')
-      BottomAxis.AxisValuesFormat = '#,##0.0'
+      BottomAxis.AxisValuesFormat = '#,##0.00'
       BottomAxis.LabelsAngle = 90
       BottomAxis.LabelsFormat.Font.Height = -24
       BottomAxis.LabelsSeparation = 0

@@ -285,7 +285,7 @@ void TGeomForm::DrawBeamEnvelope(TLineSeries *Series0,TBeamSolver *Solver,TColor
 //---------------------------------------------------------------------------
 void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
 {
-    using namespace HellwegTypes ;
+    //using namespace HellwegTypes ;
     Series0->Clear();
 
     int Np=Solver->GetNumberOfParticles();
@@ -329,8 +329,8 @@ void TGeomForm::DrawBeam(TPointSeries *Series0,TBeamSolver *Solver,TColor Col1)
 				break;
 			}
 			case (wphi_chart):{
-				P1=W_PAR;
-				P2=PHI_PAR;
+				P1=PHI_PAR;
+				P2=W_PAR;
 				break;
 			}
 

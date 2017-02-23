@@ -18,6 +18,7 @@
 #include <VCLTee.TeeProcs.hpp>
 
 #include "Types.h"
+#include "Functions.h"
 #include "BeamSolver.h"
 
 

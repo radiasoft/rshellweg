@@ -492,6 +492,8 @@ TSpaceChargeType TBeamSolver::ParseSpchType(AnsiString &S)
 	TSpaceChargeType T;;
 
 	if (S=="COULOMB")
+		T=SPCH_LPST;
+	else if (S=="ELLIPTIC")
 		T=SPCH_ELL;
 	else if (S=="GWMETHOD")
 		T=SPCH_GW;
@@ -1073,10 +1075,11 @@ TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 	AnsiString F="SPCHARGE ",S;
 	BeamPar.SpaceCharge.Type=SPCH_NO;
 	BeamPar.SpaceCharge.NSlices=1;
+	BeamPar.SpaceCharge.Nrms=3;
 
 	if (Line->N==0){
 		BeamPar.SpaceCharge.Type=SPCH_ELL;
-		F=F+"\t"+"COULOMB";
+		F=F+"\t"+"ELLIPTIC";
 	}else if (Line->N<3) {
 		BeamPar.SpaceCharge.Type=ParseSpchType(Line->S[0]);
 		F=F+"\t"+Line->S[0];
@@ -1088,7 +1091,14 @@ TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 				}
 				break;
 			}
-			case SPCH_ELL: {}
+			case SPCH_LPST: { }
+			case SPCH_ELL: {
+				if (Line->N==2){
+					BeamPar.SpaceCharge.Nrms=Line->S[1].ToDouble();
+					F=F+"\t"+Line->S[1];
+				}
+				break;
+			}
 			case SPCH_NO: { break;}
 			default: {return ERR_SPCHARGE;};
 		}
@@ -3063,103 +3073,309 @@ void TBeamSolver::Abort()
 	Stop=true;
 }
 //---------------------------------------------------------------------------
+double TBeamSolver::GetEigenFactor(double x, double y, double z,double a, double b, double c)
+{
+	double s=0,s1=0,s2=0,s3=0;
+	double A=0, B=0, C=0, D=0;
+	double q=0, p=0, Q=0;
+	double rho=0, cph=0, phi=0;
+
+	double xx=sqr(x/a),yy=sqr(y/b),zz=sqr(z/c),bb=sqr(a/b),cc=sqr(a/c);
+
+	A=bb*cc;
+	//B=(bb*cc+bb+cc)-(xx*bb*cc+yy*cc+zz*bb);
+	B=A*(1-xx)+bb*(1-zz)+cc*(1-zz);
+	//C=1-yy-zz+bb*(1-xx-zz)+cc*(1-xx-yy);
+	//C=(1-xx)*(bb+cc)-yy*(1+cc)-zz*(1+bb);
+	C=1+bb+cc-xx*(bb+cc)-yy*(1+cc)-zz*(1+bb);
+	D=1-(xx+yy+zz);
+
+	p=C/A-sqr(B/A)/3;
+	q=(2*cub(B)-9*A*B*C+27*sqr(A)*D)/(27*cub(A));
+	Q=cub(p/3)+sqr(q/2);
+
+	if (Q>0) {
+		s=cubrt(sqrt(Q)-q/2)-cubrt(sqrt(Q)+q/2);
+	} else if (Q=0) {
+		s1=2*cubrt(q/2);
+		s2=-2*cubrt(q/2);
+		s=s2>s1?s2:s1;
+	} else {
+		rho=sqrt(-p/3);//sqrt(-cub(p)/27);
+		//cph=-q/(2*rho);
+		cph=-q*pow(-3/p,1.5)/2;
+		phi=acos(cph);
+		//double r=sqrt(-p/3);
+		s1=2*rho*cos(phi/3);
+		s2=2*rho*cos(phi/3+2*pi/3);
+		s3=2*rho*cos(phi/3+4*pi/3);
+		s=s2>s1?s2:s1;
+		s=s3>s?s3:s;
+		s=/*sqr(a)*/(s-B/(3*A));
+    }
+
+	return s;
+}
+//---------------------------------------------------------------------------
+double TBeamSolver::FormFactor(double ryrx, double rxrz, TBeamParameter P, double s)
+{
+	int kx=0, ky=0, kz=0, Nx=Nryrx, Ny=Nrxrz, Nz=Nlmb, Ndim=8;
+	double *M=NULL;
+	double *X=(double *)RYRX;
+	double *Y=(double *)RXRZ;
+	double *Z=(double *)LMB;
+	double F=0;
+	double x=ryrx, y=rxrz, z=s;
+
+	//M=new double** [Ny];
+
+
+	if (x<=X[0]){
+		x=X[0];
+		kx=0;
+	}else if (x>=X[Nx-1]){
+		x=X[Nx-1];
+		kx=Nx-2;
+	}else {
+		for (int i = 1; i < Nx; i++) {
+			if (x<X[i]) {
+				kx=i-1;
+				break;
+			}
+		}
+	}
+
+	if (y<=Y[0]){
+		y=Y[0];
+		ky=0;
+	}else if (y>=Y[Ny-1]){
+		y=Y[Ny-1];
+		ky=Ny-2;
+	}else {
+		for (int i = 1; i < Ny; i++) {
+			if (y<Y[i]) {
+				ky=i-1;
+				break;
+			}
+		}
+	}
+
+	if (z<=Z[0]){
+		z=Z[0];
+		kz=0;
+	}else if (z>=Z[Nz-1]){
+		z=Z[Nz-1];
+		kz=Nz-2;
+		return 0;
+	}else {
+		for (int i = 1; i < Nz; i++) {
+			if (z<Z[i]) {
+				kz=i-1;
+				break;
+			}
+		}
+	}
+
+	M=new double [Ndim]; //4*kz + 2*ky + kx
+
+	for (int i=0; i<=1; i++){
+		for (int j=0; j<=1; j++){
+			for (int k=0; k<=1; k++){
+				switch (P) {
+					case X_PAR:{
+						M[4*k+2*j+i]=MX[kz+k][ky+j][kx+i];
+						break;
+					}
+					case Y_PAR:{
+						M[4*k+2*j+i]=MY[kz+k][ky+j][kx+i];
+						break;
+					}
+					case Z0_PAR:{
+						M[4*k+2*j+i]=MZ[kz+k][ky+j][kx+i];
+						//M[4*k+2*j+i]=MZ[kz+k][ky+j][kx+i];
+						break;
+					}
+					default:{
+						M[4*k+2*j+i]=0;
+					}
+				}
+			//	if (M[4*k+2*j+i]>0)
+					M[4*k+2*j+i]=log(M[4*k+2*j+i]);
+			 //	else
+				 //	ShowMessage("Pidor!");
+			}
+		}
+	}
+
+	//M[0]=M[kz][ky][kx];
+	//M[1=M[kz][ky][kx+1];
+	//M[2]=M[kz][ky+1][kx];
+	//M[3]=M[kz][ky+1][kx+1];
+	//M[4]=M[kz+1][ky][kx];
+	//M[5]=M[kz+1][ky][kx+1];
+	//M[6]=M[kz+1][ky+1][kx];
+	//M[7]=M[kz+1][ky+1][kx+1];
+
+	/*F=(M[ky][kx]*(X[kx+1]-x)*(Y[ky+1]-y)+M[ky][kx+1]*(x-X[kx])*(Y[ky+1]-y)+
+	M[ky+1][kx]*(X[kx+1]-x)*(y-Y[ky])+M[ky+1][kx+1]*(x-X[kx])*(y-Y[ky]))/((X[kx+1]-X[kx])*(Y[ky+1]-Y[ky]));*/
+
+	F=M[0]*(X[kx+1]-x)*(Y[ky+1]-y)*(Z[kz+1]-z)+
+	M[1]*(x-X[kx])*(Y[ky+1]-y)*(Z[kz+1]-z)+
+	M[2]*(X[kx+1]-x)*(y-Y[ky])*(Z[kz+1]-z)+
+	M[3]*(x-X[kx])*(y-Y[ky])*(Z[kz+1]-z)+
+	M[4]*(X[kx+1]-x)*(Y[ky+1]-y)*(z-Z[kz])+
+	M[5]*(x-X[kx])*(Y[ky+1]-y)*(z-Z[kz])+
+	M[6]*(X[kx+1]-x)*(y-Y[ky])*(z-Z[kz])+
+	M[7]*(x-X[kx])*(y-Y[ky])*(z-Z[kz]);
+
+	F/=(X[kx+1]-X[kx])*(Y[ky+1]-Y[ky])*(Z[kz+1]-Z[kz]);
+
+	delete[] M;
+
+	return exp(F);
+}
+//---------------------------------------------------------------------------
 void TBeamSolver::Integrate(int Si, int Sj)
 {
-
-	double Rb=0,Lb=0,Fb=0,gamma=1,Mr=0,phic=0,Icur=0,lmb=0;
+	double gamma0=1,Mr=0,Nr=0,/*phic=0,*/Qbunch=0,Rho=0,lmb=0,Icur=0;
+	double Mx=0,My=0,Mz=0,Mxx=0,Myy=0,Mzz=0,ix=0,iy=0,p=0,M=0;
 	int component=0;
 	TParticle *Particle=Beam[Si]->Particle;
 
-	phic=Beam[Si]->iGetAveragePhase(Par[Sj],K[Sj]);
+	//phic=Beam[Si]->iGetAveragePhase(Par[Sj],K[Sj]);
 	Par[Sj].SumSin=0;
 	Par[Sj].SumCos=0;
 	Par[Sj].SumSin=Beam[Si]->SinSum(Par[Sj],K[Sj]);
     Par[Sj].SumCos=Beam[Si]->CosSum(Par[Sj],K[Sj]);
 
-	gamma=Beam[Si]->iGetAverageEnergy(Par[Sj],K[Sj]);
-    Par[Sj].gamma=gamma;
+	gamma0=Beam[Si]->iGetAverageEnergy(Par[Sj],K[Sj]);
+	Par[Sj].gamma=gamma0;
 
-	Lb=Beam[Si]->iGetBeamLength(Par[Sj],K[Sj],Nslices,false)/2;
-	lmb=Beam[Si]->lmb;
-    Fb=Lb*2*pi/lmb;
-
-    Rb=Beam[Si]->iGetBeamRadius(Par[Sj],K[Sj],false);
-    
-	Icur=I;//*Lb/lmb;
-
-    if (Rb==0)
-        Mr=0;
-	else
-		Mr=FormFactor(gamma*Lb/Rb);
-
- /*	Par[Sj].Bz_ext*=lmb*c/We0;
-	Par[Sj].dH*=lmb*c/We0;
-	Par[Sj].Br_ext*=lmb*c/We0;     */
-   //	Par[Sj].Cmag*=lmb*c/We0;
-   //   Par[Sj].Bz_ext*=lmb/(myu0*We0);
-
-  /*	if (BeamPar.Magnetized)
-		Par[Sj].Cmag=Structure[0].B_ext*lmb*c/We0;
-	else
-		Par[Sj].Cmag=0;      */
-
-    double phi=0,r=0;
-	double Aqz=0,Aqr=0;
+	double x0=0,y0=0,z0=0,rx=0,ry=0,rz=0/*,rb=0*/,V=0,Mcore=1,Ncore=0;
+	double Nrms=BeamPar.SpaceCharge.Nrms;
 
 	Par[Sj].Eq=new TField[BeamPar.NParticles];
+
+	//FILE *Fout=fopen("spch.log","a");
+	//fprintf(Fout,"x y z lambda Mx My Mz\n");
+	//fprintf(Fout,"x Ex\n");
+	//fprintf(Fout,"%f %f %f %f %f %f %f %f %f\n",n,Ncore,Mcore,1e9*Qbunch,V,Rho,Mz,Rho*Mz,Rho*Mz*rz);
+
 	for (int i=0;i<BeamPar.NParticles;i++){
 		Par[Sj].Eq[i].z=0;
 		Par[Sj].Eq[i].r=0;
 		Par[Sj].Eq[i].th=0;
-		if (Particle[i].lost==LIVE){
-			phi=Particle[i].phi+K[Sj][i].phi*Par[Sj].h;
-			r=(Particle[i].r+K[Sj][i].r*Par[Sj].h)*lmb;
-			double V=mod(sqr(Rb)*Lb);
-			double z=(phi-phic)*lmb/(2*pi);
-			if (Rb!=0 && Lb!=0){
-                switch (BeamPar.SpaceCharge.Type) {
-					case SPCH_ELL: {
-						//Par[Sj].Aqz=3*lmb*Mr*(phi-phic)*(Icur/Ia)/(sqr(gamma)*sqr(Rb)*Fb);     // old expression
-						//Par[Sj].Aqz[i]=kFc*(3*Icur*lmb)*(Mr*z/V);                              // Es; original Hellweg expression
-						Par[Sj].Eq[i].z=(-2)*2*kFc*(3*Icur*lmb)*(Mr*z/V);                         // Es; corrected (YuE) expression
-						Par[Sj].Eq[i].z*=(lmb/We0);  //A
+	}
 
-						Par[Sj].Eq[i].r=2*kFc*(3*Icur*lmb)/gamma*(0.5*(1+Mr)*r/V);                // E; corrected (YuE) expression
-						Par[Sj].Eq[i].r*=(lmb/We0);  //A
+	Ncore=0;
+	switch (BeamPar.SpaceCharge.Type) {   //SPACE CHARGE
+		case SPCH_LPST: {}
+		case SPCH_ELL: {
+			TGauss Gx,Gy,Gz;
+			Gx=Beam[Si]->iGetBeamRadius(Par[Sj],K[Sj],X_PAR);
+			Gy=Beam[Si]->iGetBeamRadius(Par[Sj],K[Sj],Y_PAR);
+			Gz=Beam[Si]->iGetBeamLength(Par[Sj],K[Sj]);//BeamPar.SpaceCharge.NSlices);
 
-						/*Par[Sj].Aqr[i]=2*kFc*(3*Icur*lmb)/gamma*(0.5*(1+Mr)*r/V);                // E; corrected (YuE) expression
-						Par[Sj].Aqr[i]*=(lmb/We0);  //A */
-						/*FILE *Fout;
-						if ((i == 0) || (i == 999)) {
-							Fout=fopen("yeDebug_SK.log","a");
-							fprintf(Fout,"TBeamSolver::Integrate (Coulomb): i=%d, Si=%d, Sj=%d, Rb=%g, Lb=%g, r=%g, z=%g, Aqz[i]=%g, Aqr[i]=%g\n",
-								i,Si,Sj,Rb,Lb,r,z,Par[Sj].Aqz[i],Par[Sj].Aqr[i]);
-							fclose(Fout);
-						} */
-						//k1F[i]:=dF_dx(bv[j-1],Beam[i,5,j-1],A[j-1],Btmp,SinSum);
-						break;
+			x0=Gx.mean;
+			y0=Gy.mean;
+			z0=Gz.mean;
+
+			rx=Nrms*Gx.sigma;
+			ry=Nrms*Gy.sigma;
+			rz=Nrms*Gz.sigma;
+
+			lmb=Beam[Si]->lmb;
+			Icur=Beam[Si]->GetCurrent();
+			Qbunch=Icur*lmb/c;
+			V=mod(4*pi*rx*ry*rz/3);
+			Rho=Qbunch/V;
+			//Rho*=2*pi/eps0;
+			Rho/=eps0;
+
+			if (V!=0) {
+				if (BeamPar.SpaceCharge.Type==SPCH_LPST) {  //Lapostolle
+					p=gamma0*rz/sqrt(rx*ry);
+					M=FormFactorLpst(p);
+				} else {     //Elliptic
+					ix=ry/rx;
+					iy=rx/rz;
+					Mx=FormFactor(ix,iy,X_PAR);
+					My=FormFactor(ix,iy,Y_PAR);
+					Mz=FormFactor(ix,iy,Z0_PAR);
+				}
+				for (int i=0;i<BeamPar.NParticles;i++){
+					if (Particle[i].lost==LIVE){
+						double x=0,y=0,z=0,r=0,th=0,phi=0,gamma=1,g2=1;
+						double Ex=0,Ey=0,Ez=0;
+						double r3=0,s=0;
+
+						phi=Particle[i].phi+K[Sj][i].phi*Par[Sj].h;
+						r=(Particle[i].r+K[Sj][i].r*Par[Sj].h)*lmb;
+						th=Particle[i].Th+K[Sj][i].th*Par[Sj].h;
+
+						x=r*cos(th)-x0;
+						y=r*sin(th)-y0;
+						z=phi*lmb/(2*pi)-z0;
+						r3=sqr(x/rx)+sqr(y/ry)+sqr(z/rz);
+						gamma=VelocityToEnergy(Particle[i].beta.z+K[Sj][i].beta.z*Par[Sj].h); //change to beta
+						g2=1/sqr(gamma);
+
+						if  (BeamPar.SpaceCharge.Type==SPCH_LPST) { //Lapostolle
+							Ex=Rho*(1-M)*x*ry/(rx+ry);
+							Ey=Rho*(1-M)*x*rx/(rx+ry);
+							Ez=Rho*M*z;
+						}  else {//Elliptic
+							if (r3<1) {
+								s=0;
+								Ex=Rho*Mx*x;
+								Ey=Rho*My*y;
+								Ez=Rho*Mz*z;
+								Ncore++;
+							} else {
+								s=GetEigenFactor(x,y,z,rx,ry,rz);
+								Mxx=FormFactor(ix,iy,X_PAR,s);
+								Myy=FormFactor(ix,iy,Y_PAR,s);
+								Mzz=FormFactor(ix,iy,Z0_PAR,s);
+
+								Ex=Rho*Mxx*x/2;
+								Ey=Rho*Myy*y/2;
+								Ez=Rho*Mzz*z/2;
+							}
+						}
+
+						Ex*=(g2*lmb/We0);
+						Ey*=(g2*lmb/We0);
+						Ez*=(lmb/We0);
+
+						Par[Sj].Eq[i].z=Ez;
+						Par[Sj].Eq[i].r=Ex*cos(th)+Ey*sin(th);
+						Par[Sj].Eq[i].th=-Ex*sin(th)+Ey*cos(th);
 					}
-					case SPCH_GW: {
-						Par[Sj].Eq[i].z=kFc*Icur*lmb*GaussIntegration(r,z,Rb,Lb,3);  // E;  (YuE) expression
-						Par[Sj].Eq[i].z*=(lmb/We0);                     // A
-						Par[Sj].Eq[i].r=kFc*Icur*lmb*GaussIntegration(r,z,Rb,Lb,1);  // E;  (YuE) expression
-						Par[Sj].Eq[i].r*=(lmb/We0);                     // A
-				  // A
-						/*FILE *Fout;
-						if ((i == 0) || (i == 999)) {
-							Fout=fopen("yeDebug_GW.log","a");
-							fprintf(Fout,"TBeamSolver::Integrate (GWmethod): i=%d, Si=%d, Sj=%d, Rb=%g, Lb=%g, r=%g, z=%g, Aqz[i]=%g, Aqr[i]=%g\n",
-								i,Si,Sj,Rb,Lb,r,z,Par[Sj].Aqz[i],Par[Sj].Aqr[i]);
-							fclose(Fout);
-						}  */
-						break;
+				}
+				if (BeamPar.SpaceCharge.Type==SPCH_LPST) {
+					Mcore=Ncore/Nliv;
+					for (int i=0;i<BeamPar.NParticles;i++){
+						Par[Sj].Eq[i].z*=Mcore;
+						Par[Sj].Eq[i].r*=Mcore;
+						Par[Sj].Eq[i].th*=Mcore;
 					}
-					case SPCH_NO:{}
-					default: {};
 				}
 			}
+			break;
 		}
+		case SPCH_GW: {
+		  /*	for (int i=0;i<BeamPar.NParticles;i++){
+				Par[Sj].Eq[i].z=kFc*Icur*lmb*GaussIntegration(r,z,Rb,Lb,3);  // E;  (YuE) expression
+				Par[Sj].Eq[i].z*=(lmb/We0);                     // A
+				Par[Sj].Eq[i].r=kFc*Icur*lmb*GaussIntegration(r,z,Rb,Lb,1);  // E;  (YuE) expression
+				Par[Sj].Eq[i].r*=(lmb/We0);                     // A
+			}     */
+			break;
+		}
+		case SPCH_NO:{}
+		default: { };
 	}
+	//fclose(Fout);
 
 	Beam[Si]->Integrate(Par[Sj],K,Sj);
 	delete[] Par[Sj].Eq;
@@ -3355,7 +3571,7 @@ void TBeamSolver::DumpASTRA(ofstream &fo,int Sn,int j,int jref)
 	fo<<s.c_str();
 	s=s.FormatFloat("#.##############e+0 ",1e9*clock);
 	fo<<s.c_str();
-	s=s.FormatFloat("#.##############e+0 ",q);
+	s=s.FormatFloat("#.##############e+0 ",1e9*q);
 	fo<<s.c_str();
 	s=s.FormatFloat("0 ",index);
 	fo<<s.c_str();

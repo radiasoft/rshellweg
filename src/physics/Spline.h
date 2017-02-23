@@ -5,8 +5,9 @@
 
 #include "Matrix.h"
 #include "Types.h"
+#include "Functions.h"
 
-using namespace HellwegTypes;
+//using namespace HellwegTypes;
 //---------------------------------------------------------------------------
 class TSpline
 {

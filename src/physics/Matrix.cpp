@@ -6,7 +6,7 @@
 #include "Matrix.h"
 
 using namespace HellwegMatrix;
-using namespace HellwegTypes;
+//using namespace HellwegTypes;
 //---------------------------------------------------------------------------
 __fastcall TMatrix::TMatrix(int N0,int M0)
 {
