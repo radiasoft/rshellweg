@@ -3352,7 +3352,7 @@ void TBeamSolver::Integrate(int Si, int Sj)
 						Par[Sj].Eq[i].th=-Ex*sin(th)+Ey*cos(th);
 					}
 				}
-				if (BeamPar.SpaceCharge.Type==SPCH_LPST) {
+				if (BeamPar.SpaceCharge.Type==SPCH_ELL) {// elliptic
 					Mcore=Ncore/Nliv;
 					for (int i=0;i<BeamPar.NParticles;i++){
 						Par[Sj].Eq[i].z*=Mcore;
