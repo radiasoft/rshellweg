@@ -22,14 +22,14 @@
 
 #include "BeamSolver.h"
 
-const int Npar=17;
+const int Npar=20;
 const int pZ=0;
 const int pWav=1;
 const int pWm=2;
 const int pdW=3;
-const int pI=4;
-const int pkc=5;
-const int pr=6;
+const int pdWp=4;
+const int pI=5;
+const int pkc=6;
 const int pFav=7;
 const int pdF=8;
 const int pF=9;
@@ -37,12 +37,21 @@ const int pRa=10;
 const int pE=11;
 const int pPb=12;
 const int pvph=13;
-const int peps=14;
-const int palpha=15;
-const int pbetta=16;
+const int pcoord=14;
+const int pr=15;
+const int palpha=16;
+const int pbetta=17;
+const int peps=18;
+const int pepsn=19;
 
 const int colName=0;
 const int colValue=1;
+
+const int r_coord=0;
+const int x_coord=1;
+const int y_coord=2;
+const int r4D_coord=3;
+const int th_coord=4;
 //---------------------------------------------------------------------------
 class TResForm : public TForm
 {
@@ -51,7 +60,6 @@ __published:    // IDE-managed Components
     TPanel *BottomPanel;
     TPanel *RightPanel;
     TChart *PackChart;
-    TLineSeries *PackSeries;
     TSpeedButton *EnergyButton;
     TSpeedButton *PhaseButton;
     TSpeedButton *RadiusButton;
@@ -95,8 +103,7 @@ __published:    // IDE-managed Components
     TChart *SpectrumChart;
     TBarSeries *SpectrumSeries;
     TLineSeries *SpecEnvSeries;
-    TSpeedButton *AvRadiusButton;
-    TGroupBox *GroupBox1;
+	TGroupBox *OptionsBox;
     TCheckBox *EnvelopeCheck;
     TCheckBox *ChartCheck;
     TCheckBox *HorFitCheck;
@@ -112,6 +119,33 @@ __published:    // IDE-managed Components
     TMenuItem *Exit1;
     TOpenDialog *OpenDialog;
     TSaveDialog *SaveDialog;
+	TRadioGroup *RadiusGroup;
+	TButton *RSpectrumButton;
+	TTrackBar *KernelTrack;
+	TGroupBox *KernelBox;
+	TLabel *KernelMinLabel;
+	TLabel *KernelMaxLabel;
+	TLabel *KernelLabel;
+	TLineSeries *PackSeries;
+	TGroupBox *AccuracyGroup;
+	TTrackBar *AccuracyTrack;
+	TLabel *AccuracyMinLabel;
+	TLabel *AccuracyMaxLabel;
+	TLabel *AccuracyLabel;
+	TCheckBox *TransparentCheck;
+	TGroupBox *TraceGroup;
+	TGroupBox *PlotGroup;
+	TButton *AvRadiusButton;
+	TGroupBox *SpectrumGroup;
+	TGroupBox *SpaceGroup;
+	TGroupBox *OtherGroup;
+	TGroupBox *BinsGroup;
+	TLabel *BinsMinLable;
+	TLabel *BinsMaxLabel;
+	TLabel *BinsLabel;
+	TTrackBar *BinsTrack;
+	TButton *EmittanceButton;
+	TBarSeries *BarSeries7;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormShow(TObject *Sender);
     void __fastcall EnergyButtonClick(TObject *Sender);
@@ -148,18 +182,37 @@ __published:    // IDE-managed Components
     void __fastcall Exit1Click(TObject *Sender);
     void __fastcall SaveAs1Click(TObject *Sender);
     void __fastcall OpenFile1Click(TObject *Sender);
+	void __fastcall RadiusGroupClick(TObject *Sender);
+	void __fastcall KernelTrackChange(TObject *Sender);
+	void __fastcall AccuracyTrackChange(TObject *Sender);
+	void __fastcall TransparentCheckClick(TObject *Sender);
+	void __fastcall BinsTrackChange(TObject *Sender);
+	void __fastcall RSpectrumButtonClick(TObject *Sender);
+	void __fastcall EmittanceButtonClick(TObject *Sender);
 private:    // User declarations
-    TGraphType gType;
-    int Np,Npts,Nb;
-    double Rmax,Xmax,Wmax;
+	TGraphType gType;
+    int Np,Npts;//,Nb;
+	double Rmax,Xmax,Wmax;
+	double Kernel,Hcore;
+	int SparceFactor;
+	int NumBins;
 
     double W,dW,F,dF;
-    bool SolverLoaded;
-    TSpectrumBar *WSpectrum, *FSpectrum;
+	bool SolverLoaded;
+    TSpectrumBar *WSpectrum;//, *FSpectrum;
 
-    void GetTransBoundaries();
-    void CreateTable();
+	//void GetPlotParameters();
+	void GetTransBoundaries();
+	void CreateTable();
 
+	void ResetAxis(TChartAxis *Axis,double NewMin,double NewMax,bool Auto=false);
+
+	void DrawTrace(TBeamParameter P1);
+	void DrawPlots(TStructureParameter P1,TStructureParameter P2);
+	void DrawSpace(int Nknot,TBeamParameter P1,TBeamParameter P2,bool sliding=false);
+	void DrawSpectrum(int Nknot,TBeamParameter P1);
+
+	void Draw();
     void DrawPhase();
     void DrawEnergy();
     void DrawRadius();
@@ -167,14 +220,16 @@ private:    // User declarations
     void DrawPower();
     void DrawBetta();
     void DrawAvEnergy();
-    void DrawAvRadius();
+	void DrawAvRadius();
+	void DrawEmittance();
     void DrawTransSection();
-    void DrawLongtSection(bool sliding=false);
+	void DrawLongtSection(bool sliding=false);
     void DrawLongtMotion();
     void DrawTransSpace();
     void DrawLongtSpace();
     void DrawPhaseSpectrum();
-    void DrawEnergySpectrum();
+	void DrawEnergySpectrum();
+	void DrawRadialSpectrum();
 
     void AllPassive();
     void ChartActive();
@@ -188,9 +243,12 @@ private:    // User declarations
     void SpectrumActive();
 
     void ShowParameters();
-    void DeleteTemp();
+	//void DeleteTemp();
 
-    void PositionChanged();
+	void BinsChanged();
+	void KernelChanged();
+	void AccuracyChanged();
+	void PositionChanged();
     void IncrementPosition();
     int NextEnd();
     int PrevEnd();

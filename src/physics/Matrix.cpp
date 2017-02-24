@@ -6,6 +6,7 @@
 #include "Matrix.h"
 
 using namespace HellwegMatrix;
+//using namespace HellwegTypes;
 //---------------------------------------------------------------------------
 __fastcall TMatrix::TMatrix(int N0,int M0)
 {
@@ -92,7 +93,7 @@ double **TMatrix::CloneArray(double **B)
         for(int j=0;j<M;j++)
             C[i][j]=B[i][j];
 
-    return C;       
+    return C;
 
 }
 //---------------------------------------------------------------------------
@@ -123,8 +124,8 @@ double TMatrix::GetElement(int I,int J)
         x=A[I][J];
     else
         x=0;
-    
-    return x; 
+
+    return x;
 }
 //---------------------------------------------------------------------------
 void TMatrix::SetPivot(int I,double x)
@@ -141,8 +142,8 @@ double TMatrix::GetPivot(int I)
         x=Piv[I];
     else
         x=0;
-    
-    return x; 
+
+    return x;
 }
 //---------------------------------------------------------------------------
 TMatrix TMatrix::operator+(TMatrix& B)
@@ -263,7 +264,7 @@ void TMatrix::Decomposite_LU()
     double s,x,*T;
     int L=(N>M)?N:M;
     T=new double[L];
-    
+
     for (int i=0;i<L;i++)
         T[i]=0;
 
@@ -277,10 +278,11 @@ void TMatrix::Decomposite_LU()
         p=j;
         i=j+1;
         while (i<M){
-                if (std::abs(X[i][j])>std::abs(X[p][j]))
-		    p=i;
-		    i++;
-		}
+	    if (mod(X[i][j])>mod(X[p][j])) {
+		p=i;
+            }
+	    i++;
+	}
         Piv[j]=p;
         if (X[p][j]!=0){
             if (p!=j){
@@ -502,7 +504,7 @@ bool TMatrix::IsDiagonal()
                     x+=A[i][j];
             }
 		}
-                res=(std::abs(x)<1e-10)?true:false;
+		res=(mod(x)<1e-10)?true:false;
 	}else
         res=false;
 

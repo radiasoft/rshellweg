@@ -4,6 +4,7 @@
 #define MatrixH
 
 #include "Types.h"
+#include "Functions.h"
 
 namespace HellwegMatrix{
 

@@ -90,20 +90,20 @@ void TOptimizer::Output(AnsiString& FileName)
     for (int i=0;i<=iRes;i++){
         fprintf(F,"%i\t",i);
         fprintf(F,"%f\t",Structure[i].Result.Length);
-        fprintf(F,"%f\t",Structure[i].Result.AverageEnergy);
+		fprintf(F,"%f\t",Structure[i].Result.Energy.mean);
         fprintf(F,"%f\t",Structure[i].Result.MaximumEnergy);
-        fprintf(F,"%f\t",Structure[i].Result.EnergySpectrum);
+		fprintf(F,"%f\t",Structure[i].Result.Energy.sigma);
         fprintf(F,"%f\t",Structure[i].Result.InputCurrent);
         fprintf(F,"%f\t",Structure[i].Result.BeamCurrent);
         fprintf(F,"%f\t",Structure[i].Result.Captured);
         fprintf(F,"%f\t",Structure[i].Result.BeamRadius);
-        fprintf(F,"%f\t",Structure[i].Result.AveragePhase);
-        fprintf(F,"%f\t",Structure[i].Result.PhaseLength);
+		fprintf(F,"%f\t",Structure[i].Result.Phase.mean);
+		fprintf(F,"%f\t",Structure[i].Result.Phase.FWHM);
         fprintf(F,"%f\t",Structure[i].Result.BeamPower);
         fprintf(F,"%f\t",Structure[i].Result.LoadPower);
-        fprintf(F,"%f\t",Structure[i].Result.Alpha);
-        fprintf(F,"%f\t",Structure[i].Result.Betta);
-        fprintf(F,"%f\t",Structure[i].Result.Emittance);
+		fprintf(F,"%f\t",Structure[i].Result.RTwiss.alpha);
+		fprintf(F,"%f\t",Structure[i].Result.RTwiss.beta);
+        fprintf(F,"%f\t",Structure[i].Result.RTwiss.epsilon);
         fprintf(F,"\n");
     }
 

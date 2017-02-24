@@ -102,6 +102,10 @@
         <ILINK_TranslatedLibraryPath>$(BDSLIB)\$(PLATFORM)\debug\$(LANGDIR);$(ILINK_TranslatedLibraryPath)</ILINK_TranslatedLibraryPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+        <BCC_MonitorInlinePtrAccess>true</BCC_MonitorInlinePtrAccess>
+        <BCC_MonitorGlobalAndStackData>true</BCC_MonitorGlobalAndStackData>
+        <BCC_MonitorThis>true</BCC_MonitorThis>
+        <VerInfo_Release>1</VerInfo_Release>
         <DynamicRTL>false</DynamicRTL>
         <ILINK_LibraryPath>$(BDS)\lib\win32\release\;$(BDS)\lib\Win32\debug\;$(ILINK_LibraryPath)</ILINK_LibraryPath>
         <Debugger_EnvVars>BDSCOMMONDIR=C:\Users\Public\Public Documents\Embarcadero\Studio\18.0;BDSCatalogRepositoryAllUsers=C:\Users\Public\Public Documents\Embarcadero\Studio\18.0\CatalogRepository;DEMOSDIR=C:\Users\Public\Public Documents\Embarcadero\Studio\18.0\Samples;IBREDISTDIR=C:\Users\Public\Public Documents\Embarcadero\InterBase\redist\InterBaseXE7;&quot;Path=C:\Users\Public\Public Documents\Embarcadero\InterBase\redist\InterBaseXE7\IDE_spoof;C:\Program Files (x86)\Embarcadero\Studio\18.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\18.0\Bpl;C:\Program Files (x86)\Embarcadero\Studio\18.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\18.0\Bpl\Win64;C:\Program Files (x86)\Intel\iCLS Client\;C:\Program Files\Intel\iCLS Client\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files (x86)\Skype\Phone\;C:\Anaconda3;C:\Anaconda3\Scripts;C:\Anaconda3\Library\bin;C:\Program Files\Intel\WiFi\bin\;C:\Program Files\Common Files\Intel\WirelessCommon\;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\HashiCorp\Vagrant\bin;C:\Users\bruhw\Anaconda2;C:\Users\bruhw\Anaconda2\Scripts;C:\Users\bruhw\Anaconda2\Library\bin;C:\Users\bruhw\AppData\Local\GitHub\PortableGit_d76a6a98c9315931ec4927243517bc09e9b731a0\cmd;%USERPROFILE%\AppData\Local\Microsoft\WindowsApps;&quot;;$(Debugger_EnvVars)</Debugger_EnvVars>
@@ -112,8 +116,8 @@
         <VerInfo_Build>9</VerInfo_Build>
         <UsePackages>false</UsePackages>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <VerInfo_MinorVer>2</VerInfo_MinorVer>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=2.2.0.9;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_MinorVer>3</VerInfo_MinorVer>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=2.3.1.9;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <LinkPackageStatics>rtl.lib;vcl.lib;Tee.lib;vclimg.lib;bcbsmp.lib;vclx.lib;VclSmp.lib</LinkPackageStatics>
         <VerInfo_MajorVer>2</VerInfo_MajorVer>
     </PropertyGroup>
@@ -183,6 +187,10 @@
             <DependentOn>..\physics\ConstUnit.h</DependentOn>
             <BuildOrder>4</BuildOrder>
         </CppCompile>
+        <CppCompile Include="..\physics\Functions.cpp">
+            <DependentOn>..\physics\Functions.h</DependentOn>
+            <BuildOrder>16</BuildOrder>
+        </CppCompile>
         <CppCompile Include="..\physics\Matrix.cpp">
             <DependentOn>..\physics\Matrix.h</DependentOn>
             <BuildOrder>12</BuildOrder>
@@ -190,6 +198,10 @@
         <CppCompile Include="..\physics\Spectrum.cpp">
             <DependentOn>..\physics\Spectrum.h</DependentOn>
             <BuildOrder>10</BuildOrder>
+        </CppCompile>
+        <CppCompile Include="..\physics\SpectrumPhase.cpp">
+            <DependentOn>..\physics\SpectrumPhase.h</DependentOn>
+            <BuildOrder>15</BuildOrder>
         </CppCompile>
         <CppCompile Include="..\physics\Spline.cpp">
             <DependentOn>..\physics\Spline.h</DependentOn>
@@ -202,8 +214,8 @@
         <FormResources Include="MainUnit.dfm"/>
         <FormResources Include="GeometryForm.dfm"/>
         <FormResources Include="ResultsForm.dfm"/>
-        <FormResources Include="OptimizerUnit.dfm"/>
         <FormResources Include="OptimizerResults.dfm"/>
+        <FormResources Include="OptimizerUnit.dfm"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -313,6 +325,12 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName=".\Win32\Debug\Hellweg.tds" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win32">
+                        <RemoteName>Hellweg.tds</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile Condition="'$(DynamicRTL)'=='true' And '$(Multithreaded)'!='true'" LocalName="$(BDS)\bin64\cc64160.dll" Class="DependencyModule">
                     <Platform Name="Win64">
                         <Overwrite>true</Overwrite>
@@ -383,7 +401,7 @@
                 </DeployClass>
                 <DeployClass Name="ProjectOSXEntitlements">
                     <Platform Name="OSX32">
-                        <RemoteDir>Contents</RemoteDir>
+                        <RemoteDir>../</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
@@ -484,6 +502,7 @@
                 </DeployClass>
                 <DeployClass Name="ProjectiOSEntitlements">
                     <Platform Name="iOSDevice">
+                        <RemoteDir>../</RemoteDir>
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
@@ -648,13 +667,13 @@
                     </Platform>
                 </DeployClass>
                 <ProjectRoot Platform="iOSSimulator" Name="$(PROJECTNAME).app"/>
-                <ProjectRoot Platform="Android" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="iOSDevice" Name="$(PROJECTNAME).app"/>
+                <ProjectRoot Platform="Android" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="Win32" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="iOSDevice64" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Linux64" Name="$(PROJECTNAME)"/>
-                <ProjectRoot Platform="Win64" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="OSX32" Name="$(PROJECTNAME).app"/>
+                <ProjectRoot Platform="Win64" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="iOSDevice32" Name="$(PROJECTNAME).app"/>
             </Deployment>
             <Platforms>

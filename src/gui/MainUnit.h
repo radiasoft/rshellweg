@@ -13,6 +13,7 @@
 #include <Vcl.Dialogs.hpp>
 
 #include "Types.h"
+#include "Functions.h"
 #include "BeamSolver.h"
 #include "GeometryForm.h"
 #include "ResultsForm.h"
@@ -38,15 +39,11 @@ __published:    // IDE-managed Components
     TLabel *Label_Phi0;
     TLabel *Label_dW;
     TLabel *Label_dPhi;
-    TLabel *Label1;
-    TLabel *Label_Alpha;
-    TLabel *Label_Betta;
-    TLabel *Label_Emittance;
-    TLabel *Label2;
-    TLabel *Label_Coulomb;
-    TLabel *Label_Wave;
-    TLabel *Label_WDist;
-    TLabel *Label_PhiDist;
+	TLabel *Label_AlphaR;
+	TLabel *Label_BetaR;
+	TLabel *Label_EmittanceR;
+	TLabel *Label_Spch;
+	TLabel *Label_Sections;
     TLabel *Label_Cells;
     TButton *ViewGeometryButton;
     TButton *ViewBeamButton;
@@ -60,6 +57,22 @@ __published:    // IDE-managed Components
     TButton *ViewButton;
     TButton *LoadResultsButton;
     TButton *OptButton;
+	TGroupBox *GroupPower;
+	TGroupBox *GroupSolenoid;
+	TGroupBox *GroupBeamGeneral;
+	TGroupBox *GroupSpaceCharge;
+	TLabel *Label_SpchPar;
+	TGroupBox *GroupZpar;
+	TGroupBox *GroupStructure;
+	TGroupBox *GroupTwissR;
+	TGroupBox *GroupTwissX;
+	TLabel *Label_AlphaX;
+	TLabel *Label_BetaX;
+	TLabel *Label_EmittanceX;
+	TGroupBox *GroupTwissY;
+	TLabel *Label_AlphaY;
+	TLabel *Label_BetaY;
+	TLabel *Label_EmittanceY;
     void __fastcall ExitButtonClick(TObject *Sender);
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
@@ -74,13 +87,18 @@ __published:    // IDE-managed Components
     void __fastcall LoadResultsButtonClick(TObject *Sender);
     void __fastcall OptButtonClick(TObject *Sender);
 private:    // User declarations
-    TBeamSolver *Solver;
+//    TBeamSolver *Solver;
     void DisplayError();
     void DisplayInputData();
-    bool LoadInputData(bool display_err);
-    TError ERR;
-    AnsiString InputFileName;
+	bool LoadInputData(bool display_err=true);
+	bool CreateInputData(bool display_err=true);
+	void ShowGeometryForm(bool BeamView);
+	TError ERR; //remove
+	AnsiString InputFileName;
+	bool DataReady;
+	bool InputReady;
 public:     // User declarations
+    TBeamSolver *Solver;
     __fastcall TMainForm(TComponent* Owner);
 };
 //---------------------------------------------------------------------------

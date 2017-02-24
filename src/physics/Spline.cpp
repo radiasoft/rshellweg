@@ -329,7 +329,7 @@ int TSpline::SplinePosition(double x)
         Pos=Nx-2;
     else{
         for (int i=0;i<Nx-1;i++){
-            if (x>=Spline[i].X && x<Spline[i+1].X){
+            if (x>=Spline[i].X && x<=Spline[i+1].X){
                 Pos=i;
                 break;
             }

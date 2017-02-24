@@ -2,12 +2,12 @@ object MainForm: TMainForm
   Left = 0
   Top = 0
   Caption = 'Hellweg 2D'
-  ClientHeight = 724
-  ClientWidth = 611
+  ClientHeight = 611
+  ClientWidth = 577
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -14
+  Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
@@ -15,323 +15,306 @@ object MainForm: TMainForm
   OnCanResize = FormCanResize
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  PixelsPerInch = 120
-  TextHeight = 17
+  PixelsPerInch = 96
+  TextHeight = 13
   object InputGroup: TGroupBox
     Left = 0
     Top = 0
-    Width = 611
-    Height = 305
-    Margins.Left = 4
-    Margins.Top = 4
-    Margins.Right = 4
-    Margins.Bottom = 4
+    Width = 577
+    Height = 273
     Align = alTop
     Caption = 'Input Data'
     TabOrder = 1
-    object Label_P0: TLabel
-      Left = 21
-      Top = 21
-      Width = 142
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Input Power = ??? MW'
-    end
-    object Label_I0: TLabel
-      Left = 21
-      Top = 46
-      Width = 135
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Input Current = ??? A'
-    end
-    object Label_F0: TLabel
-      Left = 21
-      Top = 71
-      Width = 197
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Operating Frequency = ??? MHz'
-    end
-    object Label_Np: TLabel
-      Left = 277
-      Top = 21
-      Width = 157
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Number of Particles = ???'
-    end
-    object Label_B0: TLabel
-      Left = 21
-      Top = 120
-      Width = 134
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Solenoid Field = ??? Tl'
-    end
-    object Label_Length: TLabel
-      Left = 21
-      Top = 145
-      Width = 153
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Solenoid Length = ??? m'
-    end
-    object Label_Position: TLabel
-      Left = 21
-      Top = 170
-      Width = 157
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Solenoid Position = ??? m'
-    end
-    object Label_W0: TLabel
-      Left = 277
-      Top = 46
-      Width = 166
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Average Energy = ??? MeV'
-    end
-    object Label_Phi0: TLabel
-      Left = 277
-      Top = 71
-      Width = 156
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Average Phase = ??? deg'
-    end
-    object Label_dW: TLabel
-      Left = 481
-      Top = 46
-      Width = 90
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'dW = ??? MeV'
-    end
-    object Label_dPhi: TLabel
-      Left = 480
-      Top = 71
-      Width = 92
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'dPhi = ??? deg'
-    end
-    object Label1: TLabel
-      Left = 277
-      Top = 95
-      Width = 178
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Courant-Sneider Parameters:'
-    end
-    object Label_Alpha: TLabel
-      Left = 277
-      Top = 120
-      Width = 72
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Alpha = ???'
-    end
-    object Label_Betta: TLabel
-      Left = 277
-      Top = 145
-      Width = 111
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Betta=??? cm/rad'
-    end
-    object Label_Emittance: TLabel
-      Left = 277
-      Top = 170
-      Width = 151
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Emittance = ??? cm*rad'
-    end
-    object Label2: TLabel
-      Left = 213
-      Top = 195
-      Width = 40
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Notes:'
-    end
-    object Label_Coulomb: TLabel
-      Left = 22
-      Top = 220
-      Width = 120
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Coulmb Charge ???'
-    end
-    object Label_Wave: TLabel
-      Left = 277
-      Top = 220
-      Width = 96
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Wave Type ???'
-    end
-    object Label_WDist: TLabel
-      Left = 21
-      Top = 242
-      Width = 147
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Energy Distribution: ???'
-    end
-    object Label_PhiDist: TLabel
-      Left = 277
-      Top = 242
-      Width = 139
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Phase Distribution: ???'
-    end
-    object Label_Cells: TLabel
-      Left = 22
-      Top = 277
-      Width = 111
-      Height = 17
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = '??? Cells Detected'
-    end
     object ViewGeometryButton: TButton
-      Left = 269
-      Top = 267
-      Width = 109
-      Height = 32
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 21
+      Top = 234
+      Width = 83
+      Height = 25
       Caption = 'View Geometry'
+      Enabled = False
       TabOrder = 0
       OnClick = ViewGeometryButtonClick
     end
     object ViewBeamButton: TButton
-      Left = 386
-      Top = 267
-      Width = 98
-      Height = 32
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 110
+      Top = 234
+      Width = 75
+      Height = 25
       Caption = 'View Beam'
       TabOrder = 1
       OnClick = ViewBeamButtonClick
     end
+    object GroupPower: TGroupBox
+      Left = 21
+      Top = 19
+      Width = 185
+      Height = 54
+      Caption = 'Power Source (First)'
+      TabOrder = 2
+      object Label_P0: TLabel
+        Left = 16
+        Top = 16
+        Width = 109
+        Height = 13
+        Caption = 'Input Power = ??? MW'
+      end
+      object Label_F0: TLabel
+        Left = 16
+        Top = 35
+        Width = 103
+        Height = 13
+        Caption = 'Frequency = ??? MHz'
+      end
+    end
+    object GroupSolenoid: TGroupBox
+      Left = 21
+      Top = 73
+      Width = 185
+      Height = 81
+      Caption = 'Solenoid'
+      TabOrder = 3
+      object Label_Length: TLabel
+        Left = 16
+        Top = 54
+        Width = 124
+        Height = 13
+        Caption = 'Effective Length = ??? cm'
+      end
+      object Label_B0: TLabel
+        Left = 16
+        Top = 16
+        Width = 112
+        Height = 13
+        Caption = 'Magnetic Field = ??? Gs'
+      end
+      object Label_Position: TLabel
+        Left = 16
+        Top = 35
+        Width = 109
+        Height = 13
+        Caption = 'Start Position = ??? cm'
+      end
+    end
+    object GroupBeamGeneral: TGroupBox
+      Left = 215
+      Top = 19
+      Width = 175
+      Height = 54
+      Caption = 'Beam General'
+      TabOrder = 4
+      object Label_Np: TLabel
+        Left = 16
+        Top = 16
+        Width = 122
+        Height = 13
+        Caption = 'Number of Particles = ???'
+      end
+      object Label_I0: TLabel
+        Left = 16
+        Top = 35
+        Width = 105
+        Height = 13
+        Caption = 'Input Current = ??? A'
+      end
+    end
+    object GroupSpaceCharge: TGroupBox
+      Left = 215
+      Top = 190
+      Width = 175
+      Height = 63
+      Caption = 'Space Charge and Features'
+      TabOrder = 5
+      object Label_Spch: TLabel
+        Left = 16
+        Top = 20
+        Width = 46
+        Height = 13
+        Caption = 'Model ???'
+      end
+      object Label_SpchPar: TLabel
+        Left = 16
+        Top = 40
+        Width = 73
+        Height = 13
+        Caption = 'Parameters ???'
+      end
+    end
+    object GroupZpar: TGroupBox
+      Left = 215
+      Top = 79
+      Width = 175
+      Height = 105
+      Caption = 'Longitudinal Phase Space'
+      TabOrder = 6
+      object Label_W0: TLabel
+        Left = 16
+        Top = 16
+        Width = 130
+        Height = 13
+        Caption = 'Average Energy = ??? MeV'
+      end
+      object Label_dW: TLabel
+        Left = 16
+        Top = 35
+        Width = 110
+        Height = 13
+        Caption = 'Energy RMS = ??? MeV'
+      end
+      object Label_Phi0: TLabel
+        Left = 16
+        Top = 54
+        Width = 123
+        Height = 13
+        Caption = 'Average Phase = ??? deg'
+      end
+      object Label_dPhi: TLabel
+        Left = 16
+        Top = 73
+        Width = 103
+        Height = 13
+        Caption = 'Phase RMS = ??? deg'
+      end
+    end
+    object GroupStructure: TGroupBox
+      Left = 21
+      Top = 160
+      Width = 185
+      Height = 68
+      Caption = 'Structure'
+      TabOrder = 7
+      object Label_Cells: TLabel
+        Left = 16
+        Top = 20
+        Width = 104
+        Height = 13
+        Caption = 'Number of Cells = ???'
+      end
+      object Label_Sections: TLabel
+        Left = 16
+        Top = 40
+        Width = 122
+        Height = 13
+        Caption = 'Number of Sections = ???'
+      end
+    end
+    object GroupTwissR: TGroupBox
+      Left = 396
+      Top = 19
+      Width = 175
+      Height = 74
+      Caption = 'Twiss Parameters (R)'
+      TabOrder = 8
+      object Label_AlphaR: TLabel
+        Left = 16
+        Top = 14
+        Width = 56
+        Height = 13
+        Caption = 'Alpha = ???'
+      end
+      object Label_BetaR: TLabel
+        Left = 16
+        Top = 33
+        Width = 81
+        Height = 13
+        Caption = 'Beta=??? cm/rad'
+      end
+      object Label_EmittanceR: TLabel
+        Left = 16
+        Top = 52
+        Width = 125
+        Height = 13
+        Caption = 'Emittance = ??? mm*mrad'
+      end
+    end
+    object GroupTwissX: TGroupBox
+      Left = 396
+      Top = 99
+      Width = 175
+      Height = 74
+      Caption = 'Twiss Parameters (X)'
+      TabOrder = 9
+      object Label_AlphaX: TLabel
+        Left = 16
+        Top = 14
+        Width = 56
+        Height = 13
+        Caption = 'Alpha = ???'
+      end
+      object Label_BetaX: TLabel
+        Left = 16
+        Top = 33
+        Width = 81
+        Height = 13
+        Caption = 'Beta=??? cm/rad'
+      end
+      object Label_EmittanceX: TLabel
+        Left = 16
+        Top = 52
+        Width = 114
+        Height = 13
+        Caption = 'Emittance = ??? cm*rad'
+      end
+    end
+    object GroupTwissY: TGroupBox
+      Left = 396
+      Top = 179
+      Width = 175
+      Height = 74
+      Caption = 'Twiss Parameters (Y)'
+      TabOrder = 10
+      object Label_AlphaY: TLabel
+        Left = 16
+        Top = 14
+        Width = 56
+        Height = 13
+        Caption = 'Alpha = ???'
+      end
+      object Label_BetaY: TLabel
+        Left = 16
+        Top = 33
+        Width = 81
+        Height = 13
+        Caption = 'Beta=??? cm/rad'
+      end
+      object Label_EmittanceY: TLabel
+        Left = 16
+        Top = 52
+        Width = 114
+        Height = 13
+        Caption = 'Emittance = ??? cm*rad'
+      end
+    end
   end
   object SolverGroup: TGroupBox
     Left = 0
-    Top = 305
-    Width = 611
-    Height = 83
-    Margins.Left = 4
-    Margins.Top = 4
-    Margins.Right = 4
-    Margins.Bottom = 4
+    Top = 273
+    Width = 577
+    Height = 64
     Align = alTop
-    Caption = 'Solver'
+    Caption = 'Solver Progress'
     TabOrder = 2
   end
   object ResultsGroup: TGroupBox
     Left = 0
-    Top = 451
-    Width = 611
-    Height = 273
-    Margins.Left = 4
-    Margins.Top = 4
-    Margins.Right = 4
-    Margins.Bottom = 4
+    Top = 385
+    Width = 577
+    Height = 226
     Align = alClient
     Caption = 'Results'
     TabOrder = 3
     object MemoPanel: TPanel
       Left = 2
-      Top = 19
-      Width = 468
-      Height = 252
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Top = 15
+      Width = 466
+      Height = 209
       Align = alClient
       TabOrder = 0
       object ResultsMemo: TMemo
-        Left = 3
-        Top = 0
-        Width = 459
-        Height = 251
-        Margins.Left = 4
-        Margins.Top = 4
-        Margins.Right = 4
-        Margins.Bottom = 4
+        Left = 1
+        Top = 1
+        Width = 464
+        Height = 207
+        Align = alClient
         Lines.Strings = (
           'ResultsMemo')
         ScrollBars = ssVertical
@@ -340,118 +323,88 @@ object MainForm: TMainForm
       end
     end
     object ActPanel: TPanel
-      Left = 470
-      Top = 19
-      Width = 139
-      Height = 252
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 468
+      Top = 15
+      Width = 107
+      Height = 209
       Align = alRight
       TabOrder = 1
-    end
-    object ViewButton: TButton
-      Left = 500
-      Top = 21
-      Width = 98
-      Height = 33
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'View Results'
-      Enabled = False
-      TabOrder = 2
-      OnClick = ViewButtonClick
-    end
-    object LoadResultsButton: TButton
-      Left = 500
-      Top = 61
-      Width = 98
-      Height = 33
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Load Results'
-      TabOrder = 3
-      OnClick = LoadResultsButtonClick
-    end
-    object OptButton: TButton
-      Left = 500
-      Top = 115
-      Width = 98
-      Height = 33
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
-      Caption = 'Optimizer'
-      TabOrder = 4
-      OnClick = OptButtonClick
+      object OptButton: TButton
+        Left = 16
+        Top = 70
+        Width = 75
+        Height = 25
+        Caption = 'Optimizer'
+        Enabled = False
+        TabOrder = 0
+        OnClick = OptButtonClick
+      end
+      object ViewButton: TButton
+        Left = 16
+        Top = 8
+        Width = 75
+        Height = 25
+        Caption = 'View Results'
+        Enabled = False
+        TabOrder = 1
+        OnClick = ViewButtonClick
+      end
+      object LoadResultsButton: TButton
+        Left = 16
+        Top = 39
+        Width = 75
+        Height = 25
+        Caption = 'Load Results'
+        Enabled = False
+        TabOrder = 2
+        OnClick = LoadResultsButtonClick
+      end
     end
   end
   object ControlGroup: TGroupBox
     Left = 0
-    Top = 388
-    Width = 611
-    Height = 63
-    Margins.Left = 4
-    Margins.Top = 4
-    Margins.Right = 4
-    Margins.Bottom = 4
+    Top = 337
+    Width = 577
+    Height = 48
     Align = alTop
     Caption = 'Controls'
     TabOrder = 0
+    DesignSize = (
+      577
+      48)
     object SelectFileButton: TButton
-      Left = 0
-      Top = 20
-      Width = 98
-      Height = 32
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 3
+      Top = 17
+      Width = 75
+      Height = 25
       Caption = 'Select File'
       TabOrder = 1
       OnClick = SelectFileButtonClick
     end
     object ExitButton: TButton
-      Left = 500
-      Top = 22
-      Width = 98
-      Height = 33
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 486
+      Top = 20
+      Width = 73
+      Height = 25
+      Anchors = [akTop, akRight]
       Caption = 'Exit'
       TabOrder = 2
       OnClick = ExitButtonClick
     end
     object AbortButton: TButton
-      Left = 301
-      Top = 22
-      Width = 98
-      Height = 33
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 286
+      Top = 17
+      Width = 75
+      Height = 25
       Caption = 'Abort'
       TabOrder = 3
       OnClick = AbortButtonClick
     end
     object SolveButton: TButton
-      Left = 195
-      Top = 22
-      Width = 98
-      Height = 33
-      Margins.Left = 4
-      Margins.Top = 4
-      Margins.Right = 4
-      Margins.Bottom = 4
+      Left = 205
+      Top = 17
+      Width = 75
+      Height = 25
       Caption = 'Solve'
       TabOrder = 0
       OnClick = SolveButtonClick
@@ -462,6 +415,7 @@ object MainForm: TMainForm
       'D:\Storage\Laptop Backup\My Work\00 - PRG\Hellweg 2.5\Debug\INPU' +
       'T.txt'
     Filter = 'Text Files|*.txt|All Files|*.*'
-    Left = 440
+    Left = 176
+    Top = 24
   end
 end

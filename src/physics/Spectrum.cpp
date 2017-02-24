@@ -60,7 +60,6 @@ void TSpectrum::GetBoundaries()
 //---------------------------------------------------------------------------
 void TSpectrum::SetMesh(double *X0,int Nb,int Ny)
 {
-
     delete[] Spectrum;
     Nbars=Nb;
     Nx=Ny;
@@ -72,6 +71,7 @@ void TSpectrum::SetMesh(double *X0,int Nb,int Ny)
     for (int i=0;i<Nbars;i++){
         Spectrum[i].x=Xmin+i*(Xmax-Xmin)/(Nbars-1);
         Spectrum[i].N=0;
+        Spectrum[i].P=0;
         Spectrum[i].y=0;
     }
 
@@ -99,17 +99,17 @@ void TSpectrum::MakeSpectrum()
         }
     }
 
-    for (int i=0;i<Nx;i++){
-        x=X[i];
-        j=round((x-Xmin)*(Nbars-1)/(Xmax-Xmin));
-        if (j>Nbars-1)
-            j=Nbars-1;
-        if (j<0)
-            j=0;
-        Spectrum[j].N++;
-    }
-    for (int i=0;i<Nbars;i++)
-        Spectrum[i].P=1.0*Spectrum[i].N/Ny;
+	for (int i=0;i<Nx;i++){
+		x=X[i];
+		j=round((x-Xmin)*(Nbars-1)/(Xmax-Xmin));
+		if (j>Nbars-1)
+			j=Nbars-1;
+		if (j<0)
+			j=0;
+		Spectrum[j].N++;
+	}
+	for (int i=0;i<Nbars;i++)
+		Spectrum[i].P=1.0*Spectrum[i].N/Ny;
 
     SpectrumReady=true;
 
@@ -124,8 +124,8 @@ void TSpectrum::MakeEnvelope()
         MakeSpectrum();
 
     if (!EnvelopeReady){
-        for (int i=0;i<Nbars;i++)
-            Spectrum[i].y=Spectrum[i].N;
+		for (int i=0;i<Nbars;i++)
+			Spectrum[i].y=Spectrum[i].N;
 
         double *X_base=NULL,*Y_base=NULL,*W=NULL;      
 
@@ -134,11 +134,11 @@ void TSpectrum::MakeEnvelope()
         W=new double[Nbars];
 
 
-        for (int i=0;i<Nbars;i++){
-            X_base[i]=Spectrum[i].x;
-            Y_base[i]=Spectrum[i].N;
-            W[i]=Spectrum[i].P+0.01;
-        }
+		for (int i=0;i<Nbars;i++){
+			X_base[i]=Spectrum[i].x;
+			Y_base[i]=Spectrum[i].N;
+			W[i]=Spectrum[i].P+0.01;
+		}
 
         TSpline *Spline;
         double p=0.8;
@@ -162,8 +162,8 @@ void TSpectrum::MakeEnvelope()
 //---------------------------------------------------------------------------
 double TSpectrum::GetAverage()
 {
-    if (!SpectrumReady)
-        MakeSpectrum();
+	if (!SpectrumReady)
+		MakeSpectrum();
 
     if (!AvReady){
         M=0;
@@ -204,9 +204,9 @@ double TSpectrum::GetWidth()
     if (!EnvelopeReady)
         MakeEnvelope();
 
-    if (!WidthReady){
-        double *X0,*Y0,Ymax=0;
-        double x1=0,x2=0,y0=SpecLevel;
+	if (!WidthReady){
+		double *X0=NULL,*Y0=NULL,Ymax=0;
+		double x1=0,x2=0,y0=SpecLevel;
 
         X0=new double [Nbars+2];
         Y0=new double [Nbars+2];
@@ -266,12 +266,43 @@ double TSpectrum::GetWidth()
             }
         }
 
-        dX=mod(x2-x1);
+		dX=mod(x2-x1);
+
+		delete[] X0;
+		delete[] Y0;
 
         WidthReady=true;
     }
 
     return dX;
+}
+//---------------------------------------------------------------------------
+int TSpectrum::GetCorePoints(double Rcore)
+{
+	int Ncore=0;
+	if (!SpectrumReady)
+		MakeSpectrum();
+
+	for (int i=0;i<Nbars;i++){
+		if (Spectrum[i].x<M+Rcore && Spectrum[i].x>M-Rcore)
+			Ncore+=Spectrum[i].N;
+	}
+
+	return Ncore;
+}
+//---------------------------------------------------------------------------
+double TSpectrum::GetCore(double Rcore)
+{
+	int Ncore=GetCorePoints(Rcore);
+	return (1.0*Ncore)/Nx;
+}
+//---------------------------------------------------------------------------
+double TSpectrum::GetCore()
+{
+    if (!SpectrumReady)
+		MakeSpectrum();
+
+	return GetCore(S);
 }
 //---------------------------------------------------------------------------
 TSpectrumBar *TSpectrum::GetSpectrum(bool Smooth)

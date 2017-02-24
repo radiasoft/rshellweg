@@ -8,6 +8,7 @@
 #pragma package(smart_init)
 #pragma resource "*.dfm"
 TMainForm *MainForm;
+
 //---------------------------------------------------------------------------
 __fastcall TMainForm::TMainForm(TComponent* Owner)
     : TForm(Owner)
@@ -27,88 +28,176 @@ double Trim(double x,int N)
 void TMainForm::DisplayError()
 {
     switch (ERR) {
-        case ERR_NOFILE:ShowMessage("Error: No Input File Selected");   break;
-        case ERR_OPENFILE: ShowMessage("Error: File Read Error");   break;
-        case ERR_SOLENOID : ShowMessage("Error: Input File: SOLENOID should have format Bz,L,Z0");  break;
-        case ERR_CELL : ShowMessage("Error: Input File: CELL should have format Mode,betta,Field and optional: Attenuation,Aperture");  break;
-        case ERR_CELLS : ShowMessage("Error: Input File: CELLS should have format N,Mode,betta,Field and optional: Attenuation,Aperture");  break;
-        case ERR_BEAM : ShowMessage("Error: Input File: BEAM should have format Phi0,dPhi,Type,W0,dW,Type");    break;
-        case ERR_CURRENT : ShowMessage("Error: Input File: CURRENT should have format I0,Np,alpha,betta,emittance");    break;
-        case ERR_DRIFT : ShowMessage("Error: Input File: DRIFT should have format Length,Radius");  break;
-        case ERR_COUPLER : ShowMessage("Error: Input File: COUPLER should have format Power,Frequency");    break;
-        default:ShowMessage("Error: Input File has a wrong format!");   break;
+	    case ERR_NO : break;
+		case ERR_NOFILE:ShowMessage("ERROR: No Input File Selected");   break;
+		case ERR_OPENFILE: ShowMessage("ERROR: File Read Error");   break;
+		case ERR_COUPLER : ShowMessage("ERROR: Input File: COUPLER should have format Power,Frequency");    break;
+		case ERR_SOLENOID : ShowMessage("ERROR: Input File: SOLENOID should have format Bz,L,Z0");  break;
+		case ERR_BEAM : ShowMessage("ERROR: Input File: Check BEAM line format!");    break;
+		case ERR_CURRENT : ShowMessage("ERROR: Input File: CURRENT should have format I0,Np");    break;
+		case ERR_DRIFT : ShowMessage("ERROR: Input File: DRIFT should have format Length,Radius");  break;
+		case ERR_CELL : ShowMessage("ERROR: Input File: CELL should have format Mode,betta,Field and optional: Attenuation,Aperture");  break;
+		case ERR_CELLS : ShowMessage("ERROR: Input File: CELLS should have format N,Mode,betta,Field and optional: Attenuation,Aperture");  break;
+		case ERR_OPTIONS : ShowMessage("ERROR: Input File: OPTIONS format is incorrect!");  break;
+		case ERR_DUMP : ShowMessage("ERROR:  Input File: SAVE formal is incorrect!");  break;
+		case ERR_IMPORT : ShowMessage("ERROR:  Particles import failed!");  break;
+		case ERR_FORMAT : ShowMessage("ERROR: incorrect format of data");  break;
+		case ERR_SPCHARGE : ShowMessage("Undefined option for card SPCHARGE"); break;
+        default:ShowMessage("ERROR: Input File has a wrong format!");   break;
     }
 }
 //---------------------------------------------------------------------------
 bool TMainForm::LoadInputData(bool display_err)
 {
     Solver->InputFile=InputFileName;
-    ERR=Solver->LoadData();
-    if (ERR!=ERR_NO){
+	TError Error=Solver->LoadData();
+	if (Error!=ERR_NO){
         if (display_err)
-            DisplayError();
-    } else
-        DisplayInputData();
-    return ERR==ERR_NO;
+			DisplayError();
+	}/* else{
+
+		DisplayInputData();
+	}    */
+	return Error==ERR_NO;
+}
+//---------------------------------------------------------------------------
+bool TMainForm::CreateInputData(bool display_err)
+{
+	TError Error=ERR_NO;
+
+	if (!DataReady)
+		DataReady=LoadInputData(true);
+
+	ResultsMemo->Visible=false;
+	ResultsMemo->Clear();
+	ViewButton->Enabled=false;
+
+	if (!DataReady){
+		if (display_err)
+			ShowMessage("Error occurred while reading input file! Impossible to start solver.");
+		return false;
+	}
+
+	try{
+		Solver->CreateGeometry();
+	} catch(...){
+		if (display_err)
+			ShowMessage("Error occurred while creating geometry. Check the values in input file!");
+		return false;
+	}
+
+	try{
+		Error=Solver->CreateBeam();
+		if (Error!=ERR_NO) {
+			if (display_err)
+				DisplayError();
+		   /*	Solver->Abort();
+			Application->Terminate();    */
+			return false;
+		}
+	}  catch(...){
+		if (display_err)
+			ShowMessage("Error occurred while creating beam. Check the values in input file!");
+		return false;
+	}
+	DisplayInputData();
+
+	return ERR==ERR_NO;
 }
 //---------------------------------------------------------------------------
 void TMainForm::DisplayInputData()
 {
-    AnsiString s;
+	AnsiString s,L;
 
-    Label_P0->Caption="Input Power = "+s.FormatFloat("#0.00",Solver->GetPower())+" MW";
-    Label_I0->Caption="Input Current = "+s.FormatFloat("#0.000",Solver->GetInputCurrent())+" A";
-    Label_F0->Caption="Operating Frequency = "+s.FormatFloat("#0.00",Solver->GetFrequency())+" MHz";
+	//POWER SOURCE
+	Label_P0->Caption="Input Power = "+s.FormatFloat("#0.00",Solver->GetSectionPower()/1e6)+" MW";
+	Label_F0->Caption="Frequency = "+s.FormatFloat("#0.00",Solver->GetSectionFrequency()/1e6)+" MHz";
+	//Label_F0->Caption="Frequency = "+s.FormatFloat("#0.00",Solver->GetFrequency())+" MHz";
 
-    int Nth,Mth;
-    /*Solver->GetMode(&Nth,&Mth);
+	//SOLENOID
+	TMagnetParameters Solenoid=Solver->GetSolenoidInfo();
+	switch (Solenoid.ImportType) {
+		case ANALYTIC_0D:{
+			Label_B0->Caption="Mangetic Field = "+s.FormatFloat("#0.00",1e4*Solenoid.BField)+" Gs";
+			Label_Length->Caption="Effective Length = "+s.FormatFloat("#0.00",100*Solenoid.Length)+" cm";
+			Label_Position->Caption="Start Position = "+s.FormatFloat("#0.00",100*Solenoid.StartPos)+" cm";
+			break;
+		}
+		case IMPORT_1D:{
+			Label_B0->Caption="IMPORTED from";
+			Label_Position->Caption="File: '"+Solenoid.File+"'";
+			Label_Length->Caption="Distribution: 1D - Bz(z)";
+			break;
+		}
+		case NO_ELEMENT:{}
+		default: {
+			Label_B0->Caption="NO SOLENOID";
+			Label_Length->Caption="";
+			Label_Position->Caption="";
+		};
+	}
 
-    if (Nth%Mth==0)
-        Label_Mode->Caption="Mode = "+s.FormatFloat("0 pi",Nth/Mth);
-    else
-        Label_Mode->Caption="Mode = "+s.FormatFloat("0*pi/",Nth)+s.FormatFloat("0",Mth);
-    */
-    Label_Np->Caption="Number of Particles = "+s.FormatFloat("#0",Solver->GetNumberOfParticles());
-    Label_B0->Caption="Solenoid Field = "+s.FormatFloat("#0.00",Solver->GetSolenoidField())+" Tl";
-    Label_Length->Caption="Solenoid Length = "+s.FormatFloat("#0.00",Solver->GetSolenoidLength())+" m";
-    Label_Position->Caption="Solenoid Position = "+s.FormatFloat("#0.00",Solver->GetSolenoidPosition())+" m";
+	//STRUCTURE
+	Label_Cells->Caption=s.FormatFloat("Number of Elements = 0",Solver->GetNumberOfCells());
+	Label_Sections->Caption=s.FormatFloat("Number of Sections = 0",Solver->GetNumberOfSections());
 
-    Label_W0->Caption="Average Energy = "+s.FormatFloat("#0.000",Solver->GetInputAverageEnergy())+" MeV";
-    Label_Phi0->Caption="Average Phase = "+s.FormatFloat("#0.00",Solver->GetInputAveragePhase())+" deg";
-    Label_dW->Caption="dW = "+s.FormatFloat("#0.000#",Solver->GetInputEnergyDeviation())+" MeV";
-    Label_dPhi->Caption="dPhi = "+s.FormatFloat("#0.00",Solver->GetInputPhaseDeviation())+" deg";
+	// BEAM
+	TGauss W=Solver->GetInputEnergy();
+	TGauss Phi=Solver->GetInputPhase();
 
-    Label_Alpha->Caption="Alpha = "+s.FormatFloat("#0.000##",Solver->GetInputAlpha())+"";
-    Label_Betta->Caption="Betta = "+s.FormatFloat("#0.000##",Solver->GetInputBetta())+" cm/rad";
-    Label_Emittance->Caption="Emittance = "+s.FormatFloat("#0.000##",Solver->GetInputEpsilon())+" cm*rad";
+	Label_W0->Caption="Average Energy = "+s.FormatFloat("#0.000",W.mean)+" MeV";
+	Label_Phi0->Caption="Average Phase = "+s.FormatFloat("#0.00",RadToDegree(Phi.mean))+" deg";
+	Label_dW->Caption="RMS Energy = "+s.FormatFloat("#0.000#",W.sigma)+" MeV";
+	Label_dPhi->Caption="RMS Phase = "+s.FormatFloat("#0.00",RadToDegree(Phi.sigma))+" deg";
 
-    bool Coulomb=Solver->IsCoulombAccounted();
-    bool Reverse=Solver->IsWaveReversed();
-    bool WDist=Solver->IsEnergyEquiprobable();
-    bool PhiDist=Solver->IsPhaseEquiprobable();
+	TTwiss TR=Solver->GetInputTwiss(R_PAR);
+	Label_AlphaR->Caption="Alpha = "+s.FormatFloat("#0.000##",TR.alpha)+"";
+	Label_BetaR->Caption="Beta = "+s.FormatFloat("#0.000##",100*TR.beta)+" cm/rad";
+	Label_EmittanceR->Caption="Emittance = "+s.FormatFloat("#0.0##",1e6*TR.epsilon)+" mm*mrad";
 
-    if (!Coulomb)
-        s=" NOT ";
-    else
-        s=" ";
-    Label_Coulomb->Caption="Coulomb Charge is"+s+"Considered";
+	TTwiss TX=Solver->GetInputTwiss(X_PAR);
+	Label_AlphaX->Caption="Alpha = "+s.FormatFloat("#0.000##",TX.alpha)+"";
+	Label_BetaX->Caption="Beta = "+s.FormatFloat("#0.000##",100*TX.beta)+" cm/rad";
+	Label_EmittanceX->Caption="Emittance = "+s.FormatFloat("#0.0##",1e6*TX.epsilon)+" mm*mrad";
 
-    if (Reverse)
-        Label_Wave->Caption="Reverse Wave";
-    else
-        Label_Wave->Caption="Forward Wave";
+	TTwiss TY=Solver->GetInputTwiss(Y_PAR);
+	Label_AlphaY->Caption="Alpha = "+s.FormatFloat("#0.000##",TY.alpha)+"";
+	Label_BetaY->Caption="Beta = "+s.FormatFloat("#0.000##",100*TY.beta)+" cm/rad";
+	Label_EmittanceY->Caption="Emittance = "+s.FormatFloat("#0.0##",1e6*TY.epsilon)+" mm*mrad";
 
-    if (!WDist)
-        Label_WDist->Caption="Energy Distribution: Normal";
-    else
-        Label_WDist->Caption="Energy Distribution: Equiprobable";
+	//CURRENT
+	Label_I0->Caption="Input Current = "+s.FormatFloat("#0.000",Solver->GetInputCurrent())+" A";
+	Label_Np->Caption="Number of Particles = "+s.FormatFloat("#0",Solver->GetNumberOfParticles());
 
-    if (!PhiDist)
-        Label_PhiDist->Caption="Phase Distribution: Normal";
-    else
-        Label_PhiDist->Caption="Phase Distribution: Equiprobable";
+	//SPACE CHARGE
+	L="";
+	TSpaceCharge Spch=Solver->GetSpaceChargeInfo();
+	switch (Spch.Type) {
+		case SPCH_ELL: {
+			Label_Spch->Caption="Elliptical Model";
+			break;
+		}
+		case SPCH_GW: {
+			Label_Spch->Caption="Garnett-Wangler Model";
+			L=s.FormatFloat("#0 slices ",Spch.NSlices);
+			break;
+		}
+		case SPCH_NO: {}
+		default: {
+			Label_Spch->Caption="Not Considered";
+		};
+	}
 
-    Label_Cells->Caption=s.FormatFloat("#0",Solver->GetNumberOfCells())+" Cells Uploaded";
+  /*	if (Solver->CheckMagnetization())
+		L+="MAGNETIZED ";  */
+	if (Solver->CheckReverse())
+		L+="REVERSE ";
+
+	if (L=="") {
+        L="NONE";
+	}
+
+	Label_SpchPar->Caption=L;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ExitButtonClick(TObject *Sender)
@@ -125,20 +214,28 @@ void __fastcall TMainForm::FormCreate(TObject *Sender)
     Solver=new TBeamSolver(Path);
     Solver->AssignSolverPanel(SolverGroup);
 
-    InputFileName="INPUT.txt";
-    LoadInputData(false);
+	InputFileName="INPUT.txt";
+
+	InputReady=false;
+	DataReady=LoadInputData(false);
+	if (DataReady) {
+		InputReady=CreateInputData(false);
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormDestroy(TObject *Sender)
 {
-    delete Solver;  
+//    delete Solver;
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::SelectFileButtonClick(TObject *Sender)
 {
     InputDialog->Execute();
     InputFileName=InputDialog->FileName.c_str();
-    LoadInputData(true);
+	DataReady=LoadInputData(true);
+	if (DataReady) {
+		InputReady=CreateInputData(true);
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormCanResize(TObject *Sender, int &NewWidth,
@@ -149,101 +246,52 @@ void __fastcall TMainForm::FormCanResize(TObject *Sender, int &NewWidth,
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::SolveButtonClick(TObject *Sender)
 {
-    bool dataReady=LoadInputData(true);
-    ResultsMemo->Visible=false;
-    ResultsMemo->Clear();
-    ViewButton->Enabled=false;
+	AnsiString s,str;
 
-    if (!dataReady){
-        ShowMessage("Error occured while reading input file! Impossible to start solver.");
-        return;
-    }
-//    static int cnt=0;
+	if (!InputReady)
+		CreateInputData(true);
 
-    //if(cnt<1){
-    try{
-        Solver->CreateGeometry();
-    } catch(...){
-        ShowMessage("Error occured while creating geometry. Check the values in input file!");
-        return;
-    }
+	try{
+		Solver->Solve();
+		AnsiString Fname="OUTPUT.TXT";
+		Solver->Output(Fname,ResultsMemo);
+		ResultsMemo->Visible=true;
+		ViewButton->Enabled=true;
+	} catch(...){
+		ShowMessage("Error occurred while solving the task. Check the values in input file!");
+		return;
+	}
+}
+//---------------------------------------------------------------------------
+void  TMainForm::ShowGeometryForm(bool BeamView)
+{
+	if (!DataReady)
+		DataReady=LoadInputData(true);
 
-    try{
-        Solver->CreateBeam();
-    }  catch(...){
-        ShowMessage("Error occured while creating beam. Check the values in input file!");
-        return;
-    }
- ///    cnt++;
- // }
+	if (!DataReady){
+		ShowMessage("Error occurred while reading input file! Impossible to create beam.");
+		return;
+	}
 
-    try{
-        Solver->Solve();
-        AnsiString Fname="OUTPUT.TXT";
-        Solver->Output(Fname,ResultsMemo);
-        ResultsMemo->Visible=true;
-        ViewButton->Enabled=true;
-    } catch(...){
-        ShowMessage("Error occured while solving the task. Check the values in input file!");
-        return;
-    }             
+	if (!InputReady) {
+		InputReady=CreateInputData(true);
+	}
 
-    
+	if (InputReady) {
+		GeomForm->MainSolver=Solver;
+		GeomForm->Beam=BeamView;
+		GeomForm->Show();
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ViewBeamButtonClick(TObject *Sender)
 {
-    bool dataReady=LoadInputData(true);
-
-    if (!dataReady){
-        ShowMessage("Error occured while reading input file! Impossible to create beam.");
-        return;
-    }
-
-    try{
-        Solver->CreateGeometry();
-    } catch(...){
-        ShowMessage("Error occured while creating geometry. Check the values in input file!");
-        return;
-    }
-    try{
-        Solver->CreateBeam();
-    }  catch(...){
-        ShowMessage("Error occured while creating beam. Check the values in input file!");
-        return;
-    }
-
-    GeomForm->MainSolver=Solver;
-    GeomForm->Beam=true;
-    GeomForm->Show();
+	ShowGeometryForm(true);
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TMainForm::ViewGeometryButtonClick(TObject *Sender)
 {
-    bool dataReady=LoadInputData(true);
-
-    if (!dataReady){
-        ShowMessage("Error occured while reading input file! Impossible to create geomentry.");
-        return;
-    }
-  
-    try{
-        Solver->CreateGeometry();
-    } catch(...){
-        ShowMessage("Error occured while creating geometry. Check the values in input file!");
-        return;
-    }
-    try{
-        Solver->CreateBeam();
-    }  catch(...){
-        ShowMessage("Error occured while creating beam. Check the values in input file!");
-        return;
-    }
-
-    GeomForm->MainSolver=Solver;
-    GeomForm->Beam=false;
-    GeomForm->Show();
+    ShowGeometryForm(false);
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::AbortButtonClick(TObject *Sender)
@@ -273,5 +321,7 @@ void __fastcall TMainForm::OptButtonClick(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
+
+
 
 

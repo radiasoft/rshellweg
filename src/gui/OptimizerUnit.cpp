@@ -17,8 +17,8 @@ __fastcall TOptimizerForm::TOptimizerForm(TComponent* Owner)
 void __fastcall TOptimizerForm::FormShow(TObject *Sender)
 {
   //    BuncherPanel->Width=MainPanel->Width/2;
-    FrequencyEdit->Text=Solver->GetFrequency();
-    PowerEdit->Text=Solver->GetPower();
+	FrequencyEdit->Text=Solver->GetFrequency(0);
+    PowerEdit->Text=Solver->GetPower(0);
     ChangeSweep();
     Abort=false;
     ResultsButton->Enabled=false;
@@ -144,8 +144,8 @@ double TOptimizerForm::GetValue(TOptResult& Structure)
 
     switch (ParameterCombo->ItemIndex){
         case pCapture: y=100-Structure.Result.Captured; break;
-        case pESpec: y=Structure.Result.EnergySpectrum; break;
-        case pFSpec: y=Structure.Result.PhaseLength; break;
+		case pESpec: y=Structure.Result.Energy.sigma; break;
+        case pFSpec: y=Structure.Result.Phase.FWHM; break;
     }
 
     return y;
@@ -153,7 +153,7 @@ double TOptimizerForm::GetValue(TOptResult& Structure)
 //---------------------------------------------------------------------------
 double TOptimizerForm::GetEnergy(TOptResult& Structure)
 {
-    double y=Structure.Result.AverageEnergy;
+	double y=Structure.Result.Energy.mean;
     return y;
 }
 //---------------------------------------------------------------------------
@@ -307,7 +307,7 @@ void TOptimizerForm::OptimizeBuncher()
 void TOptimizerForm::OptimizeCurrent(TOptResult& Structure)
 {
     double I0=Structure.Result.InputCurrent;
-    double W0=Structure.Result.AverageEnergy;
+	double W0=Structure.Result.Energy.mean;
     double dI=CurrentStep, eps=CurrentErr,t=1; //mA
 
     double I2=0,I1=0,W1=0;
@@ -514,7 +514,7 @@ void TOptimizerForm::OptimizeImpedance()
         
         if (ExactCheck->Checked){
             OptimizeCurrent(Structure);
-            M="Output Energy "+s.FormatFloat("#.00",Structure.Result.AverageEnergy)+" MeV is acheved at "+s.FormatFloat("0",N)+" additional cells and "+s.FormatFloat("#.00",Structure.Result.InputCurrent)+" mA input current";
+			M="Output Energy "+s.FormatFloat("#.00",Structure.Result.Energy.mean)+" MeV is acheved at "+s.FormatFloat("0",N)+" additional cells and "+s.FormatFloat("#.00",Structure.Result.InputCurrent)+" mA input current";
         } else{
             M="Output Energy "+s.FormatFloat("#.00",Wo)+" MeV is acheved at "+s.FormatFloat("0",N)+" additional cells";
         }
@@ -543,7 +543,7 @@ void TOptimizerForm::OptimizeImpedance()
                 }
                 if (ExactCheck->Checked){
                     OptimizeCurrent(Structure);
-                    M="Output Energy "+s.FormatFloat("#.00",Structure.Result.AverageEnergy)+" MeV is acheved at "+s.FormatFloat("0",N)+" additional cells and "+s.FormatFloat("#.00",Structure.Result.InputCurrent)+" mA input current";
+					M="Output Energy "+s.FormatFloat("#.00",Structure.Result.Energy.mean)+" MeV is acheved at "+s.FormatFloat("0",N)+" additional cells and "+s.FormatFloat("#.00",Structure.Result.InputCurrent)+" mA input current";
                 } else{
                 M="Output Energy "+s.FormatFloat("#.00",Wo)+" MeV is acheved at "+s.FormatFloat("0",N)+" additional cells";
                 }
@@ -675,7 +675,7 @@ void TOptimizerForm::OptimizeGradient()
             Structure=Solve();
             A2=Structure.Result.A;
             y2=A2;
-            W2=Structure.Result.AverageEnergy;
+			W2=Structure.Result.Energy.mean;
             P=Structure.Result.LoadPower;
             if (P<=0){
                 ShowMessage("Maximum Energy Acheived");
@@ -695,7 +695,7 @@ void TOptimizerForm::OptimizeGradient()
             Solver->AppendCells(Cell[i-1]);
             Structure=Solve(false);
             y1=Structure.Result.A;
-            W1=Structure.Result.AverageEnergy;
+			W1=Structure.Result.Energy.mean;
         }
         while (x2-x1>eps){
             x0=(x1+x2)/2;
@@ -706,7 +706,7 @@ void TOptimizerForm::OptimizeGradient()
             Solver->AppendCells(Cell[i-1]);
             Structure=Solve(false);
             y0=Structure.Result.A;
-            W0=Structure.Result.AverageEnergy;
+			W0=Structure.Result.Energy.mean;
             if (y0>A0){
                 x2=x0;
                 y2=y0;
@@ -733,8 +733,8 @@ void TOptimizerForm::OptimizeGradient()
         Wa=(mod(W0-W)<mod(Wa-W))?W0:Wa;
         if (ExactCheck->Checked){
             OptimizeCurrent(Structure);
-            M="Output Energy "+s.FormatFloat("#.00",Structure.Result.AverageEnergy)+" MeV is acheved at "+s.FormatFloat("0",N)+" additional cells and "+s.FormatFloat("#.00",Structure.Result.InputCurrent)+" mA input current";
-        } else{
+			M="Output Energy "+s.FormatFloat("#.00",Structure.Result.Energy.mean)+" MeV is acheved at "+s.FormatFloat("0",N)+" additional cells and "+s.FormatFloat("#.00",Structure.Result.InputCurrent)+" mA input current";
+		} else{
             M="Output Energy "+s.FormatFloat("#.00",Wa)+" MeV is acheved at "+s.FormatFloat("0",i-1)+" additional cells";
         }
         ShowMessage(M);
