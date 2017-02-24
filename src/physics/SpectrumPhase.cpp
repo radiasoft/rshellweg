@@ -4,6 +4,8 @@
 #pragma hdrstop
 #include "SpectrumPhase.h"
 
+static int Nslices=1;
+
 //---------------------------------------------------------------------------
 __fastcall TSpectrumPhase::TSpectrumPhase()
 {
@@ -11,7 +13,7 @@ __fastcall TSpectrumPhase::TSpectrumPhase()
 //    FILE *F;
 //    F=fopen("yeDebug.log","a");
 //    fprintf(F,"__factcall TSpectrumPhase: Nslices=%d\n",Nslices);
-//    fclose(F);  
+//    fclose(F);
     MeshPhaseSet=false;
     SpectrumPhaseReady=false;
     AvPhaseReady=false;
@@ -69,7 +71,7 @@ void TSpectrumPhase::SetPhaseMesh(double *R0,double *X0,int Nb,int Ny)
 //    FILE *Fout;
 //    Fout=fopen("yeDebug.log","a");
 //    fprintf(Fout,"            Nslices(SetPhaseMesh)=%d\n",Nslices);
-//    fclose(Fout); 
+//    fclose(Fout);
     Nparticle=Ny;
     Phase=X0;
 	Radius=R0;
@@ -156,7 +158,7 @@ void TSpectrumPhase::MakePhaseEnvelope()
         for (int i=0;i<Nslices;i++)
             SpectrumPhase[i].y=SpectrumPhase[i].N;
 
-        double *X_base=NULL,*Y_base=NULL,*W=NULL;      
+        double *X_base=NULL,*Y_base=NULL,*W=NULL;
 
         X_base=new double[Nslices];
         Y_base=new double[Nslices];

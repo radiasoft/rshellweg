@@ -74,7 +74,7 @@ inline double MeVToBetaGamma(double W){
 	return MeVToVelocity(W)*MeVToGamma(W);
 }
 //---------------------------------------------------------------------------
-double BzFromOther(double beta,double beta_x,double beta_y){
+inline double BzFromOther(double beta,double beta_x,double beta_y){
 	double beta_r2=sqr(beta_x)+sqr(beta_y);
 	if (sqr(beta)>beta_r2)
 		return sqrt(sqr(beta)-beta_r2);
@@ -103,12 +103,7 @@ inline double sign(double x){
 //---------------------------------------------------------------------------
 inline double PulseToAngle(double beta_x,double beta_z)
 {
-	return mod(beta_z>0)?arctg(beta_x/beta_z):sign(beta_x)*pi/2;
- /*   if (mod(bz)>1e-5)
-        return arctg(bx/bz);
-    else
-		return sign(bx)*pi/2;    */
-
+	return mod(beta_z) > 0? arctg(beta_x/beta_z) : sign(beta_x)*pi/2;
 }
 //---------------------------------------------------------------------------
 inline int Fact(int n){
@@ -150,7 +145,7 @@ inline double Ib1(double x){
     return f;
 }
 //---------------------------------------------------------------------------
-void TwoRandom(double& Ran1,double& Ran2)
+inline void TwoRandom(double& Ran1,double& Ran2)
 {
 	Ran1=((double)rand() / ((double)RAND_MAX + 1));
 	Ran2=((double)rand() / ((double)RAND_MAX + 1));
@@ -159,7 +154,7 @@ void TwoRandom(double& Ran1,double& Ran2)
 		Ran1=1e-5;
 }
 //---------------------------------------------------------------------------
-void TwoRandomGauss(double& x1,double& x2)
+inline void TwoRandomGauss(double& x1,double& x2)
 {
 	double Ran1=0;
 	double Ran2=0;
@@ -170,7 +165,7 @@ void TwoRandomGauss(double& x1,double& x2)
 	x2=sqrt(-2*ln(Ran1))*sin(2*pi*Ran2);
 }
 //---------------------------------------------------------------------------
-double RandomGauss()
+inline double RandomGauss()
 {
 	double Ran1=0,Ran2=0,xx=0;
 	TwoRandom(Ran1,Ran2);
@@ -178,7 +173,7 @@ double RandomGauss()
 	return xx;
 }
 //---------------------------------------------------------------------------
-double RandomRayleigh()
+inline double RandomRayleigh()
 {
 	double Ran1=0,xx=0;
 
@@ -192,7 +187,7 @@ double RandomRayleigh()
 	return xx;
 }
 //---------------------------------------------------------------------------
-double RandomCos()
+inline double RandomCos()
 {
 	double Ran1=0,xx=0;
 
@@ -273,7 +268,7 @@ inline int GetNegativeSeparatrix(double &gamma,double phi,double bw,double A, do
 	return GetSeparatrix(gamma,phi,bw,A,H,1);
 }
 //---------------------------------------------------------------------------
-TPhaseSpace CylinricalToCartesian(double r, double th, double pr, double pth)
+inline TPhaseSpace CylinricalToCartesian(double r, double th, double pr, double pth)
 {
 	TPhaseSpace R;
 	double x=0,y=0,px=0,py=0;
@@ -292,12 +287,12 @@ TPhaseSpace CylinricalToCartesian(double r, double th, double pr, double pth)
 	return R;
 }
 //---------------------------------------------------------------------------
-TPhaseSpace CylinricalToCartesian(TPhaseSpace C)
+inline TPhaseSpace CylinricalToCartesian(TPhaseSpace C)
 {
 	return CylinricalToCartesian(C.x,C.y,C.px,C.py);
 }
 //---------------------------------------------------------------------------
-TPhaseSpace CartesianToCylinrical(double x, double y, double px, double py)
+inline TPhaseSpace CartesianToCylinrical(double x, double y, double px, double py)
 {
 	TPhaseSpace C;
 	double r=0,th=0,pr=0,pth=0;
@@ -323,19 +318,19 @@ TPhaseSpace CartesianToCylinrical(double x, double y, double px, double py)
 	return C;
 }
 //---------------------------------------------------------------------------
-TPhaseSpace CartesianToCylinrical(TPhaseSpace R)
+inline TPhaseSpace CartesianToCylinrical(TPhaseSpace R)
 {
 	return CartesianToCylinrical(R.x,R.y,R.px,R.py);
 }
 //---------------------------------------------------------------------------
-void DeleteArray(double *X)
+inline void DeleteArray(double *X)
 {
 	if (X!=NULL) {
         delete[] X;
 	}
 }
 //---------------------------------------------------------------------------
-double **DeleteDoubleArray(double **X,int Nx)
+inline double **DeleteDoubleArray(double **X,int Nx)
 {
 	for (int j = 0; j < Nx; j++)
 			delete[] X[j];
@@ -346,7 +341,7 @@ double **DeleteDoubleArray(double **X,int Nx)
 //---------------------------------------------------------------------------
 //--------------------TEXT FILES---------------------------------------------
 //---------------------------------------------------------------------------
-bool IsNumber(AnsiString &S)   //Checks if the string is a number
+inline bool IsNumber(AnsiString &S)   //Checks if the string is a number
 {
 	double x=0;
 	bool Success=false;
@@ -361,7 +356,7 @@ bool IsNumber(AnsiString &S)   //Checks if the string is a number
 	return Success;
 }
 //---------------------------------------------------------------------------
-bool CheckFile(AnsiString &F)   //Checks if the file exists
+inline bool CheckFile(AnsiString &F)   //Checks if the file exists
 {
 	bool Exists=false;
 	std::ifstream f(F.c_str());
@@ -373,7 +368,7 @@ bool CheckFile(AnsiString &F)   //Checks if the file exists
 	return Exists;
 }
 //---------------------------------------------------------------------------
-AnsiString GetWord(ifstream &f)   //Reads the next word from fstream
+inline AnsiString GetWord(ifstream &f)   //Reads the next word from fstream
 {
    AnsiString S;
    char s[MAX_CHAR];
@@ -384,7 +379,7 @@ AnsiString GetWord(ifstream &f)   //Reads the next word from fstream
    return S;
 }
 //---------------------------------------------------------------------------
-AnsiString GetLine(ifstream &f)   //Reads the next line from fstream
+inline AnsiString GetLine(ifstream &f)   //Reads the next line from fstream
 {
    AnsiString S;
    char s[MAX_CHAR];
@@ -395,7 +390,7 @@ AnsiString GetLine(ifstream &f)   //Reads the next line from fstream
    return S;
 }
 //---------------------------------------------------------------------------
-int NumWords(AnsiString &L)  //Counts number of words in the line
+inline int NumWords(AnsiString &L)  //Counts number of words in the line
 {
 	int i=0,Nmax=0,N=0;
 	bool Space=true; //Several successive spaces
@@ -418,7 +413,7 @@ int NumWords(AnsiString &L)  //Counts number of words in the line
 	return N;
 }
 //---------------------------------------------------------------------------
-AnsiString ReadWord(AnsiString &L,int N)   //Parses the Nth word from the string
+inline AnsiString ReadWord(AnsiString &L,int N)   //Parses the Nth word from the string
 {
 	AnsiString S="";
 	int i=1,Nmax=0,W=0;
@@ -448,7 +443,7 @@ AnsiString ReadWord(AnsiString &L,int N)   //Parses the Nth word from the string
 	return S;
 }
 //---------------------------------------------------------------------------
-int NumPointsInFile(AnsiString &F,int NumRow)
+inline int NumPointsInFile(AnsiString &F,int NumRow)
 {
 	//Check number of valid lines in text file F.
 	//Line is valid if number of elements in a row == NumRow and they are numbers

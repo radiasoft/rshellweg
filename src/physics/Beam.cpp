@@ -14,7 +14,7 @@ __fastcall TBeam::TBeam(int N)
     lmb=1;
     Cmag=0;
     SetKernel(Kernel);
-    
+
     Particle=new TParticle[Np];
     for (int i=0;i<Np;i++)
         Particle[i].lost=LIVE;
@@ -50,7 +50,7 @@ void TBeam::SetKernel(double Ker)
 
     if (Ran1<1e-5)
         Ran1=1e-5;
-        
+
     x1=sqrt(-2*ln(Ran1))*cos(2*pi*Ran2);
     x2=sqrt(-2*ln(Ran1))*sin(2*pi*Ran2);
 }        */
@@ -181,9 +181,15 @@ bool TBeam::ImportEnergy(TBeamInput *BeamPar)
 			}
 		}
 		int N=0;
-		switch (BeamPar->ZBeamType){
-			case FILE_1D: {N=1;break;}
-			case FILE_2D: {N=2;break;}
+		switch (BeamPar->ZBeamType) {
+			case FILE_1D:
+                            N=1;
+                            break;
+			case FILE_2D:
+                            N=2;
+                            break;
+                        default:
+                            throw runtime_error("ImportEnergy error: Unhandled ZBeamType");
 		}
 		X=DeleteDoubleArray(X,N);
 		Success=true;
@@ -250,13 +256,15 @@ bool TBeam::BeamFromCST(TBeamInput *BeamPar)
 
 					//fprintf(logFile,"%f %f %f\n",px,pr*cos(th)-pth*sin(th),px-pr*cos(th)+pth*sin(th));
 				}
-				default: {};
+				default:
+                                    throw runtime_error("BeamFromCST error: Unhandled RBeamType");
 			}
 		}
 		int N=0;
 		switch (BeamPar->RBeamType){
 			case CST_PIT: {N=PIT_LENGTH;break;}
 			case CST_PID: {N=PID_LENGTH;break;}
+                        default: throw runtime_error("BeamFromCST error: Unhandled RBeamType value");
 		}
 		X=DeleteDoubleArray(X,N);
 		Success=true;
@@ -406,6 +414,7 @@ bool TBeam::BeamFromFile(TBeamInput *BeamPar)
 			case FILE_2D: {N=2;break;}
 			case TWO_FILES_2D: {N=2;Y=DeleteDoubleArray(Y,N);break;}
 			case FILE_4D: {N=4;break;}
+                        default: throw runtime_error("BeamFromFile error: Unhandled RBeamType value");
 		}
 		X=DeleteDoubleArray(X,N);
 		Success=true;
@@ -573,6 +582,8 @@ void TBeam::SetParameters(double *X,TBeamParameter Par)
 				Particle[i].beta.z=X[i];
 			break;
 		}
+        default:
+            throw runtime_error("SetParameters error: Unhandled TBeamParameter value");
 	}
 }
 //---------------------------------------------------------------------------
@@ -761,7 +772,7 @@ TEllipse TBeam::FindEmittanceAngle(TBeamParameter P)
 			Beam1->Particle[k].lost=Particle[k].lost;
 			Beam1->Particle[k].beta=Particle[k].beta;
 			Beam1->Particle[k].Th=Particle[k].Th;
-			Beam1->Particle[k].lost==Particle[k].lost;
+			Beam1->Particle[k].lost=Particle[k].lost;
 			if (Particle[k].lost==LIVE){
 				Beam1->Particle[k].r=X0[j]*cos(Angle1)+Bx0[j]*sin(Angle1);
 				Beam1->Particle[k].beta.r=Bx0[j]*cos(Angle1)-X0[j]*sin(Angle1);

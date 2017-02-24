@@ -15,13 +15,18 @@
 #include <cstdlib>
 
 #ifndef RSLINAC
+
 #include <system.hpp>
 #include <conio.h>
 #include <dir.h>
 #include <Vcl.Dialogs.hpp>
+
 #else
+
 #include <AnsiString.hpp>
 #define __fastcall
+using namespace std;
+
 #endif
 
 #include "ConstUnit.h"
@@ -57,7 +62,14 @@ enum TSpaceChargeType {SPCH_NO,SPCH_LPST,SPCH_ELL,SPCH_GW};
 
 const int MaxParameters=14;  //Maximum number of parameters after a keyword. Currently: BEAM
 const int NumBessel=6;
-int Nslices=1;
+
+#ifdef RSLINAC
+typedef long double Extended;
+
+inline Extended DegToRad(const Extended Degrees) {
+    return Degrees*M_PI/180;
+}
+#endif
 
 struct TInputLine{
     TInputParameter P;

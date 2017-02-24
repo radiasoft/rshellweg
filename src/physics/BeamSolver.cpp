@@ -133,7 +133,9 @@ void TBeamSolver::ResetDump(int Ns)
 //---------------------------------------------------------------------------
 void TBeamSolver::ShowError(AnsiString &S)
 {
+        #ifndef RSLINAC
 	ShowMessage(S);
+        #endif
 	ParsedStrings->Add(S);
 }
 //---------------------------------------------------------------------------
@@ -2352,7 +2354,7 @@ int TBeamSolver::CreateGeometry()
 			StructPar.SolenoidPar.BField=0;
 			StructPar.SolenoidPar.Length=0;
 			StructPar.SolenoidPar.StartPos=0;
-			StructPar.SolenoidPar.ImportType==NO_ELEMENT;
+			StructPar.SolenoidPar.ImportType=NO_ELEMENT;
 			/*Zmag=0;
 			B0=0;
 			Lmag=0;
@@ -2368,7 +2370,7 @@ int TBeamSolver::CreateGeometry()
 				StructPar.SolenoidPar.StartPos=0;
 				StructPar.SolenoidPar.Length=Structure[Npoints-1].ksi*Structure[Npoints-1].lmb;
 				StructPar.SolenoidPar.BField=Bz[0];
-				StructPar.SolenoidPar.ImportType==ANALYTIC_0D;
+				StructPar.SolenoidPar.ImportType=ANALYTIC_0D;
 				/*Zmag=0;
 				Lmag=Structure[Npoints-1].ksi*Structure[Npoints-1].lmb;
 				B0=Bz[0];
@@ -3041,10 +3043,9 @@ double TBeamSolver::GetStructureParameter(int Nknot, TStructureParameter P)
 			x=T.epsilon;
 			break;
 		}
-		/*case (LMB_PAR):{
-            x=Structure[Nknot].lmb;
-			break;
-		}    */
+                default: {
+                        throw runtime_error("GetStructureParameter error: Unhandled TStructureParameter value");
+                }
 	}
 
 	return x;
@@ -3094,9 +3095,9 @@ double TBeamSolver::GetEigenFactor(double x, double y, double z,double a, double
 	q=(2*cub(B)-9*A*B*C+27*sqr(A)*D)/(27*cub(A));
 	Q=cub(p/3)+sqr(q/2);
 
-	if (Q>0) {
+	if (Q > 0) {
 		s=cubrt(sqrt(Q)-q/2)-cubrt(sqrt(Q)+q/2);
-	} else if (Q=0) {
+	} else if (Q == 0) {
 		s1=2*cubrt(q/2);
 		s2=-2*cubrt(q/2);
 		s=s2>s1?s2:s1;
@@ -3833,7 +3834,7 @@ void TBeamSolver::Step(int Si)
 		Par[3].dH=d2Bzx/d2h;
 	}
 
-   /*	FILE *logFile=fopen("beam.log","a");
+   	FILE *logFile=fopen("beam.log","a");
 	//fprintf(logFile,"Phase Radius Betta\n");
     //for (int i=0;i<Np;i++)
 		fprintf(logFile,"%i %f %f %f %f\n",Si,Par[0].dH,Par[1].dH,Par[2].dH,Par[3].dH);
@@ -3953,13 +3954,12 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	OutputStrings->Add("========================================");
     OutputStrings->Add("");
 
-	bool FWHM=true;
     double Ws=0;
    //   AnsiString s;
     int j=Npoints-1;
     double z=100*Structure[j].ksi*Structure[j].lmb;
 
-	TGauss Gw=GetEnergyStats(j,FWHM);
+	TGauss Gw=GetEnergyStats(j,D_FWHM);
 
 	double Wm=Beam[j]->GetMaxEnergy();
 	double I=Beam[j]->GetCurrent();
@@ -3967,7 +3967,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     double kc=100.0*Beam[j]->GetLivingNumber()/Beam[0]->GetLivingNumber();
 	double r=1e3*Beam[j]->GetRadius();
 
-	TGauss Gphi=GetPhaseStats(j,FWHM);
+	TGauss Gphi=GetPhaseStats(j,D_FWHM);
 
     double f=1e-6*c/Structure[j].lmb;
 	double Ra=1e3*Structure[j].Ra*Structure[j].lmb;
@@ -4066,7 +4066,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	double Pbeam0=0, Wb0=0;
 	double Ib=0, Wb=0, P0=0;
 	for (int i=0;i<=j;i++){
-		if (Structure[i].jump && !Structure[i].drift || i==j) {
+		if ((Structure[i].jump && !Structure[i].drift) || i==j) {
 			Ib=Beam[i]->GetCurrent();
 			Wb=Beam[i]->GetAverageEnergy();
 
