@@ -899,7 +899,7 @@ TEllipse TBeam::GetEllipse(TBeamParameter P)
 //---------------------------------------------------------------------------
 double TBeam::Get4DEmittance(bool Norm)
 {
-	TTwiss T=GetTwiss(RTH_PAR, Norm);
+	TTwiss T=GetTwiss(E4D_PAR, Norm);
 	return T.epsilon;
 }
 //---------------------------------------------------------------------------
@@ -909,7 +909,7 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 	double *X=NULL,*Y=NULL, *Z=NULL;
 	TGauss Gx,Gy,Gz;
 	bool Square=true;
-	bool E4D=P==RTH_PAR;
+	bool E4D=P==E4D_PAR;
 
 	T.epsilon=0;
 	T.alpha=0;
