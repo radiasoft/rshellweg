@@ -492,6 +492,8 @@ TSpaceChargeType TBeamSolver::ParseSpchType(AnsiString &S)
 	TSpaceChargeType T;;
 
 	if (S=="COULOMB")
+		T=SPCH_LPST;
+	else if (S=="ELLIPTIC")
 		T=SPCH_ELL;
 	else if (S=="GWMETHOD")
 		T=SPCH_GW;
@@ -1073,11 +1075,11 @@ TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 	AnsiString F="SPCHARGE ",S;
 	BeamPar.SpaceCharge.Type=SPCH_NO;
 	BeamPar.SpaceCharge.NSlices=1;
-	BeamPar.SpaceCharge.Nrms=1;
+	BeamPar.SpaceCharge.Nrms=3;
 
 	if (Line->N==0){
 		BeamPar.SpaceCharge.Type=SPCH_ELL;
-		F=F+"\t"+"COULOMB";
+		F=F+"\t"+"ELLIPTIC";
 	}else if (Line->N<3) {
 		BeamPar.SpaceCharge.Type=ParseSpchType(Line->S[0]);
 		F=F+"\t"+Line->S[0];
@@ -1089,6 +1091,7 @@ TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 				}
 				break;
 			}
+			case SPCH_LPST: { }
 			case SPCH_ELL: {
 				if (Line->N==2){
 					BeamPar.SpaceCharge.Nrms=Line->S[1].ToDouble();
@@ -3235,7 +3238,7 @@ double TBeamSolver::FormFactor(double ryrx, double rxrz, TBeamParameter P, doubl
 void TBeamSolver::Integrate(int Si, int Sj)
 {
 	double gamma0=1,Mr=0,Nr=0,/*phic=0,*/Qbunch=0,Rho=0,lmb=0,Icur=0;
-	double Mx=0,My=0,Mz=0,Mxx=0,Myy=0,Mzz=0,ix=0,iy=0;
+	double Mx=0,My=0,Mz=0,Mxx=0,Myy=0,Mzz=0,ix=0,iy=0,p=0,M=0;
 	int component=0;
 	TParticle *Particle=Beam[Si]->Particle;
 
@@ -3248,24 +3251,27 @@ void TBeamSolver::Integrate(int Si, int Sj)
 	gamma0=Beam[Si]->iGetAverageEnergy(Par[Sj],K[Sj]);
 	Par[Sj].gamma=gamma0;
 
-	double x0=0,y0=0,z0=0,rx=0,ry=0,rz=0,rb=0,V=0,Mcore=1;
+	double x0=0,y0=0,z0=0,rx=0,ry=0,rz=0/*,rb=0*/,V=0,Mcore=1,Ncore=0;
 	double Nrms=BeamPar.SpaceCharge.Nrms;
-
-	lmb=Beam[Si]->lmb;
-	Icur=Beam[Si]->GetCurrent();
-
-	V=mod(4*pi*rx*ry*rz/3);
-	Icur=Beam[Si]->GetCurrent();
-	Qbunch=Icur*lmb/c;
-	Rho=Qbunch/V;
-	Rho*=2*pi/eps0;
 
 	Par[Sj].Eq=new TField[BeamPar.NParticles];
 
-	//FILE *Fout=fopen("spch.log","a");
+	FILE *Fout=fopen("spch.log","w");
+	for (int i = 0; i < Nryrx; i++) {
+		x0=RYRX[i];
+		for (int j = 0; j < Nrxrz; j++) {
+			y0=RXRZ[j];
+			rx=FormFactor(x0,y0,X_PAR);
+			ry=FormFactor(x0,y0,Y_PAR);
+			rz=FormFactor(x0,y0,Z0_PAR);
+			fprintf(Fout,"%f %f %f %f %f\n",x0,y0,rx,ry,rz);
+		}
+	}
 	//fprintf(Fout,"x y z lambda Mx My Mz\n");
 	//fprintf(Fout,"x Ex\n");
 	//fprintf(Fout,"%f %f %f %f %f %f %f %f %f\n",n,Ncore,Mcore,1e9*Qbunch,V,Rho,Mz,Rho*Mz,Rho*Mz*rz);
+
+	fclose(Fout);
 
 	for (int i=0;i<BeamPar.NParticles;i++){
 		Par[Sj].Eq[i].z=0;
@@ -3275,6 +3281,7 @@ void TBeamSolver::Integrate(int Si, int Sj)
 
 	Ncore=0;
 	switch (BeamPar.SpaceCharge.Type) {   //SPACE CHARGE
+		case SPCH_LPST: {}
 		case SPCH_ELL: {
 			TGauss Gx,Gy,Gz;
 			Gx=Beam[Si]->iGetBeamRadius(Par[Sj],K[Sj],X_PAR);
@@ -3289,12 +3296,25 @@ void TBeamSolver::Integrate(int Si, int Sj)
 			ry=Nrms*Gy.sigma;
 			rz=Nrms*Gz.sigma;
 
+			lmb=Beam[Si]->lmb;
+			Icur=Beam[Si]->GetCurrent();
+			Qbunch=Icur*lmb/c;
+			V=mod(4*pi*rx*ry*rz/3);
+			Rho=Qbunch/V;
+			//Rho*=2*pi/eps0;
+			Rho/=eps0;
+
 			if (V!=0) {
-				ix=ry/rx;
-				iy=rx/rz;
-				Mx=FormFactor(ix,iy,X_PAR);
-				My=FormFactor(ix,iy,Y_PAR);
-				Mz=FormFactor(ix,iy,Z0_PAR);
+				if (BeamPar.SpaceCharge.Type==SPCH_LPST) {  //Lapostolle
+					p=gamma0*rz/sqrt(rx*ry);
+					M=FormFactorLpst(p);
+				} else {     //Elliptic
+					ix=ry/rx;
+					iy=rx/rz;
+					Mx=FormFactor(ix,iy,X_PAR);
+					My=FormFactor(ix,iy,Y_PAR);
+					Mz=FormFactor(ix,iy,Z0_PAR);
+				}
 				for (int i=0;i<BeamPar.NParticles;i++){
 					if (Particle[i].lost==LIVE){
 						double x=0,y=0,z=0,r=0,th=0,phi=0,gamma=1,g2=1;
@@ -3312,21 +3332,27 @@ void TBeamSolver::Integrate(int Si, int Sj)
 						gamma=VelocityToEnergy(Particle[i].beta.z+K[Sj][i].beta.z*Par[Sj].h); //change to beta
 						g2=1/sqr(gamma);
 
-						if (r3<1) {
-							s=0;
-							Ex=Rho*Mx*x/sqr(gamma0);
-							Ey=Rho*My*y;
-							Ez=Rho*Mz*z;
-							Ncore++;
-						} else {
-							s=GetEigenFactor(x,y,z,rx,ry,rz);
-							Mxx=FormFactor(ix,iy,X_PAR,s);
-							Myy=FormFactor(ix,iy,Y_PAR,s);
-							Mzz=FormFactor(ix,iy,Z0_PAR,s);
+						if  (BeamPar.SpaceCharge.Type==SPCH_LPST) { //Lapostolle
+							Ex=Rho*(1-M)*x*ry/(rx+ry);
+							Ey=Rho*(1-M)*x*rx/(rx+ry);
+							Ez=Rho*M*z;
+						}  else {//Elliptic
+							if (r3<1) {
+								s=0;
+								Ex=Rho*Mx*x;
+								Ey=Rho*My*y;
+								Ez=Rho*Mz*z;
+								Ncore++;
+							} else {
+								s=GetEigenFactor(x,y,z,rx,ry,rz);
+								Mxx=FormFactor(ix,iy,X_PAR,s);
+								Myy=FormFactor(ix,iy,Y_PAR,s);
+								Mzz=FormFactor(ix,iy,Z0_PAR,s);
 
-							Ex=Rho*Mxx*x;
-							Ey=Rho*Myy*y;
-							Ez=Rho*Mzz*z;
+								Ex=Rho*Mxx*x/2;
+								Ey=Rho*Myy*y/2;
+								Ez=Rho*Mzz*z/2;
+							}
 						}
 
 						Ex*=(g2*lmb/We0);
@@ -3337,10 +3363,12 @@ void TBeamSolver::Integrate(int Si, int Sj)
 						Par[Sj].Eq[i].r=Ex*cos(th)+Ey*sin(th);
 						Par[Sj].Eq[i].th=-Ex*sin(th)+Ey*cos(th);
 					}
+				}
+				if (BeamPar.SpaceCharge.Type==SPCH_ELL) {// elliptic
 					Mcore=Ncore/Nliv;
 					for (int i=0;i<BeamPar.NParticles;i++){
 						Par[Sj].Eq[i].z*=Mcore;
-						Par[Sj].Eq[i].r*=Mcore
+						Par[Sj].Eq[i].r*=Mcore;
 						Par[Sj].Eq[i].th*=Mcore;
 					}
 				}

@@ -3256,10 +3256,22 @@ void TBeamSolver::Integrate(int Si, int Sj)
 
 	Par[Sj].Eq=new TField[BeamPar.NParticles];
 
-	//FILE *Fout=fopen("spch.log","a");
+   /*	FILE *Fout=fopen("spch.log","w");
+	for (int i = 0; i < Nlmb; i++) {
+		x0=LMB[i];
+		for (int j = 0; j < Nrxrz; j++) {
+			y0=RXRZ[j];
+			rx=FormFactor(1,y0,X_PAR,x0);
+			ry=FormFactor(1,y0,Y_PAR,x0);
+			rz=FormFactor(1,y0,Z0_PAR,x0);
+			fprintf(Fout,"%f %f %f %f %f\n",x0,y0,rx,ry,rz);
+		}
+	}
 	//fprintf(Fout,"x y z lambda Mx My Mz\n");
 	//fprintf(Fout,"x Ex\n");
 	//fprintf(Fout,"%f %f %f %f %f %f %f %f %f\n",n,Ncore,Mcore,1e9*Qbunch,V,Rho,Mz,Rho*Mz,Rho*Mz*rz);
+
+	fclose(Fout);     */
 
 	for (int i=0;i<BeamPar.NParticles;i++){
 		Par[Sj].Eq[i].z=0;
