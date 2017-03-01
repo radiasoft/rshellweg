@@ -1780,7 +1780,7 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 
 			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th-beta.z*E.r)-beta.th*(H.r+beta.z*E.th)+beta.r*Hx.th-beta.th*Hx.r*r)/(gamma*beta.z);
 			k_beta.r=((1-sqr(beta.r))*E.r+beta.th*(H.z-beta.r*E.th)-beta.z*(H.th+beta.r*E.z)+beta.th*Hx.z-beta.z*Hx.th)/(gamma*beta.z)+sqr(beta.th)/(r*beta.z);
-			k_beta.th=((1-sqr(beta.th))*E.th+beta.z*(H.r-beta.th*E.z)-beta.r*(H.z+beta.th*E.r)+beta.z*Hx.r*r-beta.r*Hx.z)/(gamma*beta.z)-0.5*beta.th*beta.r/(r*beta.z);
+			k_beta.th=((1-sqr(beta.th))*E.th+beta.z*(H.r-beta.th*E.z)-beta.r*(H.z+beta.th*E.r)+beta.z*Hx.r*r-beta.r*Hx.z)/(gamma*beta.z)-beta.th*beta.r/(r*beta.z);
 		   /*
 			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th-beta.z*E.r)-beta.th*r*Par.Hext.r)/(gamma*beta.z); //k_bz = dbz/dz  ; Br=-Bz'/2!;
 			k_beta.r=((E.r-beta.z*H.th-beta.r*(beta.z*E.z+beta.r*E.r))+beta.th*Par.Hext.z)/(gamma*beta.z)+r*sqr(th_dot)/(beta.z);

@@ -60,6 +60,9 @@ void TBeamSolver::Initialize()
 	Npoints=1;
 	Ndump=0;
 
+  /*	Nrmesh=20;
+	Nthmesh=36;    */
+
 	//Np=1;
    //	NpEnergy=0;
 	Np_beam=1;
@@ -1076,37 +1079,64 @@ TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 	BeamPar.SpaceCharge.Type=SPCH_NO;
 	BeamPar.SpaceCharge.NSlices=1;
 	BeamPar.SpaceCharge.Nrms=3;
+	BeamPar.SpaceCharge.Train=false;
+	BeamPar.SpaceCharge.Ltrain=0;
+
+	int Ntr=0;
 
 	if (Line->N==0){
 		BeamPar.SpaceCharge.Type=SPCH_ELL;
 		F=F+"\t"+"ELLIPTIC";
-	}else if (Line->N<3) {
-		BeamPar.SpaceCharge.Type=ParseSpchType(Line->S[0]);
-		F=F+"\t"+Line->S[0];
-		switch (BeamPar.SpaceCharge.Type) {
-			case SPCH_GW: {
-				if (Line->N==2){
-					BeamPar.SpaceCharge.NSlices=Line->S[1].ToInt();
-					F=F+"\t"+Line->S[1];
-				}
+	}else{
+		for (int i = 1; i < Line->N; i++) {
+			if (Line->S[i]=="TRAIN") {
+				Ntr=i+1;
 				break;
 			}
-			case SPCH_LPST: { }
-			case SPCH_ELL: {
-				if (Line->N==2){
-					BeamPar.SpaceCharge.Nrms=Line->S[1].ToDouble();
-					F=F+"\t"+Line->S[1];
+		}
+		int Nsp=Line->N-Ntr;
+		if (Nsp<2) {
+			BeamPar.SpaceCharge.Type=ParseSpchType(Line->S[0]);
+			F=F+"\t"+Line->S[0];
+			switch (BeamPar.SpaceCharge.Type) {
+				case SPCH_GW: {
+					if (Nsp==1){
+						BeamPar.SpaceCharge.NSlices=Line->S[1].ToInt();
+						F=F+"\t"+Line->S[1];
+					}
+					break;
 				}
-				break;
+				case SPCH_LPST: { }
+				case SPCH_ELL: {
+					if (Nsp==1){
+						BeamPar.SpaceCharge.Nrms=Line->S[1].ToDouble();
+						F=F+"\t"+Line->S[1];
+					}
+					break;
+				}
+				case SPCH_NO: { break;}
+				default: {return ERR_SPCHARGE;};
 			}
-			case SPCH_NO: { break;}
-			default: {return ERR_SPCHARGE;};
+		} else {
+			S="ERROR: Too many parameters in SPCHARGE line!";
+			ShowError(S);
+			return ERR_SPCHARGE;
 		}
 
-	} else {
-		S="ERROR: Too many parametes in SPCHARGE line!";
-		ShowError(S);
-		return ERR_SPCHARGE;
+		if (Ntr>0) {
+			BeamPar.SpaceCharge.Train=true;
+			F=F+"\t"+"TRAIN";
+			if (Line->N==Ntr+1){
+				BeamPar.SpaceCharge.Ltrain=Line->S[Ntr].ToDouble();
+				F=F+"\t"+Line->S[1];
+			}else if (Line->N!=Ntr) {
+				S="ERROR: Too many parameters after TRAIN keyword!";
+				ShowError(S);
+				return ERR_SPCHARGE;
+			}else {
+                BeamPar.SpaceCharge.Ltrain=0;
+            }
+		}
 	}
 
 	ParsedStrings->Add(F);
@@ -2210,21 +2240,10 @@ int TBeamSolver::CreateGeometry()
 				BeamExport[j].Nmesh=k0;
 			}
 		}
-	  /*	if (StructPar.Cells[i].Dump){
-			Structure[k0].Dump=true;
-			Structure[k0].DumpParameters=StructPar.Cells[i].DumpParameters;
-		  //	strcpy(Structure[k0].DumpParameters.File, Cells[i].DumpParameters.File);
-		}    */
 	}
-   /*	if (StructPar.Cells[StructPar.NElements].Dump){
-		Structure[k-1].Dump=true;  //was k0+Nmesh
-		Structure[k-1].DumpParameters=StructPar.Cells[StructPar.NElements].DumpParameters; //was k0+Nmesh
-	}    */
 
-	//   int Njmp=0;
-//  Structure[0].jump=true;
 
-    double *Xo=NULL, *Bo=NULL, *Eo=NULL, *Ao=NULL;
+	double *Xo=NULL, *Bo=NULL, *Eo=NULL, *Ao=NULL;
 	double *Xi=NULL, *Bi=NULL, *Ei=NULL, *Ai=NULL;
     int Ncls=0;
     int Npts=0;
@@ -2235,7 +2254,7 @@ int TBeamSolver::CreateGeometry()
     bool EndOfBlock=false;
 
   /*    FILE *F;
-    F=fopen("cells.log","w");*/
+	F=fopen("cells.log","w");*/
 
 	for (int i=0;i<=StructPar.NElements;i++){
 		if (i==StructPar.NElements)
@@ -2252,10 +2271,6 @@ int TBeamSolver::CreateGeometry()
 				Npts+=StructPar.Cells[j].Mesh;
 			}
 			Npts++;
-			//int Npts0=Ncls*Nmesh+1;
-
-			/*if (i!=Ncells)
-				Structure[i*Nmesh].jump=true;*/
 
             Xo=new double[Ncls];
             Bo=new double[Ncls];
@@ -2320,13 +2335,7 @@ int TBeamSolver::CreateGeometry()
 				Al_int[/*Njmp*Nmesh*/pos+iJmp+j]=Ai[j];
 			}
 
-
-        /*  for (int i=0;i<Npts;i++){
-                fprintf(F,"%i %f %f\n",Njmp*Nmesh+i,Xi[i],Ei[i]);
-            }     */
-            
-
-            delete[] Xo;
+			delete[] Xo;
             delete[] Xi;
             delete[] Bo;
             delete[] Bi;
@@ -2353,10 +2362,6 @@ int TBeamSolver::CreateGeometry()
 			StructPar.SolenoidPar.Length=0;
 			StructPar.SolenoidPar.StartPos=0;
 			StructPar.SolenoidPar.ImportType==NO_ELEMENT;
-			/*Zmag=0;
-			B0=0;
-			Lmag=0;
-			FSolenoid=false;  */
 			S="The format of "+StructPar.SolenoidPar.File+" is wrong or too few points available";
 			ShowError(S);
 		} else {
@@ -2369,11 +2374,7 @@ int TBeamSolver::CreateGeometry()
 				StructPar.SolenoidPar.Length=Structure[Npoints-1].ksi*Structure[Npoints-1].lmb;
 				StructPar.SolenoidPar.BField=Bz[0];
 				StructPar.SolenoidPar.ImportType==ANALYTIC_0D;
-				/*Zmag=0;
-				Lmag=Structure[Npoints-1].ksi*Structure[Npoints-1].lmb;
-				B0=Bz[0];
-				FSolenoid=false;*/
-                delete[] Xz;
+				delete[] Xz;
                 delete[] Bz;
             } else{
                 Xi=new double[Npoints];
@@ -2422,24 +2423,26 @@ int TBeamSolver::CreateGeometry()
 		}
 	}
 
-   /*	Structure[0].Br_ext=0;
-	Structure[Npoints-1].Br_ext=0;  */
-	for (int i=1;i<Npoints-1;i++){
+  //	FILE *F;
+   //	F=fopen("cells.log","w");
+	double dBz=0, d2Bz=0, d3Bz=0;
+
+	//CREATE MESH!
+
+	for (int i=1;i<Npoints;i++){
 		switch (StructPar.SolenoidPar.ImportType) {
 			case IMPORT_1D:{}
 			case ANALYTIC_0D:{
+				//Br~-r/2 * dBz/dz
 				Structure[i].Hext.r=-0.5*(Structure[i+1].Hext.z-Structure[i-1].Hext.z)/(Structure[i+1].ksi-Structure[i-1].ksi);
-				//Structure[i].Br_ext=-0.5*(Structure[i+1].Bz_ext-Structure[i-1].Bz_ext)/(Structure[i+1].ksi-Structure[i-1].ksi);
+
+			   //	fprintf(F,"%f %f %f\n",Structure[i+1].ksi,Structure[i].Hext.z,Structure[i].Hext.r);
 				break;
 			}
 			default: {	}
 		}
 
 	}
-
-   /*	if (!BeamPar.Magnetized) {
-    	Structure[0].B_ext=0;
-	}       */
 
 	if (StructPar.SolenoidPar.ImportType==IMPORT_1D)
 		delete[] Bi;
@@ -2458,25 +2461,6 @@ TError TBeamSolver::CreateBeam()
 	double b0=0,db=0;
 
 	AnsiString S;
-
-	//Npoints=Ncells*Nmesh;
-
-	//Np=BeamPar.NParticles;
-
-	//OLD CODE
-   /* if (BeamType!=RANDOM){
-	    if (NpFromFile)
-		    Np=Beam[0]->CountCSTParticles(BeamFile);
-        if(Np<0) {
-            return ERR_CURRENT;
-		}
-    }
-
-	if (NpEnergy != 0) {
-	    if (NpEnergy != Np) { 
-            return ERR_NUMBPARTICLE;
-		}
-	} */
 
    for (int i=0;i<Np_beam;i++){
         delete Beam[i];
@@ -2578,108 +2562,8 @@ TError TBeamSolver::CreateBeam()
 			return ERR_BEAM;
 		}
 	}
-
-  //	if (BeamPar.Magnetized) {
-	  /*	for (int j=0;j<BeamPar.NParticles;j++){
-			double gamma=VelocityToEnergy(Beam[0]->Particle[j].beta);
-			double bth=Beam[0]->Particle[j].Bth;
-			double r=Beam[0]->Particle[j].r;
-			double Bz=Structure[0].Hext.z;
-			double Cmag=2*r*gamma*bth+sqr(r)*Bz;
-			//double Cmag=sqr(r)*Bz;
-			for (int i=0;i<Npoints;i++)
-				Beam[i]->Particle[j].Cmag=Cmag;
-		}      */
-   //	}
-
-   //OLD CODE
-/*
-	if (NpEnergy == 0) {
-        if (W_Eq) {
-            Beam[0]->MakeEquiprobableDistribution(W0,dW,BETTA_PAR);
-        } else {
-            Beam[0]->MakeGaussDistribution(W0,dW,BETTA_PAR);
-        }
-	} else {
-		LoadEnergyFromFile(EnergyFile,NpEnergy);
-	}
-
-    for (int i=0;i<Np;i++) {
-        Beam[0]->Particle[i].betta=MeVToVelocity(Beam[0]->Particle[i].betta);
-    }
-
-    if (Phi_Eq) { 
-        Beam[0]->MakeEquiprobableDistribution(HellwegTypes::DegToRad(Phi0)-Structure[0].dF,HellwegTypes::DegToRad(dPhi),PHI_PAR);
-    } else {
-        Beam[0]->MakeGaussDistribution(HellwegTypes::DegToRad(Phi0)-Structure[0].dF,HellwegTypes::DegToRad(dPhi),PHI_PAR);
-    }
-
-	if (BeamType==RANDOM) {
-		Beam[0]->MakeGaussEmittance(AlphaCS,BettaCS,EmittanceCS);
-    } else {
-		Beam[0]->ReadCSTEmittance(BeamFile,Np);
-	}
-
-   //	if (BeamType!=CST_Y) {  //not used yet
-        Beam[0]->MakeEquiprobableDistribution(pi,pi,TH_PAR);
-   //	}
-    Beam[0]->MakeEquiprobableDistribution(0,0,BTH_PAR);
-
-    for (int i=0;i<Npoints;i++){
-        for (int j=0;j<Np;j++) {
-            Beam[i]->Particle[j].x0=Beam[0]->Particle[j].x;
-        }
-	}    */
-    
- /* for (int i=0;i<Np;i++){
-        Beam[0]->Particle[i].x=0;//-0.001+0.002*i/(Np-1);
-        //Beam[0]->Particle[i].phi=0;
-        Beam[0]->Particle[i].Bx=0;
-        Beam[0]->Particle[i].Th=0;
-        Beam[0]->Particle[i].Bth=0;
-
-      //    Beam[0]->Particle[i].phi=DegToRad(-90+i);
-       //   Beam[0]->Particle[i].betta=MeVToVelocity(0.05);
-    }           */
-    return ERR_NO;
+	return ERR_NO;
 }
-//---------------------------------------------------------------------------
-//MOVED TO BEAM.CPP
-/*bool TBeamSolver::LoadEnergyFromFile(AnsiString &F, int NpEnergy)
-{
-	std::ifstream fs(F.c_str());
-	float enrg=0;
-	int i=0, np=0;
-	bool Success=false;
-	AnsiString S,L;
-
-	while (!fs.eof()){
-		L=GetLine(fs);
-
-		if (NumWords(L)==2){       //Check if only two numbers in the line
-			try {                  //Check if the data is really a number
-				S=ReadWord(L,1);
-				np=S.ToInt();
-				S=ReadWord(L,2);
-				enrg=S.ToDouble();
-			}
-			catch (...){
-				continue;          //Skip incorrect line
-			}
-			if (i==NpEnergy){     //if there is more data than expected
-				i++;
-				break;
-			}
-			Beam[0]->Particle[i].betta=enrg;
-			i++;
-		}
-	}
-
-	fs.close();
-
-	Success=(i==NpEnergy);
-	return Success;
-}       */
 //---------------------------------------------------------------------------
 int TBeamSolver::GetSolenoidPoints()
 {
@@ -3256,14 +3140,14 @@ void TBeamSolver::Integrate(int Si, int Sj)
 
 	Par[Sj].Eq=new TField[BeamPar.NParticles];
 
-	FILE *Fout=fopen("spch.log","w");
-	for (int i = 0; i < Nryrx; i++) {
-		x0=RYRX[i];
+   /*	FILE *Fout=fopen("spch.log","w");
+	for (int i = 0; i < Nlmb; i++) {
+		x0=LMB[i];
 		for (int j = 0; j < Nrxrz; j++) {
 			y0=RXRZ[j];
-			rx=FormFactor(x0,y0,X_PAR);
-			ry=FormFactor(x0,y0,Y_PAR);
-			rz=FormFactor(x0,y0,Z0_PAR);
+			rx=FormFactor(1,y0,X_PAR,x0);
+			ry=FormFactor(1,y0,Y_PAR,x0);
+			rz=FormFactor(1,y0,Z0_PAR,x0);
 			fprintf(Fout,"%f %f %f %f %f\n",x0,y0,rx,ry,rz);
 		}
 	}
@@ -3271,7 +3155,7 @@ void TBeamSolver::Integrate(int Si, int Sj)
 	//fprintf(Fout,"x Ex\n");
 	//fprintf(Fout,"%f %f %f %f %f %f %f %f %f\n",n,Ncore,Mcore,1e9*Qbunch,V,Rho,Mz,Rho*Mz,Rho*Mz*rz);
 
-	fclose(Fout);
+	fclose(Fout);     */
 
 	for (int i=0;i<BeamPar.NParticles;i++){
 		Par[Sj].Eq[i].z=0;
@@ -3827,6 +3711,7 @@ void TBeamSolver::Step(int Si)
 	Par[1].Hext.th=Structure[Si].Hext.th+dBthx/2;
 	Par[2].Hext.th=Par[1].Hext.th;
 	Par[3].Hext.th=Structure[Si+1].Hext.th;
+
 
   /*	if (Si==0)
 		Par[0].dH=dBzx/dh;

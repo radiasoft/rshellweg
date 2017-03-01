@@ -102,8 +102,6 @@ struct TSpaceCharge
 	TSpaceChargeType Type;
 	int NSlices;
 	double Nrms;
-	bool Train;
-	double Ltrain;
 };
 
 struct TBeamInput

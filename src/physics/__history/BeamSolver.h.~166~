@@ -8,6 +8,7 @@
 // #include "Spline.h"
 // #include "Matrix.h"
 
+#include "Functions.h"
 #include "Beam.h"
 #include "Matrix.h"
 #include "Spline.h"
@@ -48,6 +49,7 @@ private:
 	TStructureInput StructPar;
 	int ChangeCells(int N);
 	void ResetStructure();
+	void ResetDump(int Ns);
 
 	int Mode_N,Mode_M,MaxCells,Nmesh,Npoints;//,Ncells,Nlim;
 	double Rb,Lb,phi0,dphi,w,betta0; //create new structure TStructure
@@ -79,7 +81,7 @@ private:
 	TError ParseMultipleCells (TInputLine *Line,int Ni,int Nsec, bool NewCell);
 	TError ParseDrift (TInputLine *Line,int Ni,int Nsec);
 	TError ParsePower (TInputLine *Line,int Nsec);
-	TError ParseDump (TInputLine *Line,int Ni);
+	TError ParseDump (TInputLine *Line,int Ns, int Ni);
 
 	TError ParsePID (TInputLine *Line, AnsiString &F);
 	TError ParsePIT (TInputLine *Line, AnsiString &F);
@@ -96,14 +98,16 @@ private:
 	double *LinearInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
     double *SplineInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
     double *SmoothInterpolation(double *x,double *X,double *Y,int Nbase,int Nint,double p0,double *W=NULL);
-    void GetDimensions(TCell& Cell);
+	void GetDimensions(TCell& Cell);
+	double FormFactor(double ryrx, double rxrz, TBeamParameter P, double s=0);
+	double GetEigenFactor(double x, double y, double z,double a, double b, double c);
 
 	//INTEGRATION
 	void DumpHeader(ofstream &fo,int Sn,int jmin,int jmax);
 	void DumpFile(ofstream &fo,int Sn,int j);
 	void DumpASTRA(ofstream &fo,int Sn,int j,int jref);
 	void DumpCST(ofstream &fo,int Sn,int j);
-	void DumpBeam(int Si,TBeamType T=NOBEAM);
+	void DumpBeam(int Sn);
 	void Step(int Si);
     void Integrate(int Si, int Sj);
 	void CountLiving(int Si);

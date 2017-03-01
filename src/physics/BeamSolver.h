@@ -39,7 +39,7 @@ private:
 	double dh;
 
 	int Np_beam,Nstat,Ngraph,Nav,Nliv,Ndump;
-	double I;
+	double I;  //remove from global!
 
 	TSplineType SplineType;
 	//STRUCTURE
@@ -219,14 +219,6 @@ public:
 	double *GetBeamParameters(int Nknot,TBeamParameter P);
 	double GetStructureParameter(int Nknot,TStructureParameter P);
 	double *GetStructureParameters(TStructureParameter P);
-
-/*   OBSOLETE
-TSpectrumBar *GetEnergySpectrum(int Nknot,double& Wav,double& dW);// remove
-	TSpectrumBar *GetPhaseSpectrum(int Nknot,double& Fav,double& dF);  // remove
-	TSpectrumBar *GetEnergySpectrum(int Nknot,bool Env,double& Wav,double& dW);// remove
-	TSpectrumBar *GetPhaseSpectrum(int Nknot,bool Env,double& Fav,double& dF); */ // remove
-
-   //	double GetKernel();
 
 	void Solve();
 	#ifndef RSLINAC
