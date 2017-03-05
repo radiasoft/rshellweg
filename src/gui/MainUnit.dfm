@@ -25,19 +25,19 @@ object MainForm: TMainForm
     Align = alTop
     Caption = 'Input Data'
     TabOrder = 1
+    ExplicitTop = 8
     object ViewGeometryButton: TButton
       Left = 21
-      Top = 234
+      Top = 242
       Width = 83
       Height = 25
       Caption = 'View Geometry'
-      Enabled = False
       TabOrder = 0
       OnClick = ViewGeometryButtonClick
     end
     object ViewBeamButton: TButton
       Left = 110
-      Top = 234
+      Top = 242
       Width = 75
       Height = 25
       Caption = 'View Beam'
@@ -70,7 +70,7 @@ object MainForm: TMainForm
       Left = 21
       Top = 73
       Width = 185
-      Height = 81
+      Height = 91
       Caption = 'Solenoid'
       TabOrder = 3
       object Label_Length: TLabel
@@ -93,6 +93,13 @@ object MainForm: TMainForm
         Width = 109
         Height = 13
         Caption = 'Start Position = ??? cm'
+      end
+      object Label_Fringe: TLabel
+        Left = 16
+        Top = 73
+        Width = 108
+        Height = 13
+        Caption = 'Fringe Region= ??? cm'
       end
     end
     object GroupBeamGeneral: TGroupBox
@@ -177,9 +184,9 @@ object MainForm: TMainForm
     end
     object GroupStructure: TGroupBox
       Left = 21
-      Top = 160
+      Top = 170
       Width = 185
-      Height = 68
+      Height = 66
       Caption = 'Structure'
       TabOrder = 7
       object Label_Cells: TLabel

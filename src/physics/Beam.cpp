@@ -1270,33 +1270,6 @@ TSpectrumBar *TBeam::GetSpectrumBar(double *X,bool Smooth)
 	return SpectrumArray;
 }
 //---------------------------------------------------------------------------
-//OBSOLETE
-/*TSpectrumBar *TBeam::GetSpectrum(bool Smooth,double *X,double& Xav,double& dX,bool width)
-{
-	TSpectrumBar *S,*SpectrumArray;
-	TSpectrum *Spectrum;
-	Spectrum=new TSpectrum;
-
-	Spectrum->SetMesh(X,Nbars,Nliv);
-    //if (Xav!=NULL)
-		Xav=Spectrum->GetAverage();
-    if (width)
-		dX=Spectrum->GetWidth();
-    else
-		dX=Spectrum->GetSquareDeviation();
-
-	S=Spectrum->GetSpectrum(Smooth && dX!=0);
-	SpectrumArray=new TSpectrumBar[Nbars];
-	for (int i=0;i<Nbars;i++) {
-		 SpectrumArray[i]=S[i];
-	}
-
-	delete[] X;
-	delete Spectrum;
-
-	return SpectrumArray;
-}                 */
-//---------------------------------------------------------------------------
 TGauss TBeam::GetEnergyDistribution(TDeviation D)
 {
 	return GetStatistics(W_PAR,D==D_FWHM);
@@ -1519,103 +1492,6 @@ double TBeam::iGetAverageEnergy(TIntParameters& Par,TIntegration *I)
     return gamma;
 }
 //---------------------------------------------------------------------------
-//double TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices, bool SpectrumOutput)
-//{
-//	double L=1,Fmin=1e32,Fmax=-1e32;
-//	double *F=NULL;
-//	int j=0;
-//
-//	/*double F=NULL;*/
-//	double phi=0,Fav=0,dF=0;;
-//	/*double R=NULL;*/
-//	double f=0;
-//	double FavPhase=0,dPhase=0;
-//	TSpectrumBar *SpectrumPhase;
-//   /* for (int i=0;i<Np;i++){
-//		if (Particle[i].lost==LIVE){
-//			phi=Particle[i].phi+I[i].phi*Par.h;
-//			  if (phi<=HellwegTypes::DegToRad(MinPhase) || phi>=HellwegTypes::DegToRad(MaxPhase) )
-//				Particle[i].lost=PHASE_LOST;
-//		}
-//	}    */
-//
-//	CountLiving();
-//
-//	F=new double[Nliv];
-//
-//	for (int i=0;i<Np;i++){
-//		if (Particle[i].lost==LIVE){
-//			double phi=Particle[i].phi+I[i].phi*Par.h;
-//			F[j]=phi;
-//			j++;
-//		}
-//	}
-//
-//	TGauss Gf=GetStatistics(F);
-//	dF=Gf.sigma;
-//
-//	delete[] F;
-//
-//  /*  F=new double[Nliv];
-//	R=new double[Nliv];   */
-//   /* for (int i=0;i<Np;i++){
-//        if (Particle[i].lost==LIVE){
-//			phi=Particle[i].phi+I[i].phi*Par.h;
-//			r=Particle[i].r+I[i].r*Par.h;
-//		 //   F[j]=phi;
-//		  //	R[j]=r;
-//            j++;
-////            double phi=Particle[i].phi+I[i].phi*Par.h;
-//			if (phi>Fmax)
-//                Fmax=phi;
-//            if (phi<Fmin)
-//				Fmin=phi;
-//        }
-//	}      */
-//
-//
-//   /*   Spectrum=GetSpectrum(false,F,Fav,dF,true);
-//	delete[] Spectrum;    */
-//
-//	/*	SpectrumPhase=GetPhaseSpectrum(false,R,F,FavPhase,dPhase,Nslices,false);
-//	delete[] SpectrumPhase;*/
-//
-//	//dF=mod(Fmax-Fmin);
-//	L=dF*lmb/(2*pi);
-//
-//	return L;
-//}
-////---------------------------------------------------------------------------
-//double TBeam::iGetAveragePhase(TIntParameters& Par,TIntegration *I)
-//{
-//    double F=0,Fav=0,dF=0;
-//   //   TSpectrumBar *Spectrum;
-//	/*CountLiving();
-//	F=new double[Nliv];*/
-//	int j=0;
-//
-//    for (int i=0;i<Np;i++){
-//		if (Particle[i].lost==LIVE){
-//            double phi=Particle[i].phi+I[i].phi*Par.h;
-//           /*   if (phi<=HellwegTypes::DegToRad(MinPhase) || phi>=HellwegTypes::DegToRad(MaxPhase) )
-//				Particle[i].lost=PHASE_LOST;
-//            else{      */
-//                F+=phi;
-//				j++;
-//            //}
-//        }
-//	}
-//
-//   /*   Spectrum=GetSpectrum(false,F,Fav,dF);
-//	delete[] Spectrum;*/
-//    if (j>0)
-//        Fav=F/j;
-//	else
-//        Fav=0;
-//
-//	return Fav;
-//}
-//---------------------------------------------------------------------------
 TGauss TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices)
 {
 	TGauss G;
@@ -1721,7 +1597,7 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 	double Sr=0,beta0=1,gamma=1,C=0;
 	double k_phi=0,/*k_Az=0,k_Ar=0,k_Hth=0,k_bz=0,k_br=0,k_bth=0,*/k_r=0,k_th=0,k_A=0,A=0,dA=0,th_dot=0;
 	int Sj=0;
-	double r=0,r0=0,phi=0;//,bz=0,br=0,bth=0;
+	double r=0,r0=0,phi=0,th=0;//,bz=0,br=0,bth=0;
 	double s=-1;
 	double rev=1;
 	TField E;
@@ -1739,14 +1615,15 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 	CountLiving();
 
 	Par.B*=Ib;
-	Hx=Par.Hext;
+
+	//Hx=Par.Hext;
 
     if (Par.drift)
         I[Sj][0].A=0;//I[Si][0].A;
     else{
-        A=Par.A+I[Si][0].A*Par.h;
+		A=Par.A+I[Si][0].A*Par.h;
 		I[Sj][0].A=A*(Par.dL-rev*Par.w)-rev*2*Par.B*Par.SumCos;
-        dA=I[Sj][0].A;
+		dA=I[Sj][0].A;
     }
 
 	for (int i=0;i<Np;i++){
@@ -1761,6 +1638,7 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 			//C=Particle[i].Cmag;
 
 			r=Particle[i].r+I[Si][i].r*Par.h;
+			th=Particle[i].Th+I[Si][i].th*Par.h;
 			phi=Particle[i].phi+I[Si][i].phi*Par.h;
 			Sr=2*pi*sqrt(1-sqr(Par.bw))/Par.bw;
 
@@ -1776,11 +1654,20 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 			H.r=0;
 			H.th=(Par.bw*A*Ib1(r*Sr)*sin(phi))/sqrt(1-sqr(Par.bw));      //k_Hth = Hth
 
-			th_dot=beta.th/r;
+			//th_dot=beta.th/r;
 
-			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th-beta.z*E.r)-beta.th*(H.r+beta.z*E.th)+beta.r*Hx.th-beta.th*Hx.r*r)/(gamma*beta.z);
+			if (Par.Hext.Dim.Ny==1)
+				Hx=LinInterpolation(r*lmb,Par.Hext.Piv.X,Par.Hext.Dim.Nx,Par.Hext.Field[0]);
+			else
+				Hx=BiLinearInterpolation(th,r*lmb,Par.Hext.Piv.Y,Par.Hext.Piv.X,Par.Hext.Dim.Ny,Par.Hext.Dim.Nx,Par.Hext.Field);
+
+			if (Hx.r<-1) {
+				H.r=0;
+			}
+
+			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th-beta.z*E.r)-beta.th*(H.r+beta.z*E.th)+beta.r*Hx.th-beta.th*Hx.r)/(gamma*beta.z);
 			k_beta.r=((1-sqr(beta.r))*E.r+beta.th*(H.z-beta.r*E.th)-beta.z*(H.th+beta.r*E.z)+beta.th*Hx.z-beta.z*Hx.th)/(gamma*beta.z)+sqr(beta.th)/(r*beta.z);
-			k_beta.th=((1-sqr(beta.th))*E.th+beta.z*(H.r-beta.th*E.z)-beta.r*(H.z+beta.th*E.r)+beta.z*Hx.r*r-beta.r*Hx.z)/(gamma*beta.z)-beta.th*beta.r/(r*beta.z);
+			k_beta.th=((1-sqr(beta.th))*E.th+beta.z*(H.r-beta.th*E.z)-beta.r*(H.z+beta.th*E.r)+beta.z*Hx.r-beta.r*Hx.z)/(gamma*beta.z)-beta.th*beta.r/(r*beta.z);
 		   /*
 			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th-beta.z*E.r)-beta.th*r*Par.Hext.r)/(gamma*beta.z); //k_bz = dbz/dz  ; Br=-Bz'/2!;
 			k_beta.r=((E.r-beta.z*H.th-beta.r*(beta.z*E.z+beta.r*E.r))+beta.th*Par.Hext.z)/(gamma*beta.z)+r*sqr(th_dot)/(beta.z);

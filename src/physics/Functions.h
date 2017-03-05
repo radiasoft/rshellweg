@@ -475,6 +475,159 @@ int NumPointsInFile(AnsiString &F,int NumRow)
 
 	return N;
 }
+//---------------------------------------------------------------------------
+int CountUnique(double *X, int N)
+{
+	int Nunq=0;
 
+	for (int i = 0; i < N; i++) {
+		bool unique=true;
+		for (int j = 0; j < i; j++) {
+			if (X[j]==X[i]){
+				unique=false;
+				break;
+			}
+		}
+		if (unique)
+			Nunq++;
+	}
+
+	return Nunq;
+}
+//---------------------------------------------------------------------------
+void SortArray(double *X, int Nmax, bool Desc=false)
+{
+	double x=0;
+	for (int i = Nmax-1; i>=0; i--) {
+		for (int j = 0; j < i; j++) {
+			if (X[j]>X[i]) {
+				x=X[i];
+				X[i]=X[j];
+				X[j]=x;
+			}
+		}
+	}
+}
+//---------------------------------------------------------------------------
+double *MakePivot(double *X, int Nmax, int Npiv)
+{
+	int Nunq=0;
+	double *Piv=new double[Npiv];
+
+	for (int i = 0; i < Nmax; i++) {
+		bool unique=true;
+		for (int j = 0; j < i; j++) {
+			if (X[j]==X[i]){
+				unique=false;
+				break;
+			}
+
+		}
+		if (unique){
+			Piv[Nunq]=X[i];
+			Nunq++;
+		}
+	}
+
+	SortArray(Piv,Nunq);
+
+	return Piv;
+}
+//---------------------------------------------------------------------------
+TField LinInterpolation(double x,double *X,int Nx,TField *A)
+{
+	int kx=0;
+	TField F;
+
+  /*	if (x<=X[0]){
+		x=X[0];
+		kx=0;
+	}else if (x>=X[Nx-1]){
+		x=X[Nx-1];
+		kx=Nx-2;  */
+	if (x<X[0] || x>X[Nx-1]){
+		F.r=0;
+		F.th=0;
+		F.z=0;
+	}else {
+		for (int i = 1; i < Nx; i++) {
+			if (x<X[i]) {
+				kx=i-1;
+				break;
+			}
+		}
+
+
+	double x1=0,x2=0,xx=0;
+	x2=X[kx+1]-x;
+	x1=x-X[kx];
+	xx=X[kx+1]-X[kx];
+
+	F.r=A[kx].r*x2+A[kx+1].r*x1;
+	F.r/=xx;
+
+	F.th=A[kx].th*x2+A[kx+1].th*x1;
+	F.th/=xx;
+
+	F.z=A[kx].z*x2+A[kx+1].z*x1;
+	F.z/=xx;
+	}
+
+	return F;
+}
+//---------------------------------------------------------------------------
+TField BiLinearInterpolation(double x,double y,double *X,double *Y,int Nx,int Ny, TField **A)
+{
+	int kx=0, ky=0;
+	TField F;
+
+	if (x<=X[0]){
+		x=X[0];
+		kx=0;
+	}else if (x>=X[Nx-1]){
+		x=X[Nx-1];
+		kx=Nx-2;
+	}else {
+		for (int i = 1; i < Nx; i++) {
+			if (x<X[i]) {
+				kx=i-1;
+				break;
+			}
+		}
+	}
+
+	if (y<=Y[0]){
+		y=Y[0];
+		ky=0;
+	}else if (y>=Y[Ny-1]){
+		y=Y[Ny-1];
+		ky=Ny-2;
+	}else {
+		for (int i = 1; i < Ny; i++) {
+			if (y<Y[i]) {
+				ky=i-1;
+				break;
+			}
+		}
+	}
+
+	double x1=0,x2=0,y1=0,y2=0,xy=0;
+	x2=X[kx+1]-x;
+	x1=x-X[kx];
+	y2=Y[ky+1]-y;
+	y1=y-Y[ky];
+	xy=(X[kx+1]-X[kx])*(Y[ky+1]-Y[ky]);
+
+	F.r=A[kx][ky].r*x2*y2+A[kx+1][ky].r*x1*y2+A[kx][ky+1].r*x2*y1+A[kx+1][ky+1].r*x1*y1;
+	F.r/=xy;
+
+	F.th=A[kx][ky].th*x2*y2+A[kx+1][ky].th*x1*y2+A[kx][ky+1].th*x2*y1+A[kx+1][ky+1].th*x1*y1;
+	F.th/=xy;
+
+	F.z=A[kx][ky].z*x2*y2+A[kx+1][ky].z*x1*y2+A[kx][ky+1].z*x2*y1+A[kx+1][ky+1].z*x1*y1;
+	F.z/=xy;
+
+	return F;
+}
 //---------------------------------------------------------------------------
 #endif

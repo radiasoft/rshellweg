@@ -62,9 +62,9 @@ __published:    // IDE-managed Components
     TButton *OpenButton1;
     TOpenDialog *OpenDialog1;
     TShape *LineColor1;
-    TLineSeries *Series2;
+	TLineSeries *GeomSeries2;
     TRadioGroup *ChartGroup;
-    TLineSeries *Series1;
+	TLineSeries *GeomSeries1;
     TRadioGroup *BeamGroup;
 	TPointSeries *BeamSeries1;
 	TPointSeries *BeamSeries2;
@@ -83,6 +83,7 @@ __published:    // IDE-managed Components
 	TLabel *rParLabel;
 	TLabel *enParLabel;
 	TLineSeries *EnvelopeSeries2;
+	TLineSeries *DoubleSeries;
 	void __fastcall FormShow(TObject *Sender);
     void __fastcall Exit1Click(TObject *Sender);
     void __fastcall OpenButton1Click(TObject *Sender);
@@ -96,7 +97,7 @@ __published:    // IDE-managed Components
 private:    // User declarations
 	AnsiString Path;
     TBeamSolver *CompData1;
-    bool C1;
+	bool GCompare;
     int Np_max;
 	double h;
 	void Draw();

@@ -38,8 +38,8 @@ private:
 	double AngErr;
 	double dh;
 
-	int Np_beam,Nstat,Ngraph,Nav,Nliv,Ndump;
-	double I;  //remove from global!
+	int Np_beam,Nstat,Ngraph,Nav,Nliv,Ndump;  //TMeshParameters
+	//double I;  //remove from global!
 
 	TSplineType SplineType;
 	//STRUCTURE
@@ -47,14 +47,17 @@ private:
 	TStringList *InputStrings,*ParsedStrings;
 	TDump *BeamExport;
 	TStructureInput StructPar;
+	TFieldMap ExternalMagnetic;
+
 	int ChangeCells(int N);
 	void ResetStructure();
 	void ResetDump(int Ns);
+	void ResetExternal();
 
 	int Mode_N,Mode_M,MaxCells,Nmesh,Npoints;//,Ncells,Nlim;
-	double Rb,Lb,phi0,dphi,w,betta0; //create new structure TStructure
+	//double Rb,Lb,phi0,dphi,w,betta0; //create new structure TStructure
 
-	int GetSolenoidPoints();
+	//int GetSolenoidPoints();
 	bool ReadSolenoid(int Nz,double *Z,double* B);
 
 	//OTHER
@@ -94,6 +97,26 @@ private:
 	TError ParseELL (TInputLine *Line, AnsiString &F, int Nr);
 	TError ParseNorm (TInputLine *Line, AnsiString &F, int Nz,int Zpos);
 
+	//STRUCTURE
+	void DeleteBeam();
+	void CreateMesh();
+	void CreateStrucutre();
+	void DeleteMesh();
+
+	TImportType ParseSolenoidType(AnsiString &F);
+	TDimensions ParseSolenoidLines(TMagnetParameters &P);
+	void CreateMagneticMap();
+	void MakePivots();
+	void MakeUniformSolenoid();
+	void MakeAnalyticalSolenoid();
+	void ParseSolenoidFile(TParseStage P);
+	void CalculateRadialField();
+	void CalculateRadialField(double Rmax);
+	void CalculateFieldDerivative();
+	void TransformMagneticToCYL1D();
+	void TransformMagneticToCYL2D();
+	void AdjustMagneticMesh();
+
 	//INTERPOLATION
 	double *LinearInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
     double *SplineInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
@@ -124,6 +147,7 @@ private:
 	bool IsTransverseKeyWord(TBeamType D);
 	bool IsLongitudinalKeyWord(TBeamType D);
 	bool IsFileKeyWord(TBeamType D);
+	bool IsImportType(TImportType T);
 
 	void ShowError(AnsiString &S);
 protected:
@@ -157,7 +181,7 @@ public:
    // bool LoadEnergyFromFile(AnsiString& Fname, int NpEnergy);     move to beam.h
 
     TError CreateBeam();
-    int CreateGeometry();
+	TError CreateGeometry();
     void SetBarsNumber(double Nbin);
     void ChangeInputCurrent(double Ib);
 
@@ -204,6 +228,7 @@ public:
 	double GetFrequency(int Ni);
 	double GetPower(int Ni);
 	double GetWavelength(int Ni);
+	double GetMaxAperture();
 	double GetAperture(int Ni);
 	double GetMaxEnergy(int Ni);
 	double GetMaxDivergence(int Ni);
@@ -220,7 +245,7 @@ public:
 	double GetStructureParameter(int Nknot,TStructureParameter P);
 	double *GetStructureParameters(TStructureParameter P);
 
-	void Solve();
+	TError Solve();
 	#ifndef RSLINAC
 	TResult Output(AnsiString& FileName,TMemo *Memo=NULL);
     #else
