@@ -653,7 +653,7 @@ void TOptimizerForm::OptimizeGradient()
             W1=W2;
 
             if (i<=Ngap)
-                betta=Cell[i-1].betta;
+				betta=Cell[i-1].beta;
 
             for (int k=0;k<i-1;k++)
                 Solver->AppendCells(Cell[k]);
@@ -669,7 +669,7 @@ void TOptimizerForm::OptimizeGradient()
             }
 
             if (i<=Ngap)
-                Cell[i-1].betta=betta;
+				Cell[i-1].beta=betta;
 
             Solver->AppendCells(Cell[i-1]);
             Structure=Solve();
@@ -690,7 +690,7 @@ void TOptimizerForm::OptimizeGradient()
             Cell[i-1]=Solver->LastCell();
             Cell[i-1].ELP=x1;
             if (i<=Ngap)
-                Cell[i-1].betta=betta;
+                Cell[i-1].beta=betta;
 
             Solver->AppendCells(Cell[i-1]);
             Structure=Solve(false);

@@ -116,6 +116,7 @@ void TMainForm::DisplayInputData()
 
 	//SOLENOID
 	TMagnetParameters Solenoid=Solver->GetSolenoidInfo();
+	Label_Length->Caption="";
 	Label_Position->Caption="";
 	Label_Fringe->Caption="";
 	switch (Solenoid.ImportType) {

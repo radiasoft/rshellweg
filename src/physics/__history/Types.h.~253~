@@ -169,8 +169,12 @@ struct TFieldMap2D
 struct TParticle
 {
 	double r;  //x/lmb (-Rb<x<Rb) - rename to r
-	double th;
+	//double Cmag;
+	double Th;
 	TField beta;
+  /*	double Br;
+	double Bth;
+	double Bz;    */
 	double phi;
 	double z;
 	double beta0; //full beta. distinguish beta from bz!
@@ -242,7 +246,6 @@ struct TStructure
     double alpha;
     double betta;
 	double Ra;
-	TFieldMap2D Bmap;
 	//TField Hext;
    /*	double Bz_ext;
 	double Br_ext;   */
@@ -253,6 +256,7 @@ struct TStructure
   /*	bool Dump;
 	TDump DumpParameters;    */
 };
+
 
 struct TSectionParameters
 {
@@ -353,7 +357,6 @@ struct TIntParameters
 	double B;
 	double E;
 	TFieldMap2D Hext;
-	TFieldMap2D Hmap;
 	//TField dHext;
 	/*double Bz_ext;
 	double Br_ext;  */

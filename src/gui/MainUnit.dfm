@@ -25,7 +25,6 @@ object MainForm: TMainForm
     Align = alTop
     Caption = 'Input Data'
     TabOrder = 1
-    ExplicitTop = 8
     object ViewGeometryButton: TButton
       Left = 21
       Top = 242

@@ -3,7 +3,7 @@
 	<Transactions>
     <Transaction>2016/10/13 16:25:05.000.029,C:\Users\eidelyur\Documents\fnalDisk\RadiaSoft\Hellweg2D\hellweg2d\rslinac\src\gui\Hellweg.cbproj=C:\Users\eidelyur\Documents\fnalDisk\RadiaSoft\Hellweg2D\hellweg2d\rslinac\src\gui\Hellweg.cbproj</Transaction>
     <Transaction>2017/02/16 15:24:32.000.942,=D:\My Work\IDrive-Sync\RadiaBeam\Projects\HWG\GitHub\rslinac\src\gui\Unit1.cpp</Transaction>
-    <Transaction>2017/02/16 15:24:52.000.031,D:\My Work\IDrive-Sync\RadiaBeam\Projects\HWG\GitHub\rslinac\src\physics\Functions.cpp=D:\My Work\IDrive-Sync\RadiaBeam\Projects\HWG\GitHub\rslinac\src\gui\Unit1.cpp</Transaction>
-    <Transaction>2017/02/16 15:24:52.000.031,D:\My Work\IDrive-Sync\RadiaBeam\Projects\HWG\GitHub\rslinac\src\physics\Functions.h=D:\My Work\IDrive-Sync\RadiaBeam\Projects\HWG\GitHub\rslinac\src\gui\Unit1.h</Transaction>
+    <Transaction>2017/02/16 15:24:52.000.031,D:\My Work\IDrive-Sync\RadiaBeam\Projects\HWG\GitHub\rslinac\src\gui\Unit1.h=D:\My Work\IDrive-Sync\RadiaBeam\Projects\HWG\GitHub\rslinac\src\physics\Functions.h</Transaction>
+    <Transaction>2017/02/16 15:24:52.000.031,D:\My Work\IDrive-Sync\RadiaBeam\Projects\HWG\GitHub\rslinac\src\gui\Unit1.cpp=D:\My Work\IDrive-Sync\RadiaBeam\Projects\HWG\GitHub\rslinac\src\physics\Functions.cpp</Transaction>
   </Transactions>
 </BorlandProject>

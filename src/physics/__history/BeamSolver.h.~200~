@@ -46,15 +46,14 @@ private:
 	TDump *BeamExport;
 	TStructureInput StructPar;
 	TFieldMap ExternalMagnetic;
-	TFieldMap2D *QuadMaps;
 
 	int ChangeCells(int N);
 	void ResetStructure();
 	void ResetDump(int Ns);
 	void ResetExternal();
-	void ResetMaps();
 
-	int Mode_N,Mode_M,MaxCells,Nmesh,Npoints;// //Move to TMeshParameters
+	int Mode_N,Mode_M,MaxCells,Nmesh,Npoints;//,Ncells,Nlim;
+	//double Rb,Lb,phi0,dphi,w,betta0; //create new structure TStructure
 
 	//int GetSolenoidPoints();
 	bool ReadSolenoid(int Nz,double *Z,double* B);
@@ -106,8 +105,6 @@ private:
 
 	TImportType ParseSolenoidType(AnsiString &F);
 	TDimensions ParseSolenoidLines(TMagnetParameters &P);
-	TFieldMap2D ParseMapFile(AnsiString &F); //Try to unite with solenoid parse
-	void CreateMaps();
 	void CreateMagneticMap();
 	void MakePivots();
 	void MakeUniformSolenoid();

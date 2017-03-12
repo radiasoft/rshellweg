@@ -106,7 +106,7 @@ private:
 
 	TImportType ParseSolenoidType(AnsiString &F);
 	TDimensions ParseSolenoidLines(TMagnetParameters &P);
-	TFieldMap2D ParseMapFile(AnsiString &F); //Try to unite with solenoid parse
+	TFieldMap2D ParseMap(AnsiString &F);
 	void CreateMaps();
 	void CreateMagneticMap();
 	void MakePivots();

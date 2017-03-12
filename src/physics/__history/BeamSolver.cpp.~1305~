@@ -2383,8 +2383,8 @@ TFieldMap2D TBeamSolver::ParseMapFile(AnsiString &F)
 	for (int i = 0; i < Map.Dim.Nx; i++)
 		Map.Field[i]=new TField [Map.Dim.Ny];
 
-	Map.Piv.X=MakePivot(Unq[0],Nmax,Map.Dim.Nx);
-	Map.Piv.Y=MakePivot(Unq[1],Nmax,Map.Dim.Ny);
+	Map.Piv.X=MakePivot(Unq[0],Nmax,ExternalMagnetic.Dim.Nx);
+	Map.Piv.Y=MakePivot(Unq[1],Nmax,ExternalMagnetic.Dim.Ny);
 
 	for (int j = 0; j < Map.Dim.Nx; j++) {
 		x=Map.Piv.X[j];
@@ -2419,15 +2419,14 @@ void TBeamSolver::CreateMaps()
 			QuadMaps[q]=ParseMapFile(StructPar.Cells[i].Magnet.File);
 			for (int j = 0; j < QuadMaps[q].Dim.Nx; j++) {
 				QuadMaps[q].Piv.X[j]*=StructPar.Cells[i].F0/c;
-				for (int k = 0; k < QuadMaps[q].Dim.Ny; k++) {
+				for (int k = 0; k < QuadMaps[i].Dim.Ny; k++) {
 					QuadMaps[q].Field[j][k].r*=StructPar.Cells[i].Magnet.BField*kc;
 					QuadMaps[q].Field[j][k].th*=StructPar.Cells[i].Magnet.BField*kc;
 				}
 			}
-			for (int k = 0; k < QuadMaps[q].Dim.Ny; k++) {
+			for (int k = 0; k < QuadMaps[i].Dim.Ny; k++) {
 				QuadMaps[q].Piv.Y[k]*=StructPar.Cells[i].F0/c;
-			}
-			q++;
+            }
 		}
 	}
 }

@@ -1664,10 +1664,10 @@ TError TBeamSolver::ParseQuad(TInputLine *Line,int Ni, int Nsec)
 		StructPar.Cells[Ni].beta=Line->S[1].ToDouble()/100;//L, cm
 		F+=" \t"+Line->S[1];
 
-		if (Line->N>=3){
+		if (Line->N>3){
 			StructPar.Cells[Ni].Magnet.BField=Line->S[2].ToDouble();
 			F+=" \t"+Line->S[2];
-			if (Line->N>=4){
+			if (Line->N>4){
 				m=Line->S[3].ToInt();
 				if (m>1)
 					StructPar.Cells[Ni].Mesh=m;
@@ -1679,10 +1679,8 @@ TError TBeamSolver::ParseQuad(TInputLine *Line,int Ni, int Nsec)
 				F+=" \t"+Line->S[3];
 			}else
 				StructPar.Cells[Ni].Mesh=Nmesh;
-		} else{
+		} else
 			StructPar.Cells[Ni].Magnet.BField=1.0;
-			StructPar.Cells[Ni].Mesh=Nmesh;
-		}
 
 
 		StructPar.Cells[Ni].AkL=-1;//defined by mesh
@@ -2383,8 +2381,8 @@ TFieldMap2D TBeamSolver::ParseMapFile(AnsiString &F)
 	for (int i = 0; i < Map.Dim.Nx; i++)
 		Map.Field[i]=new TField [Map.Dim.Ny];
 
-	Map.Piv.X=MakePivot(Unq[0],Nmax,Map.Dim.Nx);
-	Map.Piv.Y=MakePivot(Unq[1],Nmax,Map.Dim.Ny);
+	Map.Piv.X=MakePivot(Unq[0],Nmax,ExternalMagnetic.Dim.Nx);
+	Map.Piv.Y=MakePivot(Unq[1],Nmax,ExternalMagnetic.Dim.Ny);
 
 	for (int j = 0; j < Map.Dim.Nx; j++) {
 		x=Map.Piv.X[j];
@@ -2410,24 +2408,22 @@ void TBeamSolver::CreateMaps()
 {
 	ResetMaps();
 	double kc=0;
-	int q=0;
 
 	QuadMaps=new TFieldMap2D [StructPar.NMaps];
 	for(int i=0;i<StructPar.NElements;i++){
-		if (StructPar.Cells[i].Magnet.MagnetType==MAG_QUAD){
-			kc=sqr(c)/(We0*StructPar.Cells[i].F0);
-			QuadMaps[q]=ParseMapFile(StructPar.Cells[i].Magnet.File);
-			for (int j = 0; j < QuadMaps[q].Dim.Nx; j++) {
-				QuadMaps[q].Piv.X[j]*=StructPar.Cells[i].F0/c;
-				for (int k = 0; k < QuadMaps[q].Dim.Ny; k++) {
-					QuadMaps[q].Field[j][k].r*=StructPar.Cells[i].Magnet.BField*kc;
-					QuadMaps[q].Field[j][k].th*=StructPar.Cells[i].Magnet.BField*kc;
+		kc=sqr(c)/(We0*StructPar.Cells[i].F0);
+		if (StructPar.Cells[i].Magnet.MagnetType==QUAD){
+			QuadMaps[i]=ParseMapFile(StructPar.Cells[i].Magnet.File);
+			for (int j = 0; j < QuadMaps[i].Dim.Nx; j++) {
+				QuadMaps[i].Piv.X[j]*=StructPar.Cells[i].F0/c;
+				for (int k = 0; k < QuadMaps[i].Dim.Ny; k++) {
+					QuadMaps[i].Field[j][k].r*=StructPar.Cells[i].Magnet.BField*kc;
+					QuadMaps[i].Field[j][k].th*=StructPar.Cells[i].Magnet.BField*kc;
 				}
 			}
-			for (int k = 0; k < QuadMaps[q].Dim.Ny; k++) {
-				QuadMaps[q].Piv.Y[k]*=StructPar.Cells[i].F0/c;
-			}
-			q++;
+			for (int k = 0; k < QuadMaps[i].Dim.Ny; k++) {
+				QuadMaps[i].Piv.Y[k]*=StructPar.Cells[i].F0/c;
+            }
 		}
 	}
 }
@@ -2463,7 +2459,7 @@ void TBeamSolver::CreateStrucutre()
 				}
 			}  */
 			//ADD QUAD FIELD
-			if (StructPar.Cells[i].Magnet.MagnetType==MAG_QUAD) {
+			if (StructPar.Cells[i].Magnet.MagnetType==QUAD) {
 				Map=QuadMaps[q];
 				q++;
 			}
@@ -3112,7 +3108,7 @@ TError TBeamSolver::CreateBeam()
 		   //	Beam[i]->Particle[j].Bth=0;
 			Beam[i]->Particle[j].r=0;
 			//Beam[i]->Particle[j].Cmag=0;
-			Beam[i]->Particle[j].th=0;
+			Beam[i]->Particle[j].Th=0;
 		}
 	}
 	Beam[0]->SetCurrent(BeamPar.Current);
@@ -3937,7 +3933,7 @@ void TBeamSolver::Integrate(int Si, int Sj)
 
 						phi=Particle[i].phi+K[Sj][i].phi*Par[Sj].h;
 						r=(Particle[i].r+K[Sj][i].r*Par[Sj].h)*lmb;
-						th=Particle[i].th+K[Sj][i].th*Par[Sj].h;
+						th=Particle[i].Th+K[Sj][i].th*Par[Sj].h;
 
 						x=r*cos(th)-x0;
 						y=r*sin(th)-y0;
@@ -4460,48 +4456,40 @@ void TBeamSolver::Step(int Si)
 	Par[2].Hmap=Structure[Si].Bmap;
 	Par[3].Hmap=Structure[Si+1].Bmap;
 
-	if (ExternalMagnetic.Field!=NULL) {
-
-		for (int k = 0; k < 4; k++) {
-			Par[k].Hext.Field=new TField*[ExternalMagnetic.Dim.Ny];
-			Par[k].Hext.Dim=ExternalMagnetic.Dim;
-			Par[k].Hext.Piv=ExternalMagnetic.Piv;
-			for (int i = 0; i < ExternalMagnetic.Dim.Ny; i++) {
-				Par[k].Hext.Field[i]=new TField[ExternalMagnetic.Dim.Nx];
-			}
-		}
-
+	for (int k = 0; k < 4; k++) {
+		Par[k].Hext.Field=new TField*[ExternalMagnetic.Dim.Ny];
+		Par[k].Hext.Dim=ExternalMagnetic.Dim;
+		Par[k].Hext.Piv=ExternalMagnetic.Piv;
 		for (int i = 0; i < ExternalMagnetic.Dim.Ny; i++) {
-			for (int j = 0; j < ExternalMagnetic.Dim.Nx; j++) {
-				Par[0].Hext.Field[i][j].z=ExternalMagnetic.Field[Si][i][j].z;
-				Par[1].Hext.Field[i][j].z=(ExternalMagnetic.Field[Si+1][i][j].z+ExternalMagnetic.Field[Si][i][j].z)/2;
-				Par[2].Hext.Field[i][j].z=Par[1].Hext.Field[i][j].z;
-				Par[3].Hext.Field[i][j].z=ExternalMagnetic.Field[Si+1][i][j].z;
-
-				Par[0].Hext.Field[i][j].r=ExternalMagnetic.Field[Si][i][j].r;
-				Par[1].Hext.Field[i][j].r=(ExternalMagnetic.Field[Si+1][i][j].r+ExternalMagnetic.Field[Si][i][j].r)/2;
-				Par[2].Hext.Field[i][j].r=Par[1].Hext.Field[i][j].r;
-				Par[3].Hext.Field[i][j].r=ExternalMagnetic.Field[Si+1][i][j].r;
-
-				Par[0].Hext.Field[i][j].th=ExternalMagnetic.Field[Si][i][j].th;
-				Par[1].Hext.Field[i][j].th=(ExternalMagnetic.Field[Si+1][i][j].th+ExternalMagnetic.Field[Si][i][j].th)/2;
-				Par[2].Hext.Field[i][j].th=Par[1].Hext.Field[i][j].th;
-				Par[3].Hext.Field[i][j].th=ExternalMagnetic.Field[Si+1][i][j].th;
-			}
+			Par[k].Hext.Field[i]=new TField[ExternalMagnetic.Dim.Nx];
 		}
+	}
 
-		for (int k = 0; k < 4; k++) {
-			for (int i = 0; i < ExternalMagnetic.Dim.Ny; i++) {
-				delete[] Par[k].Hext.Field[i];
-			}
-			delete[] Par[k].Hext.Field;
+	for (int i = 0; i < ExternalMagnetic.Dim.Ny; i++) {
+		for (int j = 0; j < ExternalMagnetic.Dim.Nx; j++) {
+			Par[0].Hext.Field[i][j].z=ExternalMagnetic.Field[Si][i][j].z;
+			Par[1].Hext.Field[i][j].z=(ExternalMagnetic.Field[Si+1][i][j].z+ExternalMagnetic.Field[Si][i][j].z)/2;
+			Par[2].Hext.Field[i][j].z=Par[1].Hext.Field[i][j].z;
+			Par[3].Hext.Field[i][j].z=ExternalMagnetic.Field[Si+1][i][j].z;
+
+			Par[0].Hext.Field[i][j].r=ExternalMagnetic.Field[Si][i][j].r;
+			Par[1].Hext.Field[i][j].r=(ExternalMagnetic.Field[Si+1][i][j].r+ExternalMagnetic.Field[Si][i][j].r)/2;
+			Par[2].Hext.Field[i][j].r=Par[1].Hext.Field[i][j].r;
+			Par[3].Hext.Field[i][j].r=ExternalMagnetic.Field[Si+1][i][j].r;
+
+			Par[0].Hext.Field[i][j].th=ExternalMagnetic.Field[Si][i][j].th;
+			Par[1].Hext.Field[i][j].th=(ExternalMagnetic.Field[Si+1][i][j].th+ExternalMagnetic.Field[Si][i][j].th)/2;
+			Par[2].Hext.Field[i][j].th=Par[1].Hext.Field[i][j].th;
+			Par[3].Hext.Field[i][j].th=ExternalMagnetic.Field[Si+1][i][j].th;
 		}
-	}  else {
-		Par[0].Hext.Field=NULL;
-		Par[1].Hext.Field=NULL;
-		Par[2].Hext.Field=NULL;
-		Par[3].Hext.Field=NULL;
-    }
+	}
+
+	for (int k = 0; k < 4; k++) {
+		for (int i = 0; i < ExternalMagnetic.Dim.Ny; i++) {
+			delete[] Par[k].Hext.Field[i];
+		}
+		delete[] Par[k].Hext.Field;
+	}
 
   /*	double dBzx=Structure[Si+1].Hext.z-Structure[Si].Hext.z;
 	Par[0].Hext.z=Structure[Si].Hext.z;
@@ -4599,14 +4587,14 @@ TError TBeamSolver::Solve()
 
 		for (int j=0;j<BeamPar.NParticles;j++){
 			if (Beam[i+1]->Particle[j].lost==LIVE){
-				if (Structure[i+1].Bmap.Field==NULL) {
+				if (Structure[i+1].Bmap==NULL) {
 					if (mod(Beam[i+1]->Particle[j].r)>=Structure[i+1].Ra)
 						Beam[i+1]->Particle[j].lost=RADIUS_LOST;
 				} else {
 					TPhaseSpace R;
 					double xmin=0,xmax=0,ymin=0,ymax=0;
 					R.x=Beam[i+1]->Particle[j].r*cos(Beam[i+1]->Particle[j].th);
-					R.y=Beam[i+1]->Particle[j].r*sin(Beam[i+1]->Particle[j].th);
+					R.r=Beam[i+1]->Particle[j].r*sin(Beam[i+1]->Particle[j].th);
 					xmin=Structure[i+1].Bmap.Piv.X[0];
 					xmax=Structure[i+1].Bmap.Piv.X[Structure[i+1].Bmap.Dim.Nx-1];
 					ymin=Structure[i+1].Bmap.Piv.Y[0];

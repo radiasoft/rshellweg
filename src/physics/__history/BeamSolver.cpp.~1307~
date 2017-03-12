@@ -2419,7 +2419,7 @@ void TBeamSolver::CreateMaps()
 			QuadMaps[q]=ParseMapFile(StructPar.Cells[i].Magnet.File);
 			for (int j = 0; j < QuadMaps[q].Dim.Nx; j++) {
 				QuadMaps[q].Piv.X[j]*=StructPar.Cells[i].F0/c;
-				for (int k = 0; k < QuadMaps[q].Dim.Ny; k++) {
+				for (int k = 0; k < QuadMaps[i].Dim.Ny; k++) {
 					QuadMaps[q].Field[j][k].r*=StructPar.Cells[i].Magnet.BField*kc;
 					QuadMaps[q].Field[j][k].th*=StructPar.Cells[i].Magnet.BField*kc;
 				}
