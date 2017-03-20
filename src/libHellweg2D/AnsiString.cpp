@@ -81,7 +81,7 @@ int AnsiString::ToInt() {
 }
 
 const char* FormatMap[][2] = {
-    {"#0", "%0.0<D-k>f"},
+    {"#0", "%0.0f"},
     {"#0.0", "%0.1f"},
     {"#0.00", "%0.2f"},
     {"#0.000", "%0.3f"},
@@ -102,7 +102,7 @@ AnsiString AnsiString::FormatFloat(const char *format, float f) {
             _format = FormatMap[i][1];
             break;
         }
-    } while (FormatMap[i++][0]);
+    } while (FormatMap[++i][0]);
 
     if (!_format) {
         _format = "%f";
@@ -110,7 +110,7 @@ AnsiString AnsiString::FormatFloat(const char *format, float f) {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-security"
-    std::snprintf(buf, 32, _format);
+    std::snprintf(buf, 32, _format, f);
 #pragma GCC diagnostic pop
 
     return AnsiString(buf);
