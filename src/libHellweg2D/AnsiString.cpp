@@ -1,13 +1,17 @@
+#include <cassert>
 #include <cstring>
 
-#include "AnsiString.hpp" 
-        
+#include "AnsiString.hpp"
+
 int AnsiString::Length() const {
     return s.length();
 }
-        
+
 const char& AnsiString::operator[](size_t i) const {
-    return this->s[i];
+    assert(i > 0);
+    // http://docs.embarcadero.com/products/rad_studio/radstudio2007/RS2007_helpupdates/HUpdate4/EN/html/delphivclwin32/System__AnsiString__[]@int.html
+    // This System::AnsiString::[] returns the byte in the string at index value idx. The System::AnsiString::[] assumes a base index of 1.
+    return this->s[i-1];
 }
 
 std::ostream& operator<<(std::ostream &strm, const AnsiString &a) {
@@ -18,7 +22,7 @@ AnsiString& AnsiString::operator+=(const char &other) {
     s += other;
     return *this;
 }
-       
+
 AnsiString& AnsiString::operator+=(const AnsiString &other) {
     s += other.s;
     return *this;
@@ -51,7 +55,7 @@ bool AnsiString::operator!=(const char *other) const {
 AnsiString AnsiString::operator+(const AnsiString &other) const {
     return AnsiString(this->s + other.s);
 }
-        
+
 AnsiString AnsiString::operator+(const char *other) const {
     return *this + AnsiString(other);
 }
@@ -97,7 +101,7 @@ AnsiString AnsiString::FormatFloat(const char *format, float f) {
         if (std::strcmp(format, FormatMap[i][0]) == 0) {
             _format = FormatMap[i][1];
             break;
-        }     
+        }
     } while (FormatMap[i++][0]);
 
     if (!_format) {
@@ -108,6 +112,6 @@ AnsiString AnsiString::FormatFloat(const char *format, float f) {
 #pragma GCC diagnostic ignored "-Wformat-security"
     std::snprintf(buf, 32, _format);
 #pragma GCC diagnostic pop
-     
+
     return AnsiString(buf);
 }

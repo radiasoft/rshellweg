@@ -14,7 +14,7 @@ TEST_CASE("AnsiString: instantiation") {
     SECTION("string constructor") {
         const char ts[] = "Test String";
         AnsiString as(ts);
-        
+
         CSTR_EQUAL(as.c_str(), ts);
     }
 
@@ -23,7 +23,7 @@ TEST_CASE("AnsiString: instantiation") {
         AnsiString as;
 
         as = ts;
-        
+
         CSTR_EQUAL(as.c_str(), ts);
     }
 }
@@ -84,10 +84,10 @@ TEST_CASE("AnsiString: operator+=") {
         as1+=as2;
         REQUIRE( as1 == "as1as2" );
     }
-    
+
     SECTION("AnsiString =+ char") {
         AnsiString as1("as1");
-        
+
         REQUIRE( as1 == "as1" );
         as1+='c';
         REQUIRE( as1 == "as1c" );
@@ -97,15 +97,15 @@ TEST_CASE("AnsiString: operator+=") {
 TEST_CASE("AnsiString: operator[]") {
     AnsiString as1("as1");
 
-    REQUIRE( as1[0] == 'a' );
-    REQUIRE( as1[1] == 's' );
-    REQUIRE( as1[2] == '1' );
-    REQUIRE( as1[3] == '\0' );
+    REQUIRE( as1[1] == 'a' );
+    REQUIRE( as1[2] == 's' );
+    REQUIRE( as1[3] == '1' );
+    REQUIRE( as1[4] == '\0' );
 }
 
 TEST_CASE("AnsiString: Length") {
     AnsiString as1("as1");
-   
-    REQUIRE( as1.Length() == 3); 
+
+    REQUIRE( as1.Length() == 3);
 }
 
