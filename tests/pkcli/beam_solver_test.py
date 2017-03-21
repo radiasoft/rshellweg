@@ -17,8 +17,9 @@ def test_run():
     from rslinac.pkcli import beam_solver
     f = _files()
     with pkunit.save_chdir_work():
+        pkio.write_text('Solenoid.txt', pkio.read_text(pkunit.data_dir().join('Solenoid.txt')))
         beam_solver.run(f['ini'], f['input'], f['output'])
-        for outfile in ('PARSED.TXT', 'output.txt', 'test1.pid'):
+        for outfile in ('PARSED.TXT', 'test1.pid'):
             expect = pkio.read_text(pkunit.data_dir().join(outfile))
             actual = pkio.read_text(pkunit.work_dir().join(outfile))
             pkeq(expect, actual)
