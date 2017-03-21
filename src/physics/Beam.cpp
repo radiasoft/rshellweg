@@ -1205,8 +1205,6 @@ TGauss TBeam::GetStatistics(TBeamParameter P,bool FWHM)
 
 	G=GetStatistics(X,FWHM);
 
-	//delete[] X;
-
 	return G;
 }
 //---------------------------------------------------------------------------
@@ -1225,7 +1223,6 @@ TGauss TBeam::GetStatistics(double *X,bool FWHM,bool Core)
 		G.core=Spectrum->GetCore();
 
 	delete Spectrum;
-	//delete[] X;
 
 	return G;
 }
@@ -1236,8 +1233,6 @@ TSpectrum *TBeam::GetSpectrum(TBeamParameter P)
 
 	TSpectrum *Spectrum=GetSpectrum(X);
 
-	//delete[] X;
-
 	return Spectrum;
 }
 //---------------------------------------------------------------------------
@@ -1247,7 +1242,6 @@ TSpectrum *TBeam::GetSpectrum(double *X)
 	Spectrum=new TSpectrum;
 
 	Spectrum->SetMesh(X,Nbars,Nliv);
-	delete[] X;
 
 	return Spectrum;
 }
@@ -1257,8 +1251,6 @@ TSpectrumBar *TBeam::GetSpectrumBar(TBeamParameter P,bool Smooth)
 	double *X=GetLivingParameter(P);
 
 	TSpectrumBar *SpectrumBar=GetSpectrumBar(X,Smooth);
-
-	//delete[] X;
 
 	return SpectrumBar;
 }
@@ -1632,11 +1624,10 @@ TGauss TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices)
 	TGauss G;
 	int j=0;
 
-	double *L;
+        double L[Nliv];
 	double phi=0,Iphi=0,x=0;
 
 	CountLiving();
-	L=new double[Nliv];
 
     for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){
@@ -1651,7 +1642,6 @@ TGauss TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices)
 
 	bool FWHM=false,Core=true;
 	G=GetStatistics(L,FWHM,Core);
-	delete[] L;
 
 	return G;
 }
@@ -1661,11 +1651,10 @@ TGauss TBeam::iGetBeamRadius(TIntParameters& Par,TIntegration *I,TBeamParameter 
 	TGauss G;
 	int j=0;
 
-	double *R;//,Rav=0,dR=0;
+        double R[Nliv];
 	double r=0, th=0,Ir=0,Ith=0,x=0;
 	//TSpectrumBar *Spectrum;
 	CountLiving();
-    R=new double[Nliv];
 
     for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){
@@ -1695,7 +1684,6 @@ TGauss TBeam::iGetBeamRadius(TIntParameters& Par,TIntegration *I,TBeamParameter 
 	}
 	bool FWHM=false,Core=true;
 	G=GetStatistics(R,FWHM,Core);
-	delete[] R;
 
 	return G;
 }
