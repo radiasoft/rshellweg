@@ -341,7 +341,7 @@ inline double **DeleteDoubleArray(double **X,int Nx)
 //---------------------------------------------------------------------------
 //--------------------TEXT FILES---------------------------------------------
 //---------------------------------------------------------------------------
-inline bool IsNumber(AnsiString &S)   //Checks if the string is a number
+static bool IsNumber(AnsiString &S)   //Checks if the string is a number
 {
 	double x=0;
 	bool Success=false;
@@ -356,7 +356,7 @@ inline bool IsNumber(AnsiString &S)   //Checks if the string is a number
 	return Success;
 }
 //---------------------------------------------------------------------------
-inline bool CheckFile(AnsiString &F)   //Checks if the file exists
+static bool CheckFile(AnsiString &F)   //Checks if the file exists
 {
 	bool Exists=false;
 	std::ifstream f(F.c_str());
@@ -368,7 +368,7 @@ inline bool CheckFile(AnsiString &F)   //Checks if the file exists
 	return Exists;
 }
 //---------------------------------------------------------------------------
-inline AnsiString GetWord(ifstream &f)   //Reads the next word from fstream
+static AnsiString GetWord(ifstream &f)   //Reads the next word from fstream
 {
    AnsiString S;
    char s[MAX_CHAR];
@@ -379,7 +379,7 @@ inline AnsiString GetWord(ifstream &f)   //Reads the next word from fstream
    return S;
 }
 //---------------------------------------------------------------------------
-inline AnsiString GetLine(ifstream &f)   //Reads the next line from fstream
+static AnsiString GetLine(ifstream &f)   //Reads the next line from fstream
 {
    AnsiString S;
    char s[MAX_CHAR];
@@ -390,7 +390,7 @@ inline AnsiString GetLine(ifstream &f)   //Reads the next line from fstream
    return S;
 }
 //---------------------------------------------------------------------------
-inline int NumWords(AnsiString &L)  //Counts number of words in the line
+static int NumWords(AnsiString &L)  //Counts number of words in the line
 {
 	int i=0,Nmax=0,N=0;
 	bool Space=true; //Several successive spaces
@@ -413,7 +413,7 @@ inline int NumWords(AnsiString &L)  //Counts number of words in the line
 	return N;
 }
 //---------------------------------------------------------------------------
-inline AnsiString ReadWord(AnsiString &L,int N)   //Parses the Nth word from the string
+static AnsiString ReadWord(AnsiString &L,int N)   //Parses the Nth word from the string
 {
 	AnsiString S="";
 	int i=1,Nmax=0,W=0;
@@ -443,7 +443,7 @@ inline AnsiString ReadWord(AnsiString &L,int N)   //Parses the Nth word from the
 	return S;
 }
 //---------------------------------------------------------------------------
-inline int NumPointsInFile(AnsiString &F,int NumRow)
+static int NumPointsInFile(AnsiString &F,int NumRow)
 {
 	//Check number of valid lines in text file F.
 	//Line is valid if number of elements in a row == NumRow and they are numbers
