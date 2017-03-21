@@ -12,12 +12,16 @@ import pytest
 
 def test_run():
     """Ensure pyhellweg.run_beam_solver produces output and does not crash"""
+    from pykern import pkio
+    from pykern.pkunit import pkeq
     from rslinac.pkcli import beam_solver
     f = _files()
-    #TODO(robnagler) Do we want unicode tests???
-    #rslinac.pkcli.beam_solver.run(f['ini'], f['input'], f['output'])
-    assert not f['output'].exists(), \
-        'After execution, {} should exist'.format(f['output'])
+    with pkunit.save_chdir_work():
+        beam_solver.run(f['ini'], f['input'], f['output'])
+        for outfile in ('PARSED.TXT', 'output.txt', 'test1.pid'):
+            expect = pkio.read_text(pkunit.data_dir().join(outfile))
+            actual = pkio.read_text(pkunit.work_dir().join(outfile))
+            pkeq(expect, actual)
 
 
 def test_run_deviance():
