@@ -114,9 +114,13 @@ TEST_CASE("AnsiString: FormatFloat") {
     AnsiString f2 = AnsiString::FormatFloat("#0.0", 0.1);
     AnsiString f3 = AnsiString::FormatFloat("#0.0000000", 0.1);
     AnsiString f4 = AnsiString::FormatFloat("", 0.1);
+    AnsiString f5 = AnsiString::FormatFloat("#.##############e+0", 0.1);
+    AnsiString f6 = AnsiString::FormatFloat("#.##############e+0 ", 0.1);
 
     REQUIRE( f1 == "0" );
     REQUIRE( f2 == "0.1" );
     REQUIRE( f3 == "0.1000000" );
     REQUIRE( f4 == "0.100000" );
+    REQUIRE( f5 == "1.00000001490116e-01" );
+    REQUIRE( f6 == "1.00000001490116e-01 " );
 }
