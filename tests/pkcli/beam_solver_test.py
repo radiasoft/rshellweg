@@ -10,16 +10,19 @@ import argh
 import pytest
 
 def test_beam_solver():
-    """Ensure pyhellweg.run_beam_solver produces output and does not crash"""
+    """Ensure BeamSolver interface solves and produces output"""
     from pykern import pkio
     from pykern.pkunit import pkeq
     from rslinac.solver import BeamSolver
     f = _files()
     with pkunit.save_chdir_work():
+        pkio.write_text('Solenoid.txt', pkio.read_text(pkunit.data_dir().join('Solenoid.txt')))
         solver = BeamSolver(f['ini'], f['input'])
         solver.solve()
         solver.save_output(f['output'])
-        for outfile in ('PARSED.TXT', 'output.txt', 'test1.pid'):
+        assert f['output'].exists()
+        solver.dump_bin('all-data.bin')
+        for outfile in ('PARSED.TXT', 'test1.pid'):
             expect = pkio.read_text(pkunit.data_dir().join(outfile))
             actual = pkio.read_text(pkunit.work_dir().join(outfile))
             pkeq(expect, actual)
@@ -33,6 +36,7 @@ def test_run_beam_solver():
     with pkunit.save_chdir_work():
         pkio.write_text('Solenoid.txt', pkio.read_text(pkunit.data_dir().join('Solenoid.txt')))
         beam_solver.run(f['ini'], f['input'], f['output'])
+        assert f['output'].exists()
         for outfile in ('PARSED.TXT', 'test1.pid'):
             expect = pkio.read_text(pkunit.data_dir().join(outfile))
             actual = pkio.read_text(pkunit.work_dir().join(outfile))
