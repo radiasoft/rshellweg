@@ -9,8 +9,22 @@ from pykern import pkunit
 import argh
 import pytest
 
+def test_beam_solver():
+    """Ensure pyhellweg.run_beam_solver produces output and does not crash"""
+    from pykern import pkio
+    from pykern.pkunit import pkeq
+    from rslinac.solver import BeamSolver
+    f = _files()
+    with pkunit.save_chdir_work():
+        solver = BeamSolver(f['ini'], f['input'])
+        solver.solve()
+        solver.save_output(f['output'])
+        for outfile in ('PARSED.TXT', 'output.txt', 'test1.pid'):
+            expect = pkio.read_text(pkunit.data_dir().join(outfile))
+            actual = pkio.read_text(pkunit.work_dir().join(outfile))
+            pkeq(expect, actual)
 
-def test_run():
+def test_run_beam_solver():
     """Ensure pyhellweg.run_beam_solver produces output and does not crash"""
     from pykern import pkio
     from pykern.pkunit import pkeq
@@ -22,7 +36,6 @@ def test_run():
             expect = pkio.read_text(pkunit.data_dir().join(outfile))
             actual = pkio.read_text(pkunit.work_dir().join(outfile))
             pkeq(expect, actual)
-
 
 def test_run_deviance():
     """Incorrect arguments should raise exceptions"""

@@ -58,9 +58,10 @@ pksetup.setup(
             name='rslinac.pyhellweg',
             define_macros=[('RSLINAC', 1)],
             include_dirs=[_LIB_DIR, _PHYS_DIR],
+            language='c++',
             sources=_get_src_files(_PHYS_DIR, 'cpp') +
                 _get_src_files(_LIB_DIR, 'cpp') +
-                ['pyhellweg.c'],
+                ['pyhellweg.cpp'],
             extra_compile_args=_get_compile_args(),
         ),
     ],

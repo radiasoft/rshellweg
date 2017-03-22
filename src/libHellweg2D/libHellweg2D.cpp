@@ -5,7 +5,6 @@
 #include <typeinfo>
 
 #include "AnsiString.hpp"
-#include "BeamSolver.h"
 #include "libHellweg2D.h"
 
 void set_error(LIB_HELLWEG_ERR_INFO *err_info, lib_hellweg_err_type type, const char *msg) {
@@ -27,12 +26,12 @@ void set_error(LIB_HELLWEG_ERR_INFO *err_info, const std::exception& e) {
 
 bool lib_hellweg_run_beam_solver(
         const char *ini_filename,
-        const char *input_filename, 
+        const char *input_filename,
         const char *output_filename,
         LIB_HELLWEG_ERR_INFO *err_info) {
-    
+
     bool success = true;
-    
+
     try {
         do {
             if (ini_filename) {
@@ -43,7 +42,7 @@ bool lib_hellweg_run_beam_solver(
                     AnsiString o(output_filename);
 
                         Solver.InputFile = input_filename;
-                         
+
                         if (Solver.LoadData() != ERR_NO) {
                             throw std::runtime_error("LoadData() failed");
                         }
@@ -74,7 +73,7 @@ bool lib_hellweg_run_beam_solver(
         } while(false);
     } catch(const std::exception& e) {
         success = false;
-        set_error(err_info, e); 
+        set_error(err_info, e);
     } catch (...) {
         success = false;
         set_error(err_info, CPP_EXCEPT_UNKNOWN, "Unknown exception class.");
@@ -83,3 +82,55 @@ bool lib_hellweg_run_beam_solver(
     return success;
 }
 
+HellwegBeamSolver::HellwegBeamSolver(const char* ini_filename, const char* input_filename) {
+    if (!ini_filename) {
+        throw std::runtime_error("null ini_filename");
+    }
+
+    if (!input_filename) {
+        throw std::runtime_error("null input_filename");
+    }
+
+    solver = new TBeamSolver(ini_filename);
+    solver->InputFile = input_filename;
+}
+
+HellwegBeamSolver::~HellwegBeamSolver() {
+    delete solver;
+}
+
+void HellwegBeamSolver::solve() {
+    if (solver->LoadData() != ERR_NO) {
+        throw std::runtime_error("LoadData() failed");
+    }
+
+    if (solver->CreateGeometry() != ERR_NO) {
+        throw std::runtime_error("CreateGeometry() failed");
+    }
+
+    if (solver->CreateBeam() != ERR_NO) {
+        throw std::runtime_error("CreateBeam() failed");
+    }
+
+    solver->Solve();
+}
+
+void HellwegBeamSolver::dump_bin(const char* output_filename) {
+    if (!output_filename) {
+        throw std::runtime_error("null output_filename");
+    }
+
+    AnsiString o(output_filename);
+
+    solver->SaveToFile(o);
+}
+
+void HellwegBeamSolver::save_output(const char* output_filename) {
+    if (!output_filename) {
+        throw std::runtime_error("null output_filename");
+    }
+
+    AnsiString o(output_filename);
+
+    solver->Output(o);
+}

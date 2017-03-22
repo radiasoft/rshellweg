@@ -16,6 +16,12 @@ cdef extern from "libHellweg2D.h":
     
     bint lib_hellweg_run_beam_solver(const char*, const char*, const char*, LIB_HELLWEG_ERR_INFO*)
 
+    cdef cppclass HellwegBeamSolver:
+        HellwegBeamSolver(const char*, const char*) except +
+        void solve();
+        void dump_bin(const char*);
+        void save_output(const char*);
+
 class PyHellWegError(Exception): pass
 
 class PyHellwegInputError(PyHellWegError): pass
@@ -37,3 +43,18 @@ def run_beam_solver(ini_path, input_path, output_path):
             raise PyHellWegError('Unknown exception: {0}'.format(err_info.msg))
         else:
             raise PyHellwegInputError(err_info.msg)
+
+cdef class PyHellwegBeamSolver(object):
+    cdef HellwegBeamSolver *_solver 
+
+    def __init__(self, ini_path, input_path):
+        self._solver = new HellwegBeamSolver(ini_path, input_path)
+
+    def solve(self):
+        self._solver.solve()
+    
+    def dump_bin(self, output_path):
+        self._solver.dump_bin(output_path)
+
+    def save_output(self, output_path):
+        self._solver.save_output(output_path)

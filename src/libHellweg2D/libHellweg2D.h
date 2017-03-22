@@ -1,11 +1,12 @@
 #ifndef _libHellweg2D_h_
 #define _libHellweg2D_h_
 
+#include <stdbool.h>
+#include "BeamSolver.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdbool.h>
 
 typedef enum {
     CPP_EXCEPT,
@@ -24,5 +25,15 @@ bool lib_hellweg_run_beam_solver(const char*, const char*, const char*, LIB_HELL
 #ifdef __cplusplus
 }
 #endif
+
+class HellwegBeamSolver {
+    TBeamSolver *solver = NULL;
+    public:
+        HellwegBeamSolver(const char*, const char*);
+        ~HellwegBeamSolver();
+        void solve();
+        void dump_bin(const char*);
+        void save_output(const char*);
+};
 
 #endif
