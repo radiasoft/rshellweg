@@ -413,7 +413,7 @@ object ResForm: TResForm
       BottomAxis.LabelsAngle = 90
       BottomAxis.LabelsFormat.Font.Height = -24
       BottomAxis.Title.Font.Height = -29
-      LeftAxis.AxisValuesFormat = '#,##0.0'
+      LeftAxis.ExactDateTime = False
       LeftAxis.LabelsFormat.Font.Height = -24
       LeftAxis.Title.Font.Height = -29
       RightAxis.Title.Font.Height = -29

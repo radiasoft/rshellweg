@@ -990,10 +990,10 @@ TError TBeamSolver::ParseSPH(TInputLine *Line, AnsiString &F, int Nr)
 		F+=AddLines(Line,0,1);
 		if (Nr>1) {
 			BeamPar.Sph.Rsph=Line->S[2].ToDouble()/100;  //Rsph cm
-			F+=" \t"+Line->S[1];
+			F+=" \t"+Line->S[2];
 			if (Nr>2){
 				BeamPar.Sph.kT=Line->S[3].ToDouble(); //kT
-				F+=" \t"+Line->S[1];
+				F+=" \t"+Line->S[3];
 			} else
 				BeamPar.Sph.kT=0;
 		} else {
