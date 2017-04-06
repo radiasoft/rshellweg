@@ -1629,6 +1629,10 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 	for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){
 			beta.z=Particle[i].beta.z+I[Si][i].beta.z*Par.h;
+			if (beta.z<0) {
+				Particle[i].lost=BZ_LOST;
+				continue;
+			}
 			beta.r=Particle[i].beta.r+I[Si][i].beta.r*Par.h;
 			beta.th=Particle[i].beta.th+I[Si][i].beta.th*Par.h;
 			beta0=sqrt(sqr(beta.z)+sqr(beta.r)+sqr(beta.th));
@@ -1680,10 +1684,9 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 				Hx.r+=C.px;
 				Hx.th+=C.py;
 			}
-
-			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th-beta.z*E.r)-beta.th*(H.r+beta.z*E.th)+beta.r*Hx.th-beta.th*Hx.r)/(gamma*beta.z);
-			k_beta.r=((1-sqr(beta.r))*E.r+beta.th*(H.z-beta.r*E.th)-beta.z*(H.th+beta.r*E.z)+beta.th*Hx.z-beta.z*Hx.th)/(gamma*beta.z)+sqr(beta.th)/(r*beta.z);
-			k_beta.th=((1-sqr(beta.th))*E.th+beta.z*(H.r-beta.th*E.z)-beta.r*(H.z+beta.th*E.r)+beta.z*Hx.r-beta.r*Hx.z)/(gamma*beta.z)-beta.th*beta.r/(r*beta.z);
+			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th+Hx.th-beta.z*E.r)-beta.th*(H.r+Hx.r+beta.z*E.th))/(gamma*beta.z);
+			k_beta.r=((1-sqr(beta.r))*E.r+beta.th*(H.z+Hx.z-beta.r*E.th)-beta.z*(H.th+Hx.th+beta.r*E.z))/(gamma*beta.z)+sqr(beta.th)/(r*beta.z);
+			k_beta.th=((1-sqr(beta.th))*E.th+beta.z*(H.r+Hx.r-beta.th*E.z)-beta.r*(H.z+Hx.z+beta.th*E.r))/(gamma*beta.z)-beta.th*beta.r/(r*beta.z);
 		   /*
 			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th-beta.z*E.r)-beta.th*r*Par.Hext.r)/(gamma*beta.z); //k_bz = dbz/dz  ; Br=-Bz'/2!;
 			k_beta.r=((E.r-beta.z*H.th-beta.r*(beta.z*E.z+beta.r*E.r))+beta.th*Par.Hext.z)/(gamma*beta.z)+r*sqr(th_dot)/(beta.z);
@@ -1738,6 +1741,7 @@ void TBeam::Next(TBeam *nBeam,TIntParameters& Par,TIntegration **I)
 			nParticle[i].beta.z=0;
 			dbz=(I[0][i].beta.z+I[1][i].beta.z+2*I[2][i].beta.z+2*I[3][i].beta.z)*Par.h/6;
 			nParticle[i].beta.z=Particle[i].beta.z+dbz;
+
 			//nParticle[i].beta=0;
 			//nParticle[i].beta=Particle[i].beta+dbz;//(I[0][i].bz+I[1][i].bz+2*I[2][i].bz+2*I[3][i].bz)*Par.h/6;
 
@@ -1763,7 +1767,7 @@ void TBeam::Next(TBeam *nBeam,TIntParameters& Par,TIntegration **I)
 			if (mod(nParticle[i].beta.th)>1){
 				nParticle[i].lost=BTH_LOST;
 			}
-			if (mod(nParticle[i].beta.z)>1 ){
+			if (nParticle[i].beta.z>1 || nParticle[i].beta.z<0){
 				nParticle[i].lost=BZ_LOST;
 			}
 

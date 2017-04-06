@@ -1164,17 +1164,22 @@ TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 	}else{
 		for (int i = 1; i < Line->N; i++) {
 			if (Line->S[i]=="TRAIN") {
-				Ntr=i+1;
+				//Ntr++;//=i+1;
+				Ntr=Line->N-i;
 				break;
 			}
 		}
 		int Nsp=Line->N-Ntr;
-		if (Nsp<2) {
+		if (Nsp>2) {
+			S="ERROR: Too many parameters in SPCHARGE line!";
+			ShowError(S);
+			return ERR_SPCHARGE;
+		}else{
 			BeamPar.SpaceCharge.Type=ParseSpchType(Line->S[0]);
 			F=F+"\t"+Line->S[0];
 			switch (BeamPar.SpaceCharge.Type) {
 				case SPCH_GW: {
-					if (Nsp==1){
+					if (Nsp==2){
 						BeamPar.SpaceCharge.NSlices=Line->S[1].ToInt();
 						F=F+"\t"+Line->S[1];
 					}
@@ -1182,7 +1187,7 @@ TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 				}
 				case SPCH_LPST: { }
 				case SPCH_ELL: {
-					if (Nsp==1){
+					if (Nsp==2){
 						BeamPar.SpaceCharge.Nrms=Line->S[1].ToDouble();
 						F=F+"\t"+Line->S[1];
 					}
@@ -1191,25 +1196,21 @@ TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 				case SPCH_NO: { break;}
 				default: {return ERR_SPCHARGE;};
 			}
-		} else {
-			S="ERROR: Too many parameters in SPCHARGE line!";
-			ShowError(S);
-			return ERR_SPCHARGE;
 		}
 
 		if (Ntr>0) {
 			BeamPar.SpaceCharge.Train=true;
 			F=F+"\t"+"TRAIN";
-			if (Line->N==Ntr+1){
-				BeamPar.SpaceCharge.Ltrain=1e-2*Line->S[Ntr].ToDouble();
-				F=F+"\t"+Line->S[1];
-			}else if (Line->N!=Ntr) {
+			if (Ntr==1){
+				BeamPar.SpaceCharge.Ltrain=0;
+			} else if (Ntr==2){
+				BeamPar.SpaceCharge.Ltrain=1e-2*Line->S[Nsp+1].ToDouble();
+				F=F+"\t"+Line->S[Nsp+1];
+			}else {
 				S="ERROR: Too many parameters after TRAIN keyword!";
 				ShowError(S);
 				return ERR_SPCHARGE;
-			}else {
-                BeamPar.SpaceCharge.Ltrain=0;
-            }
+			}
 		}
 	}
 

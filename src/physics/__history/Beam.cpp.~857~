@@ -1647,6 +1647,7 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 			else
 				k_phi=2*pi*(1/Par.bw-1/beta.z);
 
+			//RF FIELDS
 			E.z=A*Ib0(r*Sr)*cos(phi)+Par.Eq[i].z;   //k_Az = Az
 			E.r=-(1/Sr)*Ib1(r*Sr)*(dA*cos(phi)-(2*Par.B*Par.SumSin+2*pi*A/Par.bw)*sin(phi))+Par.Eq[i].r; //k_Ar = Ar
 			E.th=Par.Eq[i].th;
@@ -1654,13 +1655,19 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 			H.r=0;
 			H.th=(Par.bw*A*Ib1(r*Sr)*sin(phi))/sqrt(1-sqr(Par.bw));      //k_Hth = Hth
 
-			//th_dot=beta.th/r;
+			Hx.r=0;
+			Hx.th=0;
+			Hx.z=0;
 
-			if (Par.Hext.Dim.Ny==1)
-				Hx=LinInterpolation(r*lmb,Par.Hext.Piv.X,Par.Hext.Dim.Nx,Par.Hext.Field[0]);
-			else
-				Hx=BiLinearInterpolation(th,r*lmb,Par.Hext.Piv.Y,Par.Hext.Piv.X,Par.Hext.Dim.Ny,Par.Hext.Dim.Nx,Par.Hext.Field);
+			//GLOBAL EXTERNAL FIELDS (SOLENOID)
+			if (Par.Hext.Field!=NULL) {
+				if (Par.Hext.Dim.Ny==1)
+					Hx=LinInterpolation(r*lmb,Par.Hext.Piv.X,Par.Hext.Dim.Nx,Par.Hext.Field[0]);
+				else
+					Hx=BiLinearInterpolation(th,r*lmb,Par.Hext.Piv.Y,Par.Hext.Piv.X,Par.Hext.Dim.Ny,Par.Hext.Dim.Nx,Par.Hext.Field);
+			}
 
+            //LOCAL EXTERNAL FIELDS (QUADS)
 			if (Par.Hmap.Field!=NULL) {
 				TPhaseSpace C,R;
 				R.x=r*cos(th);
@@ -1673,10 +1680,12 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 				Hx.r+=C.px;
 				Hx.th+=C.py;
 			}
-
-			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th-beta.z*E.r)-beta.th*(H.r+beta.z*E.th)+beta.r*Hx.th-beta.th*Hx.r)/(gamma*beta.z);
-			k_beta.r=((1-sqr(beta.r))*E.r+beta.th*(H.z-beta.r*E.th)-beta.z*(H.th+beta.r*E.z)+beta.th*Hx.z-beta.z*Hx.th)/(gamma*beta.z)+sqr(beta.th)/(r*beta.z);
-			k_beta.th=((1-sqr(beta.th))*E.th+beta.z*(H.r-beta.th*E.z)-beta.r*(H.z+beta.th*E.r)+beta.z*Hx.r-beta.r*Hx.z)/(gamma*beta.z)-beta.th*beta.r/(r*beta.z);
+		   //	beta.r=0;
+		   //	beta.th=0;
+			//gamma=VelocityToEnergy(beta.z);
+			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th+Hx.th-beta.z*E.r)-beta.th*(H.r+Hx.r+beta.z*E.th))/(gamma*beta.z);
+			k_beta.r=((1-sqr(beta.r))*E.r+beta.th*(H.z+Hx.z-beta.r*E.th)-beta.z*(H.th+Hx.th+beta.r*E.z))/(gamma*beta.z)+sqr(beta.th)/(r*beta.z);
+			k_beta.th=((1-sqr(beta.th))*E.th+beta.z*(H.r+Hx.r-beta.th*E.z)-beta.r*(H.z+Hx.z+beta.th*E.r))/(gamma*beta.z)-beta.th*beta.r/(r*beta.z);
 		   /*
 			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th-beta.z*E.r)-beta.th*r*Par.Hext.r)/(gamma*beta.z); //k_bz = dbz/dz  ; Br=-Bz'/2!;
 			k_beta.r=((E.r-beta.z*H.th-beta.r*(beta.z*E.z+beta.r*E.r))+beta.th*Par.Hext.z)/(gamma*beta.z)+r*sqr(th_dot)/(beta.z);
@@ -1756,7 +1765,7 @@ void TBeam::Next(TBeam *nBeam,TIntParameters& Par,TIntegration **I)
 			if (mod(nParticle[i].beta.th)>1){
 				nParticle[i].lost=BTH_LOST;
 			}
-			if (mod(nParticle[i].beta.z)>1 ){
+			if (nParticle[i].beta.z>1 || nParticle[i].beta.z<0){
 				nParticle[i].lost=BZ_LOST;
 			}
 
