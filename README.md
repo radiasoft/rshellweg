@@ -1,12 +1,14 @@
-### rslinac
-#### Python and python-wrapped utilities for modeling linear accelerators
+### Python and python-wrapped utilities for modeling linear accelerators
 The rslinac repository is where RadiaSoft maintains open source software for modeling linacs.  'Linac' is a long-time pseudo-acronym for 'linear accelerator'. At the moment, rslinac contains the Hellweg kernel, the Windows-only Hellweg GUI, associated Python code for testing, etc. In the future, rslinac could be broadened to include other software specific to modeling linacs.
 
 ### Hellweg
 #### Author
 Original author and primary developer: Sergey V. Kutsaev, RadiaBeam Technologies LLC
+
 Contributing developer: Yury Eidelman, RadiaSoft LLC
+
 Porting to GNU/Linux: Jose Barbe Welzel, RadiaSoft LLC
+
 Porting to the cloud: Paul Moeller and Robert Nagler, RadiaSoft LLC
 
 #### Rapid simulation of beams in cavities, with beam loading
@@ -22,6 +24,12 @@ The Hellweg physics kernel compiles on Linux without the GUI. The C++ physics ke
 A [Browser-based GUI](http://beta.sirepo.com/hellweg) is available for open beta testing of Hellweg simulations in the cloud.
 
 ### Publications
+S.V. Kutsaev, “Electron dynamics simulations with Hellweg 2D code”, [Nuclear Instruments and Methods in Physics Research A618, pp. 298–305 (2010).](http://www.sciencedirect.com/science/article/pii/S0168900210003141)
+
+S.V. Kutsaev et al., “Design of hybrid electron linac with standing wave buncher and traveling wave structure”, [Nuclear Instruments and Methods in Physics Research A636, p. 13 (2011).](http://www.sciencedirect.com/science/article/pii/S0168900211001252)
+
+S.V. Kutsaev, R.B. Agustsson, A. Arodzero, R.D.B. Berry, S. Boucher, Y.C. Chen, J.J. Hartzell, B.T. Jacobson, A. Laurich, A.Y. Murokh, E.A. Savin, A.Yu. Smirnov and A. Verma, “Design, Simulations and Experimental Demonstration of an Intra-Pulse Ramped-Energy Travelling Wave Linac for Cargo Inspection”, [Proc. of NAPAC, TUPOA68 (2016).](http://vrws.de/napac2016/papers/tupoa68.pdf)
+
 S.V. Kutsaev, Y. Eidelman, D.L. Bruhwiler, P. Moeller, R. Nagler and J. Barbe Welzel, “Cloud-based design of high average power traveling wave linacs,” Physics Procedia (2017), submitted.
 
 S.V. Kutsaev, Y. Eidelman and D.L. Bruhwiler, “Self-consistent 3D beam dynamics model with space charge for Hellweg code enhancement,” Phys. Rev. Accel. Beams (2017), in preparation.
