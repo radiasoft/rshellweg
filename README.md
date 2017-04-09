@@ -1,5 +1,5 @@
 ### Python and python-wrapped utilities for modeling linear accelerators
-The rslinac repository is where RadiaSoft maintains open source software for modeling linacs.  'Linac' is a long-time pseudo-acronym for 'linear accelerator'. At the moment, rslinac contains the Hellweg kernel, the Windows-only Hellweg GUI, associated Python code for testing, etc. In the future, rslinac could be broadened to include other software specific to modeling linacs.
+The rslinac repository is where RadiaSoft maintains open source software for modeling linacs.  'Linac' is a long-time nickname for 'linear accelerator'. This includes the Hellweg C++ physics kernel, the Windows-only Hellweg GUI, and associated Python code for testing. In the future, rslinac will be broadened to include other software specific to modeling linacs.
 
 ### Hellweg
 #### Author
