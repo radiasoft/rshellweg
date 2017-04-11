@@ -1429,11 +1429,16 @@ double TBeam::CosSum(TIntParameters& Par,TIntegration *I)
 double TBeam::BesselSum(TIntParameters& Par,TIntegration *I,TTrig Trig)
 {
     double S=0,N=0,S1=0;
-    double phi=0,r=0,bw=0,c=0;
+	double phi=0,r=0,bw=0,c=0,bz=0;
     double Res=0;
 
     for (int i=0;i<Np;i++){
-        if (Particle[i].lost==LIVE){
+		if (Particle[i].lost==LIVE){
+			bz=Particle[i].beta.z+I[i].beta.z*Par.h;
+			if (bz<0 || bz>1) {
+				Particle[i].lost==BZ_LOST;
+				continue;
+			}
             phi=Particle[i].phi+I[i].phi*Par.h;
 			r=Particle[i].r+I[i].r*Par.h;
             bw=Par.bw;
