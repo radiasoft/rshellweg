@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include "BeamSolver.h"
+#include "Types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,7 +34,11 @@ class HellwegBeamSolver {
         ~HellwegBeamSolver();
         void solve();
         void dump_bin(const char*);
+        int get_number_of_points();
+        int get_number_of_particles();
+        double* get_structure_parameters(int);
         void save_output(const char*);
+        void load_bin(const char*);
 };
 
 #endif

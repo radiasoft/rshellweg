@@ -125,6 +125,28 @@ void HellwegBeamSolver::dump_bin(const char* output_filename) {
     solver->SaveToFile(o);
 }
 
+int HellwegBeamSolver::get_number_of_points() {
+  return solver->GetNumberOfPoints();
+}
+
+int HellwegBeamSolver::get_number_of_particles() {
+  return solver->GetNumberOfParticles();
+}
+
+double* HellwegBeamSolver::get_structure_parameters(int param) {
+  return solver->GetStructureParameters(static_cast<TStructureParameter>(param));
+}
+
+void HellwegBeamSolver::load_bin(const char* input_filename) {
+    if (!input_filename) {
+        throw std::runtime_error("null input_filename");
+    }
+
+    AnsiString o(input_filename);
+
+    solver->LoadFromFile(o);
+}
+
 void HellwegBeamSolver::save_output(const char* output_filename) {
     if (!output_filename) {
         throw std::runtime_error("null output_filename");

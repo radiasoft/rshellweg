@@ -20,5 +20,11 @@ class BeamSolver(object):
     def dump_bin(self, output_path):
         self._solver.dump_bin(str(output_path))
 
+    def get_structure_parameters(self, param):
+        return self._solver.get_structure_parameters(param)
+
+    def load_bin(self, input_path):
+        self._solver.load_bin(str(input_path))
+
     def save_output(self, output_path):
         self._solver.save_output(str(output_path))

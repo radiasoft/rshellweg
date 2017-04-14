@@ -21,11 +21,16 @@ def test_beam_solver():
         solver.solve()
         solver.save_output(f['output'])
         assert f['output'].exists()
+        v = solver.get_structure_parameters(1)
+        assert v[2] == 0.0006
         solver.dump_bin('all-data.bin')
         for outfile in ('PARSED.TXT', 'test1.pid'):
             expect = pkio.read_text(pkunit.data_dir().join(outfile))
             actual = pkio.read_text(pkunit.work_dir().join(outfile))
             pkeq(expect, actual)
+        solver.load_bin('all-data.bin')
+        v = solver.get_structure_parameters(1)
+        assert v[2] == 0.0006
 
 def test_run_beam_solver():
     """Ensure pyhellweg.run_beam_solver produces output and does not crash"""
