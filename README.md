@@ -5,6 +5,8 @@ The rslinac repository is where RadiaSoft maintains open source software for mod
 #### Author
 Original author and primary developer: Sergey V. Kutsaev, RadiaBeam Technologies LLC
 
+Hellweg was initially developed in the [RF laboratory of the National Research Nuclear University (MEPhI)](http://rflab.mephi.ru/en/).
+
 Contributing developer: Yury Eidelman, RadiaSoft LLC
 
 Porting to GNU/Linux: Jose Barbe Welzel, RadiaSoft LLC
@@ -12,16 +14,18 @@ Porting to GNU/Linux: Jose Barbe Welzel, RadiaSoft LLC
 Porting to the cloud: Paul Moeller and Robert Nagler, RadiaSoft LLC
 
 #### Rapid simulation of beams in cavities, with beam loading
+<a target="_blank" class="btn btn-default lp-code-button" href="/hellweg"><h4>Hellweg</h4></a>
+
 Hellweg is a C++ application for simulating high-average-power, traveling wave (TW) electron linacs, including the important effects of beam loading. It can also be used for modeling beam transport with a variety of standard elements.
 
-Hellweg has a convenient GUI for use on Windows, if compiled with [Embarcadero's C++ Builder](https://www.embarcadero.com/products/cbuilder) using the provided [configuration file](https://github.com/radiasoft/rslinac/blob/master/src/gui/Hellweg.cbproj).
+Hellweg has a GUI for use on Windows, if compiled with [Embarcadero's C++ Builder](https://www.embarcadero.com/products/cbuilder) using the provided [configuration file](https://github.com/radiasoft/rslinac/blob/master/src/gui/Hellweg.cbproj).
 
 We provide a [User Guide](https://github.com/radiasoft/rslinac/tree/master/docs) and a [Suite of Examples](https://github.com/radiasoft/rslinac/tree/master/src/examples).
 
 The Hellweg physics kernel compiles on Linux without the GUI. The C++ physics kernel provides an API that is called from Python. These Python-wrapped capabilities are referred to as 'rslinac' and will be made available via PyPI.
 
 #### Using Hellweg in the cloud
-A [Browser-based GUI](http://beta.sirepo.com/hellweg) is available for open beta testing of Hellweg simulations in the cloud.
+[A browser-based GUI for Hellweg](http://beta.sirepo.com/hellweg) is available for open beta testing.
 
 ### Publications
 S.V. Kutsaev, “Electron dynamics simulations with Hellweg 2D code”, [Nuclear Instruments and Methods in Physics Research A618, pp. 298–305 (2010).](http://www.sciencedirect.com/science/article/pii/S0168900210003141)
