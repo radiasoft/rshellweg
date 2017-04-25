@@ -471,7 +471,7 @@ static int NumPointsInFile(AnsiString &F,int NumRow)
 	return N;
 }
 //---------------------------------------------------------------------------
-int CountUnique(double *X, int N)
+static int CountUnique(double *X, int N)
 {
 	int Nunq=0;
 
@@ -490,7 +490,7 @@ int CountUnique(double *X, int N)
 	return Nunq;
 }
 //---------------------------------------------------------------------------
-void SortArray(double *X, int Nmax, bool Desc=false)
+static void SortArray(double *X, int Nmax, bool Desc=false)
 {
 	double x=0;
 	for (int i = Nmax-1; i>=0; i--) {
@@ -504,7 +504,7 @@ void SortArray(double *X, int Nmax, bool Desc=false)
 	}
 }
 //---------------------------------------------------------------------------
-double *MakePivot(double *X, int Nmax, int Npiv)
+static double *MakePivot(double *X, int Nmax, int Npiv)
 {
 	int Nunq=0;
 	double *Piv=new double[Npiv];
@@ -529,7 +529,7 @@ double *MakePivot(double *X, int Nmax, int Npiv)
 	return Piv;
 }
 //---------------------------------------------------------------------------
-TField LinInterpolation(double x,double *X,int Nx,TField *A)
+static TField LinInterpolation(double x,double *X,int Nx,TField *A)
 {
 	int kx=0;
 	TField F;
@@ -571,7 +571,7 @@ TField LinInterpolation(double x,double *X,int Nx,TField *A)
 	return F;
 }
 //---------------------------------------------------------------------------
-TField BiLinearInterpolation(double x,double y,double *X,double *Y,int Nx,int Ny, TField **A)
+static TField BiLinearInterpolation(double x,double y,double *X,double *Y,int Nx,int Ny, TField **A)
 {
 	int kx=0, ky=0;
 	TField F;

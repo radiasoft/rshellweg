@@ -1439,7 +1439,7 @@ double TBeam::BesselSum(TIntParameters& Par,TIntegration *I,TTrig Trig)
 		if (Particle[i].lost==LIVE){
 			bz=Particle[i].beta.z+I[i].beta.z*Par.h;
 			if (bz<0 || bz>1) {
-				Particle[i].lost==BZ_LOST;
+				Particle[i].lost=BZ_LOST;
 				continue;
 			}
             phi=Particle[i].phi+I[i].phi*Par.h;
