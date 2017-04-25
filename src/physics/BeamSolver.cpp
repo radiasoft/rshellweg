@@ -20,9 +20,7 @@ __fastcall TBeamSolver::TBeamSolver()
 //---------------------------------------------------------------------------
 __fastcall TBeamSolver::~TBeamSolver()
 {
-	delete[] StructPar.Cells;
-	for (int i = 0; i < StructPar.NSections; i++)
-		delete[] StructPar.Sections;
+	ResetStructure();
 
     delete[] Structure;
 
@@ -57,8 +55,11 @@ void TBeamSolver::Initialize()
 	//Nbars=100; //default
     Nav=10;
     Smooth=0.95;
-	Npoints=1;
+	Npoints=0;
 	Ndump=0;
+
+  /*	Nrmesh=20;
+	Nthmesh=36;    */
 
 	//Np=1;
    //	NpEnergy=0;
@@ -73,6 +74,16 @@ void TBeamSolver::Initialize()
 	StructPar.NElements=0;
 	StructPar.ElementsLimit=-1;
 
+	ExternalMagnetic.Dim.Nz=0;
+	ExternalMagnetic.Dim.Nx=0;
+	ExternalMagnetic.Dim.Ny=0;
+	ExternalMagnetic.Field=NULL;
+	ExternalMagnetic.Piv.X=NULL;
+	ExternalMagnetic.Piv.Y=NULL;
+	ExternalMagnetic.Piv.Z=NULL;
+
+	QuadMaps=NULL;
+
 	LoadIniConstants();
 
 	DataReady=false;
@@ -86,12 +97,15 @@ void TBeamSolver::Initialize()
 
 	StructPar.Cells = new TCell[1];
 
-    Beam=new TBeam*[Npoints];
+	Beam=NULL;
+	Structure=NULL;
+
+ /*   Beam=new TBeam*[Npoints];
     for (int i=0;i<Npoints;i++) {
         Beam[i]=new TBeam(1);
     }
 
-    Structure=new TStructure[Npoints];
+    Structure=new TStructure[Npoints];  */
 
     InputStrings=new TStringList;
 	ParsedStrings=new TStringList;
@@ -114,6 +128,60 @@ void TBeamSolver::ResetStructure()
 	if (StructPar.Cells!=NULL) {
 		delete[] StructPar.Cells;
 		StructPar.Cells=NULL;
+	}
+
+	ResetExternal();
+	ResetMaps();
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::ResetMaps()
+{
+	if (QuadMaps!=NULL) {
+		for (int i = 0; i < StructPar.NMaps; i++) {
+			for (int j = 0; j < QuadMaps[i].Dim.Nx; i++) {
+				delete[] QuadMaps[i].Field[j];
+			}
+			delete[] QuadMaps[i].Field;
+			delete[] QuadMaps[i].Piv.X;
+			delete[] QuadMaps[i].Piv.Y;
+		}
+		delete[] QuadMaps;
+	}
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::ResetExternal()
+{
+	if (ExternalMagnetic.Field!=NULL) {
+		if (ExternalMagnetic.Dim.Nz!=0) {
+			for (int i = 0; i < ExternalMagnetic.Dim.Nz; i++) {
+				if (ExternalMagnetic.Dim.Ny!=0) {
+					for (int j = 0; j < ExternalMagnetic.Dim.Ny; j++) {
+						if (ExternalMagnetic.Dim.Nx!=0) {
+							delete[] ExternalMagnetic.Field[i][j];
+						}
+					}
+					delete[] ExternalMagnetic.Field[i];
+				}
+			}
+			delete[] ExternalMagnetic.Field;
+			ExternalMagnetic.Dim.Nz=0;
+			ExternalMagnetic.Dim.Nx=0;
+			ExternalMagnetic.Dim.Ny=0;
+			ExternalMagnetic.Field=NULL;
+		}
+	}
+
+	if (ExternalMagnetic.Piv.X!=NULL) {
+		delete[] ExternalMagnetic.Piv.X;
+		ExternalMagnetic.Piv.X=NULL;
+	}
+	if (ExternalMagnetic.Piv.Y!=NULL) {
+		delete[] ExternalMagnetic.Piv.Y;
+		ExternalMagnetic.Piv.Y=NULL;
+	}
+	if (ExternalMagnetic.Piv.Z!=NULL) {
+		delete[] ExternalMagnetic.Piv.Z;
+		ExternalMagnetic.Piv.Z=NULL;
 	}
 }
 //---------------------------------------------------------------------------
@@ -361,7 +429,8 @@ bool TBeamSolver::IsKeyWord(AnsiString &S)
         S=="SOLENOID" ||
         S=="BEAM" ||
         S=="CURRENT" ||
-        S=="DRIFT" ||
+		S=="DRIFT" ||
+		S=="QUAD" ||
         S=="CELL" ||
 		S=="CELLS" ||
 		S=="SAVE" ||
@@ -445,12 +514,27 @@ bool TBeamSolver::IsFileKeyWord(TBeamType D)
 	bool R=false;
 
 	switch (D) {
-        case CST_PID:{}
+		case CST_PID:{}
 		case CST_PIT: {}
 		case FILE_1D:{}
 		case FILE_2D:{}
 		case TWO_FILES_2D:{}
 		case FILE_4D:{R=true;break;}
+		default: R=false;
+	}
+	return R;
+}
+//---------------------------------------------------------------------------
+bool TBeamSolver::IsImportType(TImportType T)
+{
+	bool R=false;
+
+	switch (T) {
+		case IMPORT_1D:{}
+		case IMPORT_2DC:{}
+		case IMPORT_2DR:{}
+		case IMPORT_3DC:{}
+		case IMPORT_3DR:{R=true; break;}
 		default: R=false;
 	}
 	return R;
@@ -473,7 +557,9 @@ TInputParameter TBeamSolver::Parse(AnsiString &S)
     else if (S=="CURRENT")
 		P=CURRENT;
     else if (S=="DRIFT")
-        P=DRIFT;
+		P=DRIFT;
+	else if (S=="QUAD")
+		P=QUAD;
     else if (S=="CELL")
         P=CELL;
     else if (S=="CELLS")
@@ -589,7 +675,7 @@ void TBeamSolver::GetDimensions(TCell& Cell)
     TSpline rSpline;
     rSpline.SoftBoundaries=false;
     rSpline.MakeLinearSpline(Xi,Yi,Nbp);
-    Cell.AkL=rSpline.Interpolate(Cell.betta);
+	Cell.AkL=rSpline.Interpolate(Cell.beta);
 
     delete[] Xo;
     delete[] Yo;
@@ -646,7 +732,7 @@ void TBeamSolver::GetDimensions(TCell& Cell)
     TSpline aSpline;
     aSpline.SoftBoundaries=false;
     aSpline.MakeLinearSpline(Xi,Yi,Nab);
-    Cell.AL32=1e-4*aSpline.Interpolate(Cell.betta);
+	Cell.AL32=1e-4*aSpline.Interpolate(Cell.beta);
 
     delete[] Xo;
     delete[] Yo;
@@ -695,7 +781,12 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 			if (S=="SAVE") {
 				Ns++;
 			}
-		}
+		} else if (S=="END") {
+        	break;
+		} else {
+			S="WARNING: The keyword "+S+" is not recognized in the input file and will be ignored!";
+			ShowError(S);
+        }
 /*        logFile=fopen("BeamSolver.log","a");
 		fprintf(logFile,"ParseFile: N=%i, S=%s\n",N,S);
         fclose(logFile); */
@@ -710,12 +801,6 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 	while (!fs.eof()){
 		L=GetLine(fs);   //Now reads line by line
 		S=ReadWord(L,1);  //Gets the first word in the line (should be a key word)
-
-		   /*	fs>>s;
-			S=AnsiString(s);    */
-/*            logFile=fopen("BeamSolver.log","a");
-			fprintf(logFile,"ParseFile: s=%s, S=%s\n",s,S);
-			fclose(logFile); */
 		if (S=="END")
 			break;
 		else if (S=="") //empty line
@@ -723,14 +808,6 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 		else if(IsKeyWord(S) || S[1]=='!'){ //Key word or comment detected. Start parsing the line
 			i++;
 			P=Parse(S);
-/*                logFile=fopen("BeamSolver.log","a");
-				fprintf(logFile,"ParseFile: P=%s\n",P);
-				fclose(logFile); */
-/*				if(S=="COMMENT"){
-					logFile=fopen("BeamSolver.log","a");
-					fprintf(logFile,"ParseFile: Comment Line\n");
-					fclose(logFile);
-				}                  */
 			Lines[i].P=P;
 
 			if (P==COMMENT)       //comment length is not limited
@@ -915,10 +992,10 @@ TError TBeamSolver::ParseSPH(TInputLine *Line, AnsiString &F, int Nr)
 		F+=AddLines(Line,0,1);
 		if (Nr>1) {
 			BeamPar.Sph.Rsph=Line->S[2].ToDouble()/100;  //Rsph cm
-			F+=" \t"+Line->S[1];
+			F+=" \t"+Line->S[2];
 			if (Nr>2){
 				BeamPar.Sph.kT=Line->S[3].ToDouble(); //kT
-				F+=" \t"+Line->S[1];
+				F+=" \t"+Line->S[3];
 			} else
 				BeamPar.Sph.kT=0;
 		} else {
@@ -1078,37 +1155,65 @@ TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 	BeamPar.SpaceCharge.Type=SPCH_NO;
 	BeamPar.SpaceCharge.NSlices=1;
 	BeamPar.SpaceCharge.Nrms=3;
+	BeamPar.SpaceCharge.Train=false;
+	BeamPar.SpaceCharge.Ltrain=0;
+
+	int Ntr=0;
 
 	if (Line->N==0){
 		BeamPar.SpaceCharge.Type=SPCH_ELL;
 		F=F+"\t"+"ELLIPTIC";
-	}else if (Line->N<3) {
-		BeamPar.SpaceCharge.Type=ParseSpchType(Line->S[0]);
-		F=F+"\t"+Line->S[0];
-		switch (BeamPar.SpaceCharge.Type) {
-			case SPCH_GW: {
-				if (Line->N==2){
-					BeamPar.SpaceCharge.NSlices=Line->S[1].ToInt();
-					F=F+"\t"+Line->S[1];
-				}
+	}else{
+		for (int i = 1; i < Line->N; i++) {
+			if (Line->S[i]=="TRAIN") {
+				//Ntr++;//=i+1;
+				Ntr=Line->N-i;
 				break;
 			}
-			case SPCH_LPST: { }
-			case SPCH_ELL: {
-				if (Line->N==2){
-					BeamPar.SpaceCharge.Nrms=Line->S[1].ToDouble();
-					F=F+"\t"+Line->S[1];
+		}
+		int Nsp=Line->N-Ntr;
+		if (Nsp>2) {
+			S="ERROR: Too many parameters in SPCHARGE line!";
+			ShowError(S);
+			return ERR_SPCHARGE;
+		}else{
+			BeamPar.SpaceCharge.Type=ParseSpchType(Line->S[0]);
+			F=F+"\t"+Line->S[0];
+			switch (BeamPar.SpaceCharge.Type) {
+				case SPCH_GW: {
+					if (Nsp==2){
+						BeamPar.SpaceCharge.NSlices=Line->S[1].ToInt();
+						F=F+"\t"+Line->S[1];
+					}
+					break;
 				}
-				break;
+				case SPCH_LPST: { }
+				case SPCH_ELL: {
+					if (Nsp==2){
+						BeamPar.SpaceCharge.Nrms=Line->S[1].ToDouble();
+						F=F+"\t"+Line->S[1];
+					}
+					break;
+				}
+				case SPCH_NO: { break;}
+				default: {return ERR_SPCHARGE;};
 			}
-			case SPCH_NO: { break;}
-			default: {return ERR_SPCHARGE;};
 		}
 
-	} else {
-		S="ERROR: Too many parametes in SPCHARGE line!";
-		ShowError(S);
-		return ERR_SPCHARGE;
+		if (Ntr>0) {
+			BeamPar.SpaceCharge.Train=true;
+			F=F+"\t"+"TRAIN";
+			if (Ntr==1){
+				BeamPar.SpaceCharge.Ltrain=0;
+			} else if (Ntr==2){
+				BeamPar.SpaceCharge.Ltrain=1e-2*Line->S[Nsp+1].ToDouble();
+				F=F+"\t"+Line->S[Nsp+1];
+			}else {
+				S="ERROR: Too many parameters after TRAIN keyword!";
+				ShowError(S);
+				return ERR_SPCHARGE;
+			}
+		}
 	}
 
 	ParsedStrings->Add(F);
@@ -1119,27 +1224,56 @@ TError TBeamSolver::ParseSolenoid(TInputLine *Line)
 {
 	AnsiString F="SOLENOID",SolenoidFile,S;
 
-	if (Line->N==3){
-		StructPar.SolenoidPar.ImportType=ANALYTIC_0D;
-		StructPar.SolenoidPar.BField=Line->S[0].ToDouble()/10000; //[Gs]
-		StructPar.SolenoidPar.Length=Line->S[1].ToDouble()/100; //[cm]
-		StructPar.SolenoidPar.StartPos=Line->S[2].ToDouble()/100; //[cm]
+	StructPar.SolenoidPar.MagnetType=MAG_SOLENOID;
+	StructPar.SolenoidPar.ImportType=NO_ELEMENT;
+	StructPar.SolenoidPar.BField=0; //[T]
+	StructPar.SolenoidPar.Length=0; //[m]
+	StructPar.SolenoidPar.StartPos=0; //[m]
 
-		F+=AddLines(Line,0,2);
-		ParsedStrings->Add(F);
-	}else if (Line->N==1) {
-		SolenoidFile=Line->S[0];
-		F+="\t"+SolenoidFile;
-		if (CheckFile(SolenoidFile)){
-			StructPar.SolenoidPar.ImportType=IMPORT_1D;
-			StructPar.SolenoidPar.File=SolenoidFile;
-			ParsedStrings->Add(F);
-		}else{
-			S="ERROR: The file "+SolenoidFile+" is missing!";
-			ShowError(S);
-			return ERR_SOLENOID;
+	if (Line->N>=1 && Line->N<=4) {
+		if (IsNumber(Line->S[0])) {
+			StructPar.SolenoidPar.BField=Line->S[0].ToDouble()/10000; //[Gs]
+			F=F+"\t"+Line->S[0];
+			if (Line->N>=2) {
+				StructPar.SolenoidPar.ImportType=ANALYTIC_1D;
+				StructPar.SolenoidPar.Length=Line->S[1].ToDouble()/100; //[cm]
+				F=F+"\t"+Line->S[1];
+				if (Line->N>=3){
+					StructPar.SolenoidPar.StartPos=Line->S[2].ToDouble()/100; //[cm]
+					F=F+"\t"+Line->S[2];
+					if (Line->N==4){
+						StructPar.SolenoidPar.Lfringe=Line->S[3].ToDouble()/100; //[cm]
+						F=F+"\t"+Line->S[3];
+					}  else
+						StructPar.SolenoidPar.Lfringe=0.01; //[m]
+				}else{
+					StructPar.SolenoidPar.StartPos=0; //[m]
+					StructPar.SolenoidPar.Lfringe=0.01; //[m]
+				}
+			} else {
+				StructPar.SolenoidPar.ImportType=ANALYTIC_0D;
+			}
+		} else {
+			SolenoidFile=Line->S[0];
+			F+="\t"+SolenoidFile;
+			if (CheckFile(SolenoidFile)){
+				StructPar.SolenoidPar.ImportType=ParseSolenoidType(SolenoidFile);
+				StructPar.SolenoidPar.File=SolenoidFile;
+			}else{
+				S="ERROR: The file "+SolenoidFile+" is missing!";
+				ShowError(S);
+				return ERR_SOLENOID;
+			}
+			if (Line->N==2){
+				StructPar.SolenoidPar.StartPos=Line->S[1].ToDouble()/100;
+				F=F+"\t"+Line->S[1];
+			}else{
+				S="WARNING: Excessive parameters in SOLENOID line. They will be ingored!";
+				ShowError(S);
+			}
 		}
-	}else
+		ParsedStrings->Add(F);
+	} else
 		return ERR_SOLENOID;
 
 	return ERR_NO;
@@ -1401,7 +1535,7 @@ TError TBeamSolver::ParseCell(TInputLine *Line,int Ni, int Nsec, bool NewCell)
 {
 	if (Line->N==3 || Line->N==5){
 		StructPar.Cells[Ni].Mode=Line->S[0].ToDouble();
-		StructPar.Cells[Ni].betta=Line->S[1].ToDouble();
+		StructPar.Cells[Ni].beta=Line->S[1].ToDouble();
 		StructPar.Cells[Ni].ELP=Line->S[2].ToDouble();
 		StructPar.Cells[Ni].Mesh=Nmesh;
 
@@ -1418,6 +1552,7 @@ TError TBeamSolver::ParseCell(TInputLine *Line,int Ni, int Nsec, bool NewCell)
 	 StructPar.Cells[Ni].F0=StructPar.Sections[Nsec-1].Frequency;
 	 StructPar.Cells[Ni].P0=StructPar.Sections[Nsec-1].Power;
 	 StructPar.Cells[Ni].First=NewCell;
+	 StructPar.Cells[Ni].Magnet.MagnetType=MAG_NO;
 	 StructPar.Cells[Ni].dF=NewCell?StructPar.Sections[Nsec-1].PhaseShift:0;
 	 StructPar.Sections[Nsec-1].NCells++;
 
@@ -1431,7 +1566,7 @@ TError TBeamSolver::ParseSingleCell(TInputLine *Line,int Ni, int Nsec, bool NewC
 
 	 Err=ParseCell(Line,Ni,Nsec,NewCell);
 
-	 F+=Line->S[0]+"\t"+S.FormatFloat("#0.000",StructPar.Cells[Ni].betta)+"\t"+S.FormatFloat("#0.000",StructPar.Cells[Ni].ELP)+"\t"+S.FormatFloat("#0.000000",StructPar.Cells[Ni].AL32)+"\t"+S.FormatFloat("#0.000000",StructPar.Cells[Ni].AkL);
+	 F+=Line->S[0]+"\t"+S.FormatFloat("#0.000",StructPar.Cells[Ni].beta)+"\t"+S.FormatFloat("#0.000",StructPar.Cells[Ni].ELP)+"\t"+S.FormatFloat("#0.000000",StructPar.Cells[Ni].AL32)+"\t"+S.FormatFloat("#0.000000",StructPar.Cells[Ni].AkL);
 	 ParsedStrings->Add(F);
 
 	 return Err;
@@ -1455,26 +1590,35 @@ TError TBeamSolver::ParseMultipleCells(TInputLine *Line,int Ni, int Nsec, bool N
 		NewCell=false;
 	}
 
-	F+=Line->S[0]+"\t"+Line->S[1]+"\t"+S.FormatFloat("#0.000",StructPar.Cells[Ni].betta)+"\t"+S.FormatFloat("#0.000",StructPar.Cells[Ni].ELP)+"\t"+S.FormatFloat("#0.000000",StructPar.Cells[Ni].AL32)+"\t"+S.FormatFloat("#0.000000",StructPar.Cells[Ni].AkL);
+	F+=Line->S[0]+"\t"+Line->S[1]+"\t"+S.FormatFloat("#0.000",StructPar.Cells[Ni].beta)+"\t"+S.FormatFloat("#0.000",StructPar.Cells[Ni].ELP)+"\t"+S.FormatFloat("#0.000000",StructPar.Cells[Ni].AL32)+"\t"+S.FormatFloat("#0.000000",StructPar.Cells[Ni].AkL);
 	ParsedStrings->Add(F);
 
 	return Err;
 }
 //---------------------------------------------------------------------------
+double TBeamSolver::DefaultFrequency(int N)
+{
+	double f=0;
+	f=N>0?arc(StructPar.Sections[N-1].Frequency):c;
+	return f;
+}
+//---------------------------------------------------------------------------
 TError TBeamSolver::ParseDrift(TInputLine *Line,int Ni, int Nsec)
 {
 	AnsiString F="DRIFT ",S;
-	double m=0;
+	int m=0;
 	TError Err;
 
 	if (Line->N<2 || Line->N>3){
 		return ERR_DRIFT;
 	} else {
 		StructPar.Cells[Ni].Drift=true;
-		StructPar.Cells[Ni].betta=Line->S[0].ToDouble()/100;//D, cm
+		StructPar.Cells[Ni].Magnet.MagnetType=MAG_NO;
+		StructPar.Cells[Ni].beta=Line->S[0].ToDouble()/100;//D, cm
 		StructPar.Cells[Ni].AkL=Line->S[1].ToDouble()/100;//Ra, cm
+		F+=Line->S[0]+" \t"+Line->S[1];
 		if (Line->N==3){
-			m=Line->S[2].ToDouble();
+			m=Line->S[2].ToInt();
 			if (m>1)
 				StructPar.Cells[Ni].Mesh=m;
 			else{
@@ -1482,16 +1626,75 @@ TError TBeamSolver::ParseDrift(TInputLine *Line,int Ni, int Nsec)
 				ShowError(S);
 				StructPar.Cells[Ni].Mesh=Nmesh;
 			}
+			F+=" "+Line->S[2];
 		} else
 			StructPar.Cells[Ni].Mesh=Nmesh;
 
 		StructPar.Cells[Ni].ELP=0;
 		StructPar.Cells[Ni].AL32=0;
 		StructPar.Cells[Ni].First=true;
-		StructPar.Cells[Ni].F0=c;
-		StructPar.Cells[Ni].dF=arc(StructPar.Sections[Nsec-1].PhaseShift);
+		StructPar.Cells[Ni].F0=DefaultFrequency(Nsec);
+		StructPar.Cells[Ni].dF=0;//arc(StructPar.Sections[Nsec-1].PhaseShift);
 
-		F+=Line->S[0]+" \t"+Line->S[1];
+		ParsedStrings->Add(F);
+	}
+
+	return ERR_NO;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseQuad(TInputLine *Line,int Ni, int Nsec)
+{
+	AnsiString F="QUAD",S,QuadFile;
+	int m=0;
+	TError Err;
+
+	if (Line->N<3 || Line->N>5){
+		return ERR_QUAD;
+	} else {
+		StructPar.Cells[Ni].Drift=true;
+		StructPar.Cells[Ni].Magnet.MagnetType=MAG_QUAD;
+
+		QuadFile=Line->S[0];
+		F+="\t"+QuadFile;
+		if (CheckFile(QuadFile))
+			StructPar.Cells[Ni].Magnet.File=QuadFile;
+		else{
+			S="ERROR: The file "+QuadFile+" is missing!";
+			ShowError(S);
+			return ERR_QUAD;
+		}
+
+		StructPar.Cells[Ni].beta=Line->S[1].ToDouble()/100;//L, cm
+		F+=" \t"+Line->S[1];
+
+		if (Line->N>=3){
+			StructPar.Cells[Ni].Magnet.BField=Line->S[2].ToDouble();
+			F+=" \t"+Line->S[2];
+			if (Line->N>=4){
+				m=Line->S[3].ToInt();
+				if (m>1)
+					StructPar.Cells[Ni].Mesh=m;
+				else{
+					S="WARNING: Number of mesh points must be more than 1";
+					ShowError(S);
+					StructPar.Cells[Ni].Mesh=Nmesh;
+				}
+				F+=" \t"+Line->S[3];
+			}else
+				StructPar.Cells[Ni].Mesh=Nmesh;
+		} else{
+			StructPar.Cells[Ni].Magnet.BField=1.0;
+			StructPar.Cells[Ni].Mesh=Nmesh;
+		}
+
+
+		StructPar.Cells[Ni].AkL=-1;//defined by mesh
+
+		StructPar.Cells[Ni].ELP=0;
+		StructPar.Cells[Ni].AL32=0;
+		StructPar.Cells[Ni].First=true;
+		StructPar.Cells[Ni].F0=DefaultFrequency(Nsec);
+		StructPar.Cells[Ni].dF=0;//arc(StructPar.Sections[Nsec-1].PhaseShift);
 		ParsedStrings->Add(F);
 	}
 
@@ -1651,7 +1854,7 @@ TError TBeamSolver::ParseDump(TInputLine *Line, int Ns, int Ni)
 //---------------------------------------------------------------------------
 TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 {
-	int Ni=0, Nsec=0, Ns=0;
+	int Ni=0, Nsec=0, Ns=0, Nq=0;
 	double dF=0;
 	double F_last=0, P_last=0;
 
@@ -1723,9 +1926,15 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 
 				break;
 			}
+			case QUAD: {}
 			case DRIFT:{
 				if(!OnlyParameters){
-					Error=ParseDrift(&Lines[k],Ni,Nsec);
+					if (Lines[k].P==QUAD){
+						Error=ParseQuad(&Lines[k],Ni,Nsec);
+						Nq++;
+					}
+					else
+						Error=ParseDrift(&Lines[k],Ni,Nsec);
 					NewCell=true;
 					PowerDefined=false;
 					Ni++;
@@ -1817,6 +2026,10 @@ TError TBeamSolver::LoadData(int Nlim)
 			StructPar.NElements+=Lines[k].S[0].ToInt();
 		else if (Lines[k].P==POWER)
 			StructPar.NSections++;
+		else if (Lines[k].P==QUAD) {
+			StructPar.NElements++;
+			StructPar.NMaps++;
+		}
 	}
 
 	if (StructPar.ElementsLimit>-1 && StructPar.NElements>=StructPar.ElementsLimit){  //# of cells limit. Needed for optimizer
@@ -1948,7 +2161,7 @@ TError TBeamSolver::MakeBuncher(TCell& iCell)
         ksi+=0.5*b*th/(2*pi);
 
 		StructPar.Cells[i].Mode=iCell.Mode;
-		StructPar.Cells[i].betta=(2/pi)*(1-b0)*arctg(k1*Power(ksi,k2))+b0;
+		StructPar.Cells[i].beta=(2/pi)*(1-b0)*arctg(k1*Power(ksi,k2))+b0;
         //Cells[i].betta=(2/pi)*arctg(0.25*sqr(10*ksi*lmb)+0.713);
 
 		StructPar.Cells[i].ELP=A*We0/sqrt(1e6*StructPar.Sections[0].Power);
@@ -1956,7 +2169,7 @@ TError TBeamSolver::MakeBuncher(TCell& iCell)
 
 		GetDimensions(StructPar.Cells[i]);
 
-		F="CELL "+s.FormatFloat("#0",iCell.Mode)+"\t"+s.FormatFloat("#0.000",StructPar.Cells[i].betta)+"\t"+s.FormatFloat("#0.000",StructPar.Cells[i].ELP)+"\t"+s.FormatFloat("#0.000000",StructPar.Cells[i].AL32)+"\t"+s.FormatFloat("#0.000000",StructPar.Cells[i].AkL);
+		F="CELL "+s.FormatFloat("#0",iCell.Mode)+"\t"+s.FormatFloat("#0.000",StructPar.Cells[i].beta)+"\t"+s.FormatFloat("#0.000",StructPar.Cells[i].ELP)+"\t"+s.FormatFloat("#0.000000",StructPar.Cells[i].AL32)+"\t"+s.FormatFloat("#0.000000",StructPar.Cells[i].AkL);
 		ParsedStrings->Add(F);
 
 		StructPar.Cells[i].F0=StructPar.Sections[0].Frequency*1e6;
@@ -2012,7 +2225,7 @@ void TBeamSolver::AppendCells(TCell& iCell,int N)
 		StructPar.Cells[j]=StructPar.Cells[i];
 
     AnsiString F,F1,s;
-	F1=F=s.FormatFloat("#0",iCell.Mode)+"\t"+s.FormatFloat("#0.000",StructPar.Cells[i].betta)+"\t"+s.FormatFloat("#0.000",StructPar.Cells[i].ELP)+"\t"+s.FormatFloat("#0.000000",StructPar.Cells[i].AL32)+"\t"+s.FormatFloat("#0.000000",StructPar.Cells[i].AkL);
+	F1=F=s.FormatFloat("#0",iCell.Mode)+"\t"+s.FormatFloat("#0.000",StructPar.Cells[i].beta)+"\t"+s.FormatFloat("#0.000",StructPar.Cells[i].ELP)+"\t"+s.FormatFloat("#0.000000",StructPar.Cells[i].AL32)+"\t"+s.FormatFloat("#0.000000",StructPar.Cells[i].AkL);
 	if (N==1)
 		F="CELL "+F1;
     else
@@ -2100,111 +2313,226 @@ double *TBeamSolver::LinearInterpolation(double *x,double *X,double *Y,int Nbase
     return y;
 }
 //---------------------------------------------------------------------------
-int TBeamSolver::CreateGeometry()
+void TBeamSolver::DeleteMesh()
 {
-    double theta=0;
-    double *X_base,*B_base,*E_base,*Al_base,*A_base;
-	double *X_int,*B_int,*E_int,*Al_int,*A_int;
-	AnsiString S;
-
-    bool Solenoid_success=false;
-
-	int Njmp=0,k0=0;
-
+	delete[] Structure;
+	Structure=NULL;
 	Npoints=0;
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::CreateMesh()
+{
+	if (Npoints!=0)
+		DeleteMesh();
+
+   //	int Njmp=0;
 	for(int i=0;i<StructPar.NElements;i++){
 		Npoints+=StructPar.Cells[i].Mesh;
 		if (StructPar.Cells[i].First){
 			Npoints++;
-			Njmp++;
+			//Njmp++;
 		}
 	}
 
-   //	Npoints=Ncells*Nmesh+Njmp;//add+1 for the last point;
-	TSplineType Spl;
+	Structure=new TStructure[Npoints];
+}
+//---------------------------------------------------------------------------
+TFieldMap2D TBeamSolver::ParseMapFile(AnsiString &F)
+{
+	TFieldMap2D Map;
 
-	X_base = new double[StructPar.NElements]; X_int=new double[Npoints];
-	B_base = new double[StructPar.NElements]; B_int=new double[Npoints];
-	E_base = new double[StructPar.NElements]; E_int=new double[Npoints];
-	Al_base = new double[StructPar.NElements]; Al_int=new double[Npoints];
+	int Nmax=0;
+	int NumRow=4,NumDim=2; //x y Bx By
+	double **Unq=NULL;
+	int Nx=0,Ny=0;
 
-	delete[] Structure;
+	int N=0;
+	AnsiString L,S;
+	double x=0,y=0;
+	bool Num=false;
 
-	double z=0,zm=0,D=0,x=0,lmb=0;
+	Nmax=NumPointsInFile(F,NumRow);
+	Unq=new double*[NumRow];
+	for (int i = 0; i < NumRow; i++) {
+		Unq[i]=new double[Nmax];
+	}
 
-    Structure=new TStructure[Npoints];
+	std::ifstream fs(F.c_str());
 
-    int k=0;
+	while (!fs.eof()){
+		L=GetLine(fs);
+		if (NumWords(L)==NumRow){       //Check if only two numbers in the line
+			for (int i = 0; i < NumRow; i++) {
+				S=ReadWord(L,i+1);
+				Num=IsNumber(S);
+				if (Num)
+					Unq[i][N]=S.ToDouble();
+				else
+					break;
+				if (i<NumDim) {
+					Unq[i][N]/=100; //from [cm]
+				} else
+					Unq[i][N]/=10000; //from [Gs]
+			}
+			if (Num)
+				N++;
+		}
+	}
+
+	Map.Dim.Nx=CountUnique(Unq[0],Nmax);
+	Map.Dim.Ny=CountUnique(Unq[1],Nmax);
+
+	Map.Field=new TField* [Map.Dim.Nx];
+	for (int i = 0; i < Map.Dim.Nx; i++)
+		Map.Field[i]=new TField [Map.Dim.Ny];
+
+	Map.Piv.X=MakePivot(Unq[0],Nmax,Map.Dim.Nx);
+	Map.Piv.Y=MakePivot(Unq[1],Nmax,Map.Dim.Ny);
+
+	for (int j = 0; j < Map.Dim.Nx; j++) {
+		x=Map.Piv.X[j];
+		for (int k = 0; k < Map.Dim.Ny; k++) {
+			y=Map.Piv.Y[k];
+			for (int s = 0; s < Nmax; s++) {
+				if (Unq[0][s]==x && Unq[1][s]==y) {
+					Map.Field[j][k].r=Unq[2][s];
+					Map.Field[j][k].th=Unq[3][s];
+					break;
+				}
+			}
+		}
+	}
+
+	fs.close();
+	DeleteDoubleArray(Unq,NumDim);
+
+	return Map;
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::CreateMaps()
+{
+	ResetMaps();
+	double kc=0;
+	int q=0;
+
+	QuadMaps=new TFieldMap2D [StructPar.NMaps];
+	for(int i=0;i<StructPar.NElements;i++){
+		if (StructPar.Cells[i].Magnet.MagnetType==MAG_QUAD){
+			kc=sqr(c)/(We0*StructPar.Cells[i].F0);
+			QuadMaps[q]=ParseMapFile(StructPar.Cells[i].Magnet.File);
+			for (int j = 0; j < QuadMaps[q].Dim.Nx; j++) {
+				QuadMaps[q].Piv.X[j]*=StructPar.Cells[i].F0/c;
+				for (int k = 0; k < QuadMaps[q].Dim.Ny; k++) {
+					QuadMaps[q].Field[j][k].r*=StructPar.Cells[i].Magnet.BField*kc;
+					QuadMaps[q].Field[j][k].th*=StructPar.Cells[i].Magnet.BField*kc;
+				}
+			}
+			for (int k = 0; k < QuadMaps[q].Dim.Ny; k++) {
+				QuadMaps[q].Piv.Y[k]*=StructPar.Cells[i].F0/c;
+			}
+			q++;
+		}
+	}
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::CreateStrucutre()
+{
+	int Extra=0,k0=0,k=0,q=0;
+	double z=0,zm=0,D=0,x=0,lmb=0,theta=0;
+	bool isInput=false;
+	TFieldMap2D Map;
+
 	for (int i=0;i<StructPar.NElements;i++){
-        int Extra=0;
-
+		Extra=0;
+		Map.Field=NULL;
 		if (i==StructPar.NElements-1)
-            Extra=1;
+			Extra=1;
 		else if (StructPar.Cells[i+1].First)
-            Extra=1;
+			Extra=1;
 
 		if (StructPar.Cells[i].First)
-            z-=zm;
+			z-=zm;
 
-        double lmb=1;
+		//double lmb=1;
 		if (StructPar.Cells[i].Drift){
-			D=StructPar.Cells[i].betta;
-            bool isInput=false;
-            for (int j=i;j<StructPar.NElements;j++){
+			D=StructPar.Cells[i].beta;
+			isInput=false;
+		   /*	for (int j=i;j<StructPar.NElements;j++){
 				if (!StructPar.Cells[j].Drift){
 					StructPar.Cells[i].betta=StructPar.Cells[j].betta;
 					lmb=c/StructPar.Cells[j].F0;
-                    isInput=true;
-                    break;
-                }
-            }
-            if (!isInput){
+					isInput=true;
+					break;
+				}
+			}  */
+			//ADD QUAD FIELD
+			if (StructPar.Cells[i].Magnet.MagnetType==MAG_QUAD) {
+				Map=QuadMaps[q];
+				q++;
+			}
+
+			if (!isInput){
 				for (int j=i;j>=0;j--){
 					if (!StructPar.Cells[j].Drift){
-						StructPar.Cells[i].betta=StructPar.Cells[j].betta;
+						StructPar.Cells[i].beta=StructPar.Cells[j].beta;
 						lmb=c/StructPar.Cells[j].F0;
-                        isInput=true;
-                        break;
-                    }
-                }
-            }
+						isInput=true; //Same wavelength as previously defined
+						break;
+					}
+				}
+			}
             if (!isInput){
-				StructPar.Cells[i].betta=1;
-                lmb=1;
-            }
+				StructPar.Cells[i].beta=1;
+				lmb=1;
+			}
         }else{
 			lmb=c/StructPar.Cells[i].F0;
 			theta=StructPar.Cells[i].Mode*pi/180;
-			D=StructPar.Cells[i].betta*lmb*theta/(2*pi);
-        }
-        x+=D/2;
-        X_base[i]=x/lmb;
-		x+=D/2;
-		B_base[i]=StructPar.Cells[i].betta;
-		E_base[i]=StructPar.Cells[i].ELP;
-		Al_base[i]=StructPar.Cells[i].AL32;
-		//zm=D/Nmesh;
+			D=StructPar.Cells[i].beta*lmb*theta/(2*pi);
+		}
 		zm=D/StructPar.Cells[i].Mesh;
 		k0=k;
 		Structure[k].dF=StructPar.Cells[i].dF;
 
+		double P0=StructPar.Cells[i].P0;
+		double beta=StructPar.Cells[i].beta;
+		double E=StructPar.Cells[i].ELP;
+		double Rp=sqr(E)/2;
+		double A=P0>0?E*sqrt(P0)/We0:0;
+		double B=Rp/(2*We0);
+		double alpha=StructPar.Cells[i].AL32/(lmb*sqrt(lmb));
+
 		for (int j=0;j<StructPar.Cells[i].Mesh+Extra;j++){
-            X_int[k]=z/lmb;
-            Structure[k].ksi=z/lmb;
-            Structure[k].lmb=lmb;
-			Structure[k].P=StructPar.Cells[i].P0;
-            Structure[k].dF=0;
+		   //	X_int[k]=z/lmb;
+			Structure[k].ksi=z/lmb;
+			Structure[k].lmb=lmb;
+			Structure[k].P=P0;
+			Structure[k].dF=0;
+
+			if (StructPar.Cells[i].beta<1)
+				Structure[k].betta=beta;
+			else
+				Structure[k].betta=MeVToVelocity(EnergyLimit);
+
+			Structure[k].E=E;
+			Structure[k].A=A;
+			Structure[k].Rp=Rp;
+			Structure[k].B=B;
+			Structure[k].alpha=alpha;
+
 			Structure[k].drift=StructPar.Cells[i].Drift;
 			if (StructPar.Cells[i].Drift)
 				Structure[k].Ra=StructPar.Cells[i].AkL/lmb;
-            else
+			else
 				Structure[k].Ra=StructPar.Cells[i].AkL;//*lmb;
-            Structure[k].jump=false;
+
+			Structure[k].jump=false;
 			Structure[k].CellNumber=i;
-			//Structure[k].Dump=false;
+
+			Structure[k].Bmap=Map;
 			z+=zm;
-            k++;
-        }
+			k++;
+		}
 		if (StructPar.Cells[i].First)
 			Structure[k0].jump=true;
 		for (int j=0; j < Ndump; j++) {
@@ -2212,246 +2540,549 @@ int TBeamSolver::CreateGeometry()
 				BeamExport[j].Nmesh=k0;
 			}
 		}
-	  /*	if (StructPar.Cells[i].Dump){
-			Structure[k0].Dump=true;
-			Structure[k0].DumpParameters=StructPar.Cells[i].DumpParameters;
-		  //	strcpy(Structure[k0].DumpParameters.File, Cells[i].DumpParameters.File);
-		}    */
 	}
-   /*	if (StructPar.Cells[StructPar.NElements].Dump){
-		Structure[k-1].Dump=true;  //was k0+Nmesh
-		Structure[k-1].DumpParameters=StructPar.Cells[StructPar.NElements].DumpParameters; //was k0+Nmesh
-	}    */
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::TransformMagneticToCYL1D()
+{
+	TPhaseSpace R,C;
+	double x=0, y=0;
+	for (int k = 0; k < ExternalMagnetic.Dim.Nz; k++) {
+		for (int i=0;i<ExternalMagnetic.Dim.Nx;i++){
+			x=ExternalMagnetic.Piv.X[i];
+			y=0;
 
-	//   int Njmp=0;
-//  Structure[0].jump=true;
+			R.x=x;
+			R.y=y;
 
-    double *Xo=NULL, *Bo=NULL, *Eo=NULL, *Ao=NULL;
-	double *Xi=NULL, *Bi=NULL, *Ei=NULL, *Ai=NULL;
-    int Ncls=0;
-    int Npts=0;
+			R.py=ExternalMagnetic.Field[k][0][i].r;
+			R.px=ExternalMagnetic.Field[k][0][i].th;
 
-    Njmp=0;
-    int iJmp=0;
+			C=CartesianToCylinrical(R);
 
-    bool EndOfBlock=false;
-
-  /*    FILE *F;
-    F=fopen("cells.log","w");*/
-
-	for (int i=0;i<=StructPar.NElements;i++){
-		if (i==StructPar.NElements)
-			EndOfBlock=true;
-		else if (StructPar.Cells[i].First && i!=0)
-            EndOfBlock=true;
-        else
-            EndOfBlock=false;
-
-        if (EndOfBlock/*Cells[i].First && i!=0 || i==Ncells*/){
-			Ncls=i-Njmp;
-			Npts=0;
-			for (int j=Njmp;j<i;j++) {
-				Npts+=StructPar.Cells[j].Mesh;
-			}
-			Npts++;
-			//int Npts0=Ncls*Nmesh+1;
-
-			/*if (i!=Ncells)
-				Structure[i*Nmesh].jump=true;*/
-
-            Xo=new double[Ncls];
-            Bo=new double[Ncls];
-            Eo=new double[Ncls];
-            Ao=new double[Ncls];
-            Xi=new double[Npts];
-
-			for (int j=0;j<Ncls;j++){
-                Xo[j]=X_base[Njmp+j];
-                Bo[j]=B_base[Njmp+j];
-                Eo[j]=E_base[Njmp+j];
-                Ao[j]=Al_base[Njmp+j];
-            }
-
-			int pos=0;
-			for (int j=0;j<Njmp;j++)
-				pos+=StructPar.Cells[j].Mesh;
-
-			for (int j=0;j<Npts;j++)
-				Xi[j]=X_int[/*Njmp*Nmesh*/pos+iJmp+j];
-
-            Spl=(Ncls<4)?LSPLINE:SplineType;
-
-            if (Ncls==1)
-                Spl=ZSPLINE;
-
-            switch (Spl) {
-                case ZSPLINE:{
-                    Bi=new double[Npts];
-                    Ei=new double[Npts];
-                    Ai=new double[Npts];
-                    for (int j=0;j<Npts;j++){
-                        Bi[j]=Bo[0];
-                        Ei[j]=Eo[0];
-                        Ai[j]=Ao[0];
-                    }
-                    break;
-                }
-                case(LSPLINE):{
-                    Bi=LinearInterpolation(Xi,Xo,Bo,Ncls,Npts);
-                    Ei=LinearInterpolation(Xi,Xo,Eo,Ncls,Npts);
-                    Ai=LinearInterpolation(Xi,Xo,Ao,Ncls,Npts);
-                    break;
-                }
-                case(CSPLINE):{
-                    Bi=SplineInterpolation(Xi,Xo,Bo,Ncls,Npts);
-                    Ei=SplineInterpolation(Xi,Xo,Eo,Ncls,Npts);
-                    Ai=SplineInterpolation(Xi,Xo,Ao,Ncls,Npts);
-                    break;
-                }
-                case(SSPLINE):{
-                    Bi=SmoothInterpolation(Xi,Xo,Bo,Ncls,Npts,Smooth);
-                    Ei=SmoothInterpolation(Xi,Xo,Eo,Ncls,Npts,Smooth);
-                    Ai=SmoothInterpolation(Xi,Xo,Ao,Ncls,Npts,Smooth);
-                    break;
-                }
-            }
-
-            for (int j=0;j<Npts;j++){
-				B_int[/*Njmp*Nmesh*/pos+iJmp+j]=Bi[j];
-				E_int[/*Njmp*Nmesh*/pos+iJmp+j]=Ei[j];
-				Al_int[/*Njmp*Nmesh*/pos+iJmp+j]=Ai[j];
-			}
-
-
-        /*  for (int i=0;i<Npts;i++){
-                fprintf(F,"%i %f %f\n",Njmp*Nmesh+i,Xi[i],Ei[i]);
-            }     */
-
-
-            delete[] Xo;
-            delete[] Xi;
-            delete[] Bo;
-            delete[] Bi;
-			delete[] Eo;
-			delete[] Ei;
-            delete[] Ao;
-			delete[] Ai;
-
-			Njmp=i;
-			iJmp++;
+			ExternalMagnetic.Field[k][0][i].r=C.px;
+			ExternalMagnetic.Field[k][0][i].th=C.py;
 		}
-
 	}
-	// fclose(F);
 
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::TransformMagneticToCYL2D()
+{
+	double Bx=0,By=0,Br=0,Bth=0;
+	double x=0,y=0,r=0,th=0,dx=1e32,dy=1e32;
+	TField **B;
+
+	//FIND MESH RESOLUTION
+	double xmax=0,dxmin=1e32;
+	double ymax=0,dymin=1e32;
+	for (int i=0;i<ExternalMagnetic.Dim.Nx;i++){
+		if (i>0)
+			dx=ExternalMagnetic.Piv.X[i]-x;
+		x=ExternalMagnetic.Piv.X[i];
+		if (mod(x)>xmax)
+			xmax=mod(x);
+		if (mod(dx)<dxmin)
+			dxmin=mod(dx);
+	}
+
+	for (int i=0;i<ExternalMagnetic.Dim.Ny;i++){
+		if (i>0)
+			dy=ExternalMagnetic.Piv.Y[i]-y;
+		y=ExternalMagnetic.Piv.Y[i];
+		if (mod(y)>ymax)
+			ymax=mod(y);
+		if (mod(dy)<dymin)
+			dymin=mod(dy);
+	}
+
+	double rmax=0,dr=0,thmax=0,dth=0,dth1=0,dth2=0;
+	rmax=sqrt(sqr(xmax)+sqr(ymax));
+	dr=sqrt(sqr(dxmin)+sqr(dymin));
+	thmax=2*pi;
+	dth1=arctg(dymin/xmax);
+	dth2=arctg(dxmin/ymax);
+	dth=dth1<dth2?dth1:dth2;
+
+	//TRANSFORM X,Y PIVOTS TO R,TH
+	int Nr=0, Nth=0;
+	Nr=ceil(rmax/dr);
+	Nth=ceil(thmax/dth);
+
+	double *Rpiv=new double[Nr];
+	double *Thpiv=new double[Nth];
+
+	for (int i = 0; i < Nr; i++)
+		Rpiv[i]=i*rmax/(Nr-1);
+
+	for (int i = 0; i < Nth; i++)
+		Thpiv[i]=i*thmax/(Nth-1);
+
+	//ADJUST TO NEW PIVOTS
+	TPhaseSpace R,C;
+	for (int k = 0; k < ExternalMagnetic.Dim.Nz; k++) {
+		B=new TField*[Nth];
+		for (int i = 0; i < Nth; i++)
+			B[i]=new TField[Nr];
+
+		for (int i=0;i<Nth;i++){
+			th=Thpiv[i];
+			for (int j=0;j<Nr;j++){
+				r=Rpiv[j];
+
+				x=r*cos(th);
+				y=r*sin(th);
+
+				R.x=x;
+				R.y=y;
+				B[i][j]=BiLinearInterpolation(y,x,ExternalMagnetic.Piv.Y,ExternalMagnetic.Piv.X,
+				ExternalMagnetic.Dim.Ny,ExternalMagnetic.Dim.Nx,ExternalMagnetic.Field[k]);
+
+				R.px=B[i][j].r;
+				R.py=B[i][j].th;
+
+				C=CartesianToCylinrical(R);
+
+				B[i][j].r=C.px;
+				B[i][j].th=C.py;
+			}
+
+		}
+		for (int j=0;j<ExternalMagnetic.Dim.Ny;j++)
+			delete[] ExternalMagnetic.Field[k][j];
+		delete[] ExternalMagnetic.Field[k];
+		ExternalMagnetic.Field[k]=B;
+	}
+
+	delete[] ExternalMagnetic.Piv.X;
+	delete[] ExternalMagnetic.Piv.Y;
+	ExternalMagnetic.Piv.X=Rpiv;
+	ExternalMagnetic.Piv.Y=Thpiv;
+	ExternalMagnetic.Dim.Nx=Nr;
+	ExternalMagnetic.Dim.Ny=Nth;
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::AdjustMagneticMesh()
+{
+	double *Zpiv_new=new double[Npoints];
+	TField *B0=new TField[ExternalMagnetic.Dim.Nz];
+	for (int i = 0; i < Npoints; i++)
+		Zpiv_new[i]=Structure[i].ksi*Structure[i].lmb;
+
+	TField ***B=new TField**[Npoints];
+
+	for (int i = 0; i < Npoints; i++) {
+		B[i]=new TField*[ExternalMagnetic.Dim.Ny];
+		for (int j = 0; j < ExternalMagnetic.Dim.Ny; j++) {
+			B[i][j]=new TField[ExternalMagnetic.Dim.Nx];
+		}
+	}
+
+	for (int j = 0; j < ExternalMagnetic.Dim.Ny; j++) {
+		for (int k = 0; k < ExternalMagnetic.Dim.Nx; k++) {
+			for (int p = 0; p < ExternalMagnetic.Dim.Nz; p++) {
+				B0[p]=ExternalMagnetic.Field[p][j][k];
+			}
+			for (int i = 0; i < Npoints; i++){
+				B[i][j][k]=LinInterpolation(Zpiv_new[i],ExternalMagnetic.Piv.Z,ExternalMagnetic.Dim.Nz,B0);
+			}
+		}
+	}
+
+	for (int i = 0; i < ExternalMagnetic.Dim.Nz; i++) {
+		for (int j = 0; j < ExternalMagnetic.Dim.Ny; j++)
+				delete[] ExternalMagnetic.Field[i][j];
+		delete[] ExternalMagnetic.Field[i];
+	}
+
+	delete[] ExternalMagnetic.Field;
+	ExternalMagnetic.Field=B;
+
+	delete[] ExternalMagnetic.Piv.Z;
+	ExternalMagnetic.Piv.Z=Zpiv_new;
+	ExternalMagnetic.Dim.Nz=Npoints;
+
+	delete[] B0;
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::CalculateFieldDerivative()
+{
+	ExternalMagnetic.Field[0][0][0].r=0;
+	ExternalMagnetic.Field[ExternalMagnetic.Dim.Nz-1][0][0].r=0;
+
+	double z1=0,z2=0,B1=0,B2=0,dBdr=0;
+
+	for (int i=1;i<ExternalMagnetic.Dim.Nz-1;i++){
+		z1=ExternalMagnetic.Piv.Z[i-1];
+		z2=ExternalMagnetic.Piv.Z[i+1];
+		B1=ExternalMagnetic.Field[i-1][0][0].z;
+		B2=ExternalMagnetic.Field[i+1][0][0].z;
+		dBdr=(B2-B1)/(z2-z1);
+
+		ExternalMagnetic.Field[i][0][0].r=dBdr;
+	}
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::CalculateRadialField()
+{
+	double Rmax=GetMaxAperture();
+	CalculateRadialField(Rmax);
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::CalculateRadialField(double Rmax)
+{
+	for (int j = ExternalMagnetic.Dim.Nx-1; j >= 0; j--) {
+		double r=Rmax*j/(ExternalMagnetic.Dim.Nx-1);
+		ExternalMagnetic.Piv.X[j]=r;
+		for (int i = 0; i < ExternalMagnetic.Dim.Nz; i++) {
+			ExternalMagnetic.Field[i][0][j].z=ExternalMagnetic.Field[i][0][0].z;
+			ExternalMagnetic.Field[i][0][j].r=ExternalMagnetic.Field[i][0][0].r;
+			ExternalMagnetic.Field[i][0][j].r*=-(r/2); //Er=-r/2 * dEz/dz
+		}
+	}
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::MakePivots()
+{
+	ExternalMagnetic.Piv.X=new double[ExternalMagnetic.Dim.Nx];
+	ExternalMagnetic.Piv.Y=new double[ExternalMagnetic.Dim.Ny];
+	ExternalMagnetic.Piv.Z=new double[ExternalMagnetic.Dim.Nz];
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::MakeUniformSolenoid()
+{
+	MakePivots();
+	ExternalMagnetic.Piv.Z[0]=Structure[0].ksi*Structure[0].lmb;
+	ExternalMagnetic.Field[0][0][0].z=StructPar.SolenoidPar.BField;
+	ExternalMagnetic.Field[0][0][0].r=0;
+	ExternalMagnetic.Field[0][0][0].th=0;
+
+	ExternalMagnetic.Piv.Z[1]=Structure[Npoints-1].ksi*Structure[Npoints-1].lmb;
+	ExternalMagnetic.Field[1][0][0].z=StructPar.SolenoidPar.BField;;
+	ExternalMagnetic.Field[1][0][0].r=0;
+	ExternalMagnetic.Field[1][0][0].th=0;
+
+	CalculateRadialField();
+	ExternalMagnetic.Piv.Y[0]=0;
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::MakeAnalyticalSolenoid()
+{
+	MakePivots();
+	if (StructPar.SolenoidPar.Length<0)
+		StructPar.SolenoidPar.Length=Structure[Npoints-1].ksi*Structure[Npoints-1].lmb;
+
+	ExternalMagnetic.Piv.Z[0]=StructPar.SolenoidPar.StartPos-StructPar.SolenoidPar.Lfringe-DerAccuracy;
+	ExternalMagnetic.Field[0][0][0].z=0;
+	ExternalMagnetic.Field[0][0][0].r=0; //dEz/dz
+	ExternalMagnetic.Field[0][0][0].th=0;
+
+	ExternalMagnetic.Piv.Z[1]=StructPar.SolenoidPar.StartPos-StructPar.SolenoidPar.Lfringe;
+	ExternalMagnetic.Field[1][0][0].z=0;
+	ExternalMagnetic.Field[1][0][0].r=StructPar.SolenoidPar.BField/StructPar.SolenoidPar.Lfringe;
+	ExternalMagnetic.Field[1][0][0].th=0;
+
+	ExternalMagnetic.Piv.Z[2]=StructPar.SolenoidPar.StartPos;
+	ExternalMagnetic.Field[2][0][0].z=StructPar.SolenoidPar.BField;
+	if (StructPar.SolenoidPar.StartPos==0)
+		ExternalMagnetic.Field[2][0][0].r=0;
+	else
+		ExternalMagnetic.Field[2][0][0].r=StructPar.SolenoidPar.BField/StructPar.SolenoidPar.Lfringe;
+	ExternalMagnetic.Field[2][0][0].th=0;
+
+	ExternalMagnetic.Piv.Z[3]=StructPar.SolenoidPar.StartPos+DerAccuracy;
+	ExternalMagnetic.Field[3][0][0].z=StructPar.SolenoidPar.BField;
+	ExternalMagnetic.Field[3][0][0].r=0;
+	ExternalMagnetic.Field[3][0][0].th=0;
+
+	ExternalMagnetic.Piv.Z[4]=StructPar.SolenoidPar.StartPos+StructPar.SolenoidPar.Length-DerAccuracy;
+	ExternalMagnetic.Field[4][0][0].z=StructPar.SolenoidPar.BField;
+	ExternalMagnetic.Field[4][0][0].r=0;
+	ExternalMagnetic.Field[4][0][0].th=0;
+
+	ExternalMagnetic.Piv.Z[5]=StructPar.SolenoidPar.StartPos+StructPar.SolenoidPar.Length;
+	ExternalMagnetic.Field[5][0][0].z=StructPar.SolenoidPar.BField;
+	ExternalMagnetic.Field[5][0][0].r=-StructPar.SolenoidPar.BField/StructPar.SolenoidPar.Lfringe;
+	ExternalMagnetic.Field[5][0][0].th=0;
+
+	ExternalMagnetic.Piv.Z[6]=StructPar.SolenoidPar.StartPos+StructPar.SolenoidPar.Length+StructPar.SolenoidPar.Lfringe;
+	ExternalMagnetic.Field[6][0][0].z=0;
+	ExternalMagnetic.Field[6][0][0].r=-StructPar.SolenoidPar.BField/StructPar.SolenoidPar.Lfringe;
+	ExternalMagnetic.Field[6][0][0].th=0;
+
+	ExternalMagnetic.Piv.Z[7]=StructPar.SolenoidPar.StartPos+StructPar.SolenoidPar.Length+StructPar.SolenoidPar.Lfringe+DerAccuracy;
+	ExternalMagnetic.Field[7][0][0].z=0;
+	ExternalMagnetic.Field[7][0][0].r=0;
+	ExternalMagnetic.Field[7][0][0].th=0;
+
+	CalculateRadialField();
+	ExternalMagnetic.Piv.Y[0]=0;
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::ParseSolenoidFile(TParseStage P)
+{
+	TDimensions D0=ParseSolenoidLines(StructPar.SolenoidPar);
+	int NumDim=D0.Nx;
+	int NumRow=D0.Ny;
+
+	int Nmax=0;
+	double **Unq=NULL;
+	int Nx=0,Ny=0,Nz=0;
+
+	int N=0;
+	AnsiString L,S;
+	double x;
+	bool Num=false;
+
+	Nmax=NumPointsInFile(StructPar.SolenoidPar.File,NumRow);
+	Unq=new double*[NumRow];
+	for (int i = 0; i < NumRow; i++) {
+		Unq[i]=new double[Nmax];
+	}
+
+	std::ifstream fs(StructPar.SolenoidPar.File.c_str());
+
+	while (!fs.eof()){
+		L=GetLine(fs);
+		if (NumWords(L)==NumRow){       //Check if only two numbers in the line
+			for (int i = 0; i < NumRow; i++) {
+				S=ReadWord(L,i+1);
+				Num=IsNumber(S);
+				if (Num)
+					Unq[i][N]=S.ToDouble();
+				else
+					break;
+				if (i<NumDim) {
+					Unq[i][N]/=100; //from [cm]
+				} else
+					Unq[i][N]/=10000; //from [Gs]
+			}
+			if (Num)
+				N++;
+		}
+	}
+
+	fs.close();
+
+	switch (P) {
+		case DIM_STEP:{
+			if (NumDim==1) {
+				ExternalMagnetic.Dim.Nz=CountUnique(Unq[0],Nmax);
+				ExternalMagnetic.Dim.Nx=RMESH_DEFAULT;
+				ExternalMagnetic.Dim.Ny=1;
+			} else if (NumDim==2) {
+				ExternalMagnetic.Dim.Nx=CountUnique(Unq[0],Nmax);
+				ExternalMagnetic.Dim.Nz=CountUnique(Unq[1],Nmax);
+				ExternalMagnetic.Dim.Ny=1;
+			} else {
+				ExternalMagnetic.Dim.Nx=CountUnique(Unq[0],Nmax);
+				ExternalMagnetic.Dim.Ny=CountUnique(Unq[1],Nmax);
+				ExternalMagnetic.Dim.Nz=CountUnique(Unq[2],Nmax);
+			}
+			break;
+		}
+		case PIV_STEP:{
+			if (NumDim==1) {
+				ExternalMagnetic.Piv.Z=MakePivot(Unq[0],Nmax,ExternalMagnetic.Dim.Nz);
+				ExternalMagnetic.Piv.X=new double[ExternalMagnetic.Dim.Nx];
+				ExternalMagnetic.Piv.Y=new double[ExternalMagnetic.Dim.Ny];
+			} else if (NumDim==2) {
+				ExternalMagnetic.Piv.X=MakePivot(Unq[0],Nmax,ExternalMagnetic.Dim.Nx);
+				ExternalMagnetic.Piv.Z=MakePivot(Unq[1],Nmax,ExternalMagnetic.Dim.Nz);
+				ExternalMagnetic.Piv.Y=new double[ExternalMagnetic.Dim.Ny];
+			} else {
+				ExternalMagnetic.Piv.X=MakePivot(Unq[0],Nmax,ExternalMagnetic.Dim.Nx);
+				ExternalMagnetic.Piv.Y=MakePivot(Unq[1],Nmax,ExternalMagnetic.Dim.Ny);
+				ExternalMagnetic.Piv.Z=MakePivot(Unq[2],Nmax,ExternalMagnetic.Dim.Nz);
+			}
+			//break;
+		}
+		case DATA_STEP:{
+			double x=0,y=0,z=0,r=0;
+			if (NumDim==1) {
+				for (int i = 0; i < ExternalMagnetic.Dim.Nz; i++) {
+					z=ExternalMagnetic.Piv.Z[i];
+					for (int s = 0; s < Nmax; s++) {
+						if (Unq[0][s]==z) {
+							ExternalMagnetic.Field[i][0][0].z=Unq[1][s];
+							ExternalMagnetic.Field[i][0][0].r=0;
+							ExternalMagnetic.Field[i][0][0].th=0;
+							break;
+						}
+					}
+				}
+			   /*	CalculateFieldDerivative();
+				CalculateRadialField();
+                // PERFORM AFTER MESH ADJUSTMENT
+				*/
+			} else if (NumDim==2) {
+				for (int i = 0; i < ExternalMagnetic.Dim.Nz; i++) {
+					z=ExternalMagnetic.Piv.Z[i];
+					for (int j = 0; j < ExternalMagnetic.Dim.Nx; j++) {
+						r=ExternalMagnetic.Piv.X[j];
+						for (int s = 0; s < Nmax; s++) {
+							if (Unq[0][s]==r && Unq[1][s]==z) {
+								if (StructPar.SolenoidPar.ImportType==IMPORT_2DC) {
+									ExternalMagnetic.Field[i][0][j].z=Unq[3][s];
+									ExternalMagnetic.Field[i][0][j].r=Unq[2][s];
+									ExternalMagnetic.Field[i][0][j].th=0;
+								}   else if (StructPar.SolenoidPar.ImportType==IMPORT_2DR) {
+									ExternalMagnetic.Field[i][0][j].z=Unq[4][s];
+									ExternalMagnetic.Field[i][0][j].r=Unq[2][s];
+									ExternalMagnetic.Field[i][0][j].th=Unq[3][s];;
+								}
+								break;
+							}
+						}
+					}
+				}
+			} else {
+              for (int i = 0; i < ExternalMagnetic.Dim.Nz; i++) {
+					z=ExternalMagnetic.Piv.Z[i];
+					for (int j = 0; j < ExternalMagnetic.Dim.Nx; j++) {
+						x=ExternalMagnetic.Piv.X[j];
+						for (int k = 0; k < ExternalMagnetic.Dim.Ny; k++) {
+							y=ExternalMagnetic.Piv.Y[k];
+							for (int s = 0; s < Nmax; s++) {
+								if (Unq[0][s]==x && Unq[1][s]==y && Unq[2][s]==z) {
+									ExternalMagnetic.Field[i][k][j].z=Unq[5][s];
+									ExternalMagnetic.Field[i][k][j].r=Unq[3][s];
+									ExternalMagnetic.Field[i][k][j].th=Unq[4][s];;
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	DeleteDoubleArray(Unq,NumDim);
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::CreateMagneticMap()
+{
+	ResetExternal();
+
+	int Nlines=0;
+	TDimensions D;
+
+	// DEFINE MAGNETIC ARRAY DIMENSIONS
+	switch (StructPar.SolenoidPar.ImportType) {
+		case ANALYTIC_0D:{
+			ExternalMagnetic.Dim.Ny=1;
+			ExternalMagnetic.Dim.Nx=RMESH_DEFAULT;
+			ExternalMagnetic.Dim.Nz=2;
+			break;
+		}
+		case ANALYTIC_1D:{
+			ExternalMagnetic.Dim.Ny=1;
+			ExternalMagnetic.Dim.Nx=RMESH_DEFAULT;
+			ExternalMagnetic.Dim.Nz=ZMESH_0D; //Trapeze
+			break;
+		}
+		case IMPORT_1D:{}
+		case IMPORT_2DC:{}
+		case IMPORT_2DR:{}
+		case IMPORT_3DR:{
+			ParseSolenoidFile(DIM_STEP);
+			break;
+		}
+		default:
+			return;
+        ;
+	}
+
+ 	D=ExternalMagnetic.Dim;
+
+	// CREATE MAGNETIC MESH
+	ExternalMagnetic.Field=new TField**[D.Nz];
+	for (int i = 0; i < D.Nz; i++) {
+		ExternalMagnetic.Field[i]=new TField*[D.Ny];
+		for (int j = 0; j < D.Ny; j++) {
+			ExternalMagnetic.Field[i][j]=new TField[D.Nx];
+		}
+	}
+
+	//FILL MAGNETIC ARRAY
+	switch (StructPar.SolenoidPar.ImportType) {
+		case ANALYTIC_0D:{
+			MakeUniformSolenoid();
+			break;
+		}
+		case ANALYTIC_1D:{
+			MakeAnalyticalSolenoid();
+			break;
+		}
+		case IMPORT_1D:{}
+		case IMPORT_2DC:{}
+		case IMPORT_2DR:{}
+		case IMPORT_3DR:{
+			ParseSolenoidFile(PIV_STEP);
+			//ParseSolenoidFile(DATA_STEP); //Embedded in PIV_STEP
+			for (int i = 0; i < ExternalMagnetic.Dim.Nz; i++)
+				ExternalMagnetic.Piv.Z[i]+=StructPar.SolenoidPar.StartPos;
+			break;
+		}
+		default:
+			return;
+        ;
+	}
+
+	//TRASFORM TO CYLINDRICAL COORDINATES
+	if (StructPar.SolenoidPar.ImportType==IMPORT_2DR)
+		TransformMagneticToCYL1D();
+	else if (StructPar.SolenoidPar.ImportType==IMPORT_3DR)
+		TransformMagneticToCYL2D();
+
+	bool PreAdjust=false;
+
+	//CALCULATE RADIAL FIELD FOR 1D FIELD
 	if (StructPar.SolenoidPar.ImportType==IMPORT_1D) {
-		int NSol=0;
-		double *Xz=NULL;
-		double *Bz=NULL;
+		PreAdjust=Npoints>MESH_TOLERANCE*ExternalMagnetic.Dim.Nz; //If solenoid mesh from file is too coarse, differentiate after interpolation
+		if (PreAdjust)
+			AdjustMagneticMesh();
 
-		NSol=GetSolenoidPoints();
-		if(NSol<1){
-			StructPar.SolenoidPar.BField=0;
-			StructPar.SolenoidPar.Length=0;
-			StructPar.SolenoidPar.StartPos=0;
-			StructPar.SolenoidPar.ImportType=NO_ELEMENT;
-			/*Zmag=0;
-			B0=0;
-			Lmag=0;
-			FSolenoid=false;  */
-			S="The format of "+StructPar.SolenoidPar.File+" is wrong or too few points available";
-			ShowError(S);
-		} else {
-			Xz=new double[NSol];
-			Bz=new double[NSol];
+		CalculateFieldDerivative();
+		CalculateRadialField();
+	}
 
-			ReadSolenoid(NSol,Xz,Bz);
-			if (NSol==1) {
-				StructPar.SolenoidPar.StartPos=0;
-				StructPar.SolenoidPar.Length=Structure[Npoints-1].ksi*Structure[Npoints-1].lmb;
-				StructPar.SolenoidPar.BField=Bz[0];
-				StructPar.SolenoidPar.ImportType=ANALYTIC_0D;
-				/*Zmag=0;
-				Lmag=Structure[Npoints-1].ksi*Structure[Npoints-1].lmb;
-				B0=Bz[0];
-				FSolenoid=false;*/
-                delete[] Xz;
-                delete[] Bz;
-            } else{
-                Xi=new double[Npoints];
-				for (int i=0; i<Npoints; i++)
-                    Xi[i]=Structure[i].ksi*Structure[i].lmb;
+	//ADJUST MESH TO Z-NODES
+	if (!PreAdjust)
+		AdjustMagneticMesh();
 
-                Bi=LinearInterpolation(Xi,Xz,Bz,NSol,Npoints);
-                delete[] Xz;
-                delete[] Bz;
-                delete[] Xi;
+	//NORMALIZE
+	D=ExternalMagnetic.Dim;
+	for (int i = 0; i < D.Nz; i++) {
+		double knorm=c*Structure[i].lmb/We0;
+		for (int j = 0; j < D.Ny; j++) {
+			for (int k = 0; k < D.Nx; k++) {
+				ExternalMagnetic.Field[i][j][k].z*=knorm;
+				ExternalMagnetic.Field[i][j][k].r*=knorm;
+				ExternalMagnetic.Field[i][j][k].th*=knorm;
             }
         }
     }
-
-	for (int i=0;i<Npoints;i++){
-		Structure[i].Hext.z=0;
-		Structure[i].Hext.r=0;
-		Structure[i].Hext.th=0;
-        //int s=0;
-		double lmb=Structure[i].lmb;
-		if (B_int[i]!=1)
-			Structure[i].betta=B_int[i];
-		else
-            Structure[i].betta=MeVToVelocity(EnergyLimit);
-
-        Structure[i].E=E_int[i];
-        Structure[i].A=Structure[i].P>0?E_int[i]*sqrt(Structure[i].P)/We0:0;
-/*      if (i==20)
-            s=1;*/
-		Structure[i].Rp=sqr(E_int[i])/2;;
-        Structure[i].B=Structure[i].Rp/(2*We0);
-		Structure[i].alpha=Al_int[i]/(lmb*sqrt(lmb));
-		switch (StructPar.SolenoidPar.ImportType) {
-			case IMPORT_1D:{
-				Structure[i].Hext.z=Bi[i]*lmb*c/We0;
-				//Bz_ext=Bi[i]*lmb*c/We0;
-				break;
-			}
-			case ANALYTIC_0D:{
-				if (Structure[i].ksi>=StructPar.SolenoidPar.StartPos/lmb && Structure[i].ksi<=(StructPar.SolenoidPar.StartPos+StructPar.SolenoidPar.Length)/lmb)
-					//Structure[i].Bz_ext
-					Structure[i].Hext.z=StructPar.SolenoidPar.BField*lmb*c/We0;
-				break;
-			}
-			default: { }
-		}
-	}
-
-   /*	Structure[0].Br_ext=0;
-	Structure[Npoints-1].Br_ext=0;  */
-	for (int i=1;i<Npoints-1;i++){
-		switch (StructPar.SolenoidPar.ImportType) {
-			case IMPORT_1D:{}
-			case ANALYTIC_0D:{
-				Structure[i].Hext.r=-0.5*(Structure[i+1].Hext.z-Structure[i-1].Hext.z)/(Structure[i+1].ksi-Structure[i-1].ksi);
-				//Structure[i].Br_ext=-0.5*(Structure[i+1].Bz_ext-Structure[i-1].Bz_ext)/(Structure[i+1].ksi-Structure[i-1].ksi);
-				break;
-			}
-			default: {	}
-		}
-
-	}
-
-   /*	if (!BeamPar.Magnetized) {
-    	Structure[0].B_ext=0;
-	}       */
-
-	if (StructPar.SolenoidPar.ImportType==IMPORT_1D)
-		delete[] Bi;
-
-    delete[] X_base; delete[] X_int;
-    delete[] B_base; delete[] B_int;
-    delete[] E_base; delete[] E_int;
-    delete[] Al_base; delete[] Al_int;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::CreateGeometry()
+{
+	CreateMesh();
+	CreateMaps();
+	CreateStrucutre();
+	CreateMagneticMap();
 
     return ERR_NO;
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::DeleteBeam()
+{
+	for (int i=0;i<Np_beam;i++)
+		delete Beam[i];
+
+	delete[] Beam;
+	Beam=NULL;
 }
 //---------------------------------------------------------------------------
 TError TBeamSolver::CreateBeam()
@@ -2461,29 +3092,8 @@ TError TBeamSolver::CreateBeam()
 
 	AnsiString S;
 
-	//Npoints=Ncells*Nmesh;
-
-	//Np=BeamPar.NParticles;
-
-	//OLD CODE
-   /* if (BeamType!=RANDOM){
-	    if (NpFromFile)
-		    Np=Beam[0]->CountCSTParticles(BeamFile);
-        if(Np<0) {
-            return ERR_CURRENT;
-		}
-    }
-
-	if (NpEnergy != 0) {
-	    if (NpEnergy != Np) {
-            return ERR_NUMBPARTICLE;
-		}
-	} */
-
-   for (int i=0;i<Np_beam;i++){
-        delete Beam[i];
-    }
-    delete[] Beam;
+	if (Beam!=NULL)
+		DeleteBeam();
 
     Beam=new TBeam*[Npoints];
 	for (int i=0;i<Npoints;i++){
@@ -2505,7 +3115,7 @@ TError TBeamSolver::CreateBeam()
 		   //	Beam[i]->Particle[j].Bth=0;
 			Beam[i]->Particle[j].r=0;
 			//Beam[i]->Particle[j].Cmag=0;
-			Beam[i]->Particle[j].Th=0;
+			Beam[i]->Particle[j].th=0;
 		}
 	}
 	Beam[0]->SetCurrent(BeamPar.Current);
@@ -2580,113 +3190,87 @@ TError TBeamSolver::CreateBeam()
 			return ERR_BEAM;
 		}
 	}
-
-  //	if (BeamPar.Magnetized) {
-	  /*	for (int j=0;j<BeamPar.NParticles;j++){
-			double gamma=VelocityToEnergy(Beam[0]->Particle[j].beta);
-			double bth=Beam[0]->Particle[j].Bth;
-			double r=Beam[0]->Particle[j].r;
-			double Bz=Structure[0].Hext.z;
-			double Cmag=2*r*gamma*bth+sqr(r)*Bz;
-			//double Cmag=sqr(r)*Bz;
-			for (int i=0;i<Npoints;i++)
-				Beam[i]->Particle[j].Cmag=Cmag;
-		}      */
-   //	}
-
-   //OLD CODE
-/*
-	if (NpEnergy == 0) {
-        if (W_Eq) {
-            Beam[0]->MakeEquiprobableDistribution(W0,dW,BETTA_PAR);
-        } else {
-            Beam[0]->MakeGaussDistribution(W0,dW,BETTA_PAR);
-        }
-	} else {
-		LoadEnergyFromFile(EnergyFile,NpEnergy);
-	}
-
-    for (int i=0;i<Np;i++) {
-        Beam[0]->Particle[i].betta=MeVToVelocity(Beam[0]->Particle[i].betta);
-    }
-
-    if (Phi_Eq) {
-        Beam[0]->MakeEquiprobableDistribution(HellwegTypes::DegToRad(Phi0)-Structure[0].dF,HellwegTypes::DegToRad(dPhi),PHI_PAR);
-    } else {
-        Beam[0]->MakeGaussDistribution(HellwegTypes::DegToRad(Phi0)-Structure[0].dF,HellwegTypes::DegToRad(dPhi),PHI_PAR);
-    }
-
-	if (BeamType==RANDOM) {
-		Beam[0]->MakeGaussEmittance(AlphaCS,BettaCS,EmittanceCS);
-    } else {
-		Beam[0]->ReadCSTEmittance(BeamFile,Np);
-	}
-
-   //	if (BeamType!=CST_Y) {  //not used yet
-        Beam[0]->MakeEquiprobableDistribution(pi,pi,TH_PAR);
-   //	}
-    Beam[0]->MakeEquiprobableDistribution(0,0,BTH_PAR);
-
-    for (int i=0;i<Npoints;i++){
-        for (int j=0;j<Np;j++) {
-            Beam[i]->Particle[j].x0=Beam[0]->Particle[j].x;
-        }
-	}    */
-
- /* for (int i=0;i<Np;i++){
-        Beam[0]->Particle[i].x=0;//-0.001+0.002*i/(Np-1);
-        //Beam[0]->Particle[i].phi=0;
-        Beam[0]->Particle[i].Bx=0;
-        Beam[0]->Particle[i].Th=0;
-        Beam[0]->Particle[i].Bth=0;
-
-      //    Beam[0]->Particle[i].phi=DegToRad(-90+i);
-       //   Beam[0]->Particle[i].betta=MeVToVelocity(0.05);
-    }           */
-    return ERR_NO;
+	return ERR_NO;
 }
 //---------------------------------------------------------------------------
-//MOVED TO BEAM.CPP
-/*bool TBeamSolver::LoadEnergyFromFile(AnsiString &F, int NpEnergy)
+TImportType TBeamSolver::ParseSolenoidType(AnsiString &F)
 {
+	int Npar=0;
+	TImportType T=NO_ELEMENT;
+
+	AnsiString L,S;
+	bool AllNumbers=false;
+
 	std::ifstream fs(F.c_str());
-	float enrg=0;
-	int i=0, np=0;
-	bool Success=false;
-	AnsiString S,L;
 
-	while (!fs.eof()){
+	while (!AllNumbers){
 		L=GetLine(fs);
-
-		if (NumWords(L)==2){       //Check if only two numbers in the line
-			try {                  //Check if the data is really a number
-				S=ReadWord(L,1);
-				np=S.ToInt();
-				S=ReadWord(L,2);
-				enrg=S.ToDouble();
-			}
-			catch (...){
-				continue;          //Skip incorrect line
-			}
-			if (i==NpEnergy){     //if there is more data than expected
-				i++;
+		Npar=NumWords(L);
+		AllNumbers=true;
+		for (int i = 1; i < Npar; i++) {
+			S=ReadWord(L,i);
+			if (!IsNumber(S)) {
+				AllNumbers=false;
 				break;
 			}
-			Beam[0]->Particle[i].betta=enrg;
-			i++;
 		}
 	}
 
+	if (Npar==2)  //1D: z,Bz
+		T=IMPORT_1D;
+	else if (Npar==4)  //2D cyl: r,z,Br,Bz
+		T=IMPORT_2DC;
+	else if (Npar==5)  //2D rec: r,z,Bx,By,Bz
+		T=IMPORT_2DR;
+	else if (Npar==6)  //3D: x,y,z,Bx,By,Bz
+		T=IMPORT_3DR;
+
 	fs.close();
 
-	Success=(i==NpEnergy);
-	return Success;
-}       */
+	return T;
+}
 //---------------------------------------------------------------------------
-int TBeamSolver::GetSolenoidPoints()
+TDimensions TBeamSolver::ParseSolenoidLines(TMagnetParameters &P)
+{
+	int Npar=0, Ndim=0;
+	TDimensions Dim;
+
+	switch (P.ImportType) {
+		case IMPORT_1D: {
+			Npar=2;
+			Ndim=1;
+			break;
+		}
+		case IMPORT_2DC: {
+			Npar=4;
+			Ndim=2;
+			break;
+		}
+		case IMPORT_2DR: {
+			Npar=5;
+			Ndim=2;
+			break;
+		}
+		case IMPORT_3DR: {
+			Npar=6;
+			Ndim=3;
+			break;
+		}
+		default:{};
+	}
+
+	/*if (Npar>0)
+		Dim=NumDimensions(P.File,Ndim,Npar); */
+	Dim.Nx=Ndim;
+	Dim.Ny=Npar;
+
+	return Dim;
+}
+//---------------------------------------------------------------------------
+/*int TBeamSolver::GetSolenoidPoints()
 {
 	return NumPointsInFile(StructPar.SolenoidPar.File,2);
-}
+}    */
 //---------------------------------------------------------------------------
 bool TBeamSolver::ReadSolenoid(int Nz,double *Z,double* B)
 {
@@ -2805,6 +3389,17 @@ double TBeamSolver::GetPower(int Ni)
 double TBeamSolver::GetWavelength(int Ni)
 {
 	return Structure[Ni].lmb;
+}
+//---------------------------------------------------------------------------
+double TBeamSolver::GetMaxAperture()
+{
+	double Amax=0,a=0;
+	for (int i=0; i < Npoints; i++) {
+		a=GetAperture(i);
+		if (a>Amax)
+			Amax=a;
+	}
+	return Amax;
 }
 //---------------------------------------------------------------------------
 double TBeamSolver::GetAperture(int Ni)
@@ -2987,8 +3582,23 @@ double TBeamSolver::GetStructureParameter(int Nknot, TStructureParameter P)
 			x=Beam[Nknot]->GetRadius();
 			break;
 		}
-		case (B_EXT_PAR):{
-			x=Structure[Nknot].Hext.z;
+		case (BZ_EXT_PAR):{
+			//x=Structure[Nknot].Hext[Nknot][0][0].Field.z;
+			if (ExternalMagnetic.Field!=NULL)
+				x=ExternalMagnetic.Field[Nknot][0][0].z*We0/(c*Structure[Nknot].lmb);
+			else x=0;
+
+			break;
+		}
+		case (BR_EXT_PAR):{
+			//x=Structure[Nknot].Hext[Nknot][0][0].Field.z;
+			if (ExternalMagnetic.Field!=NULL){
+				int ri=ExternalMagnetic.Dim.Nx-1;
+				double r=ExternalMagnetic.Piv.X[ri];
+				x=ExternalMagnetic.Field[Nknot][0][ri].r*We0/(c*Structure[Nknot].lmb);
+				x/=r;
+			} else
+				x=0;
 			break;
 		}
 		case (NUM_PAR):{
@@ -3240,6 +3850,7 @@ void TBeamSolver::Integrate(int Si, int Sj)
 {
 	double gamma0=1,Mr=0,Nr=0,/*phic=0,*/Qbunch=0,Rho=0,lmb=0,Icur=0;
 	double Mx=0,My=0,Mz=0,Mxx=0,Myy=0,Mzz=0,ix=0,iy=0,p=0,M=0;
+	double Ltrain=0,s_head=1,s_tail=1,Mz_tail=0,Mz_head=0;
 	int component=0;
 	TParticle *Particle=Beam[Si]->Particle;
 
@@ -3257,10 +3868,22 @@ void TBeamSolver::Integrate(int Si, int Sj)
 
 	Par[Sj].Eq=new TField[BeamPar.NParticles];
 
-	//FILE *Fout=fopen("spch.log","a");
+   /*	FILE *Fout=fopen("spch.log","w");
+	for (int i = 0; i < Nlmb; i++) {
+		x0=LMB[i];
+		for (int j = 0; j < Nrxrz; j++) {
+			y0=RXRZ[j];
+			rx=FormFactor(1,y0,X_PAR,x0);
+			ry=FormFactor(1,y0,Y_PAR,x0);
+			rz=FormFactor(1,y0,Z0_PAR,x0);
+			fprintf(Fout,"%f %f %f %f %f\n",x0,y0,rx,ry,rz);
+		}
+	}
 	//fprintf(Fout,"x y z lambda Mx My Mz\n");
 	//fprintf(Fout,"x Ex\n");
 	//fprintf(Fout,"%f %f %f %f %f %f %f %f %f\n",n,Ncore,Mcore,1e9*Qbunch,V,Rho,Mz,Rho*Mz,Rho*Mz*rz);
+
+	fclose(Fout);     */
 
 	for (int i=0;i<BeamPar.NParticles;i++){
 		Par[Sj].Eq[i].z=0;
@@ -3293,6 +3916,10 @@ void TBeamSolver::Integrate(int Si, int Sj)
 			//Rho*=2*pi/eps0;
 			Rho/=eps0;
 
+			if (BeamPar.SpaceCharge.Train) {
+				Ltrain=BeamPar.SpaceCharge.Ltrain>0?BeamPar.SpaceCharge.Ltrain:lmb;
+			}
+
 			if (V!=0) {
 				if (BeamPar.SpaceCharge.Type==SPCH_LPST) {  //Lapostolle
 					p=gamma0*rz/sqrt(rx*ry);
@@ -3312,7 +3939,7 @@ void TBeamSolver::Integrate(int Si, int Sj)
 
 						phi=Particle[i].phi+K[Sj][i].phi*Par[Sj].h;
 						r=(Particle[i].r+K[Sj][i].r*Par[Sj].h)*lmb;
-						th=Particle[i].Th+K[Sj][i].th*Par[Sj].h;
+						th=Particle[i].th+K[Sj][i].th*Par[Sj].h;
 
 						x=r*cos(th)-x0;
 						y=r*sin(th)-y0;
@@ -3327,10 +3954,13 @@ void TBeamSolver::Integrate(int Si, int Sj)
 							Ez=Rho*M*z;
 						}  else {//Elliptic
 							if (r3<1) {
-								s=0;
-								Ex=Rho*Mx*x;
-								Ey=Rho*My*y;
-								Ez=Rho*Mz*z;
+							   /*	s=0;
+								Ex=Rho*Mx*x/2;
+								Ey=Rho*My*y/2;
+								Ez=Rho*Mz*z/2;     */
+								Mxx=Mx;
+								Myy=My;
+								Mzz=Mz;
 								Ncore++;
 							} else {
 								s=GetEigenFactor(x,y,z,rx,ry,rz);
@@ -3338,11 +3968,39 @@ void TBeamSolver::Integrate(int Si, int Sj)
 								Myy=FormFactor(ix,iy,Y_PAR,s);
 								Mzz=FormFactor(ix,iy,Z0_PAR,s);
 
-								Ex=Rho*Mxx*x/2;
+						   /*		Ex=Rho*Mxx*x/2;
 								Ey=Rho*Myy*y/2;
-								Ez=Rho*Mzz*z/2;
+								Ez=Rho*Mzz*z/2;  */
 							}
 						}
+
+						Ex=Mxx*x;
+						Ey=Myy*y;
+						Ez=Mzz*z;
+
+						if (BeamPar.SpaceCharge.Train) {
+							s_tail=GetEigenFactor(x,y,z+Ltrain,rx,ry,rz);
+							s_head=GetEigenFactor(x,y,z-Ltrain,rx,ry,rz);
+
+							if (s_tail<0)
+								s_tail=1;
+
+							if (s_head<0)
+								s_head=1;
+
+							Mz_head=FormFactor(ix,iy,Z0_PAR,s_head);
+							Mz_tail=FormFactor(ix,iy,Z0_PAR,s_tail);
+							/*Mz_tail=(2.0/3.0)/pow(s_tail,1.5);
+							Mz_head=(2.0/3.0)/pow(s_head,1.5);     */
+
+							Ez+=Mz_head*(z-Ltrain)+Mz_tail*(z+Ltrain);
+							//(2.0/3.0)*(1/pow(s_tail,1.5)-1/pow(s_head,1.5));
+
+						}
+
+						Ex*=Rho/2;
+						Ey*=Rho/2;
+						Ez*=Rho/2;
 
 						Ex*=(g2*lmb/We0);
 						Ey*=(g2*lmb/We0);
@@ -3695,7 +4353,7 @@ void TBeamSolver::Step(int Si)
 	double lmb=Structure[Si].lmb;
     Beam[Si]->lmb=lmb;
 	CountLiving(Si);
-	I=BeamPar.Current*Nliv/BeamPar.NParticles;
+   //	I=BeamPar.Current*Nliv/BeamPar.NParticles;
   /*
     Rb=Beam[i]->GetBeamRadius();
     phi0=Beam[i]->GetAveragePhase();
@@ -3762,7 +4420,7 @@ void TBeamSolver::Step(int Si)
             Par[i].dL=0;
             Par[i].dA=0;
         }
-    } else {
+	} else {
 		if (Si==0 || (Si!=0 && Structure[Si].jump)){
 			Par[0].dL=dE/(Structure[Si].E*dh);
 			//Par[0].dL=dR/dh;
@@ -3797,9 +4455,57 @@ void TBeamSolver::Step(int Si)
             ///Par[0].dL=d2R/d2h;
 			Par[3].dA=d2A/d2h;
         }
+	}
+
+	Par[0].Hmap=Structure[Si].Bmap;
+	Par[1].Hmap=Structure[Si].Bmap;
+	Par[2].Hmap=Structure[Si].Bmap;
+	Par[3].Hmap=Structure[Si+1].Bmap;
+
+	if (ExternalMagnetic.Field!=NULL) {
+
+		for (int k = 0; k < 4; k++) {
+			Par[k].Hext.Field=new TField*[ExternalMagnetic.Dim.Ny];
+			Par[k].Hext.Dim=ExternalMagnetic.Dim;
+			Par[k].Hext.Piv=ExternalMagnetic.Piv;
+			for (int i = 0; i < ExternalMagnetic.Dim.Ny; i++) {
+				Par[k].Hext.Field[i]=new TField[ExternalMagnetic.Dim.Nx];
+			}
+		}
+
+		for (int i = 0; i < ExternalMagnetic.Dim.Ny; i++) {
+			for (int j = 0; j < ExternalMagnetic.Dim.Nx; j++) {
+				Par[0].Hext.Field[i][j].z=ExternalMagnetic.Field[Si][i][j].z;
+				Par[1].Hext.Field[i][j].z=(ExternalMagnetic.Field[Si+1][i][j].z+ExternalMagnetic.Field[Si][i][j].z)/2;
+				Par[2].Hext.Field[i][j].z=Par[1].Hext.Field[i][j].z;
+				Par[3].Hext.Field[i][j].z=ExternalMagnetic.Field[Si+1][i][j].z;
+
+				Par[0].Hext.Field[i][j].r=ExternalMagnetic.Field[Si][i][j].r;
+				Par[1].Hext.Field[i][j].r=(ExternalMagnetic.Field[Si+1][i][j].r+ExternalMagnetic.Field[Si][i][j].r)/2;
+				Par[2].Hext.Field[i][j].r=Par[1].Hext.Field[i][j].r;
+				Par[3].Hext.Field[i][j].r=ExternalMagnetic.Field[Si+1][i][j].r;
+
+				Par[0].Hext.Field[i][j].th=ExternalMagnetic.Field[Si][i][j].th;
+				Par[1].Hext.Field[i][j].th=(ExternalMagnetic.Field[Si+1][i][j].th+ExternalMagnetic.Field[Si][i][j].th)/2;
+				Par[2].Hext.Field[i][j].th=Par[1].Hext.Field[i][j].th;
+				Par[3].Hext.Field[i][j].th=ExternalMagnetic.Field[Si+1][i][j].th;
+			}
+		}
+
+		for (int k = 0; k < 4; k++) {
+			for (int i = 0; i < ExternalMagnetic.Dim.Ny; i++) {
+				delete[] Par[k].Hext.Field[i];
+			}
+			delete[] Par[k].Hext.Field;
+		}
+	}  else {
+		Par[0].Hext.Field=NULL;
+		Par[1].Hext.Field=NULL;
+		Par[2].Hext.Field=NULL;
+		Par[3].Hext.Field=NULL;
     }
 
-	double dBzx=Structure[Si+1].Hext.z-Structure[Si].Hext.z;
+  /*	double dBzx=Structure[Si+1].Hext.z-Structure[Si].Hext.z;
 	Par[0].Hext.z=Structure[Si].Hext.z;
 	Par[1].Hext.z=Structure[Si].Hext.z+dBzx/2;
 	Par[2].Hext.z=Par[1].Hext.z;
@@ -3815,7 +4521,8 @@ void TBeamSolver::Step(int Si)
 	Par[0].Hext.th=Structure[Si].Hext.th;
 	Par[1].Hext.th=Structure[Si].Hext.th+dBthx/2;
 	Par[2].Hext.th=Par[1].Hext.th;
-	Par[3].Hext.th=Structure[Si+1].Hext.th;
+	Par[3].Hext.th=Structure[Si+1].Hext.th;     */
+
 
   /*	if (Si==0)
 		Par[0].dH=dBzx/dh;
@@ -3845,12 +4552,12 @@ void TBeamSolver::Step(int Si)
         Integrate(Si,j);
 }
 //---------------------------------------------------------------------------
-void TBeamSolver::Solve()
+TError TBeamSolver::Solve()
 {
 	#ifndef RSLINAC
 	if (SmartProgress==NULL){
 		ShowMessage("System Message: ProgressBar not assigned! Code needs to be corrected");
-        return;
+        return ERR_OTHER;
     }
     SmartProgress->Reset(Npoints-1/*Np*/);
     #endif
@@ -3893,8 +4600,24 @@ void TBeamSolver::Solve()
 		}
 
 		for (int j=0;j<BeamPar.NParticles;j++){
-			if (Beam[i+1]->Particle[j].lost==LIVE && mod(Beam[i+1]->Particle[j].r)>=Structure[i+1].Ra)
-				Beam[i+1]->Particle[j].lost=RADIUS_LOST;
+			if (Beam[i+1]->Particle[j].lost==LIVE){
+				if (Structure[i+1].Bmap.Field==NULL) {
+					if (mod(Beam[i+1]->Particle[j].r)>=Structure[i+1].Ra)
+						Beam[i+1]->Particle[j].lost=RADIUS_LOST;
+				} else {
+					TPhaseSpace R;
+					double xmin=0,xmax=0,ymin=0,ymax=0;
+					R.x=Beam[i+1]->Particle[j].r*cos(Beam[i+1]->Particle[j].th);
+					R.y=Beam[i+1]->Particle[j].r*sin(Beam[i+1]->Particle[j].th);
+					xmin=Structure[i+1].Bmap.Piv.X[0];
+					xmax=Structure[i+1].Bmap.Piv.X[Structure[i+1].Bmap.Dim.Nx-1];
+					ymin=Structure[i+1].Bmap.Piv.Y[0];
+					ymax=Structure[i+1].Bmap.Piv.Y[Structure[i+1].Bmap.Dim.Ny-1];
+					if (R.x<xmin || R.x>xmax || R.y<ymin || R.y>ymax) {
+                    	Beam[i+1]->Particle[j].lost=RADIUS_LOST;
+					}
+				}
+			}
 			Beam[i+1]->Particle[j].z=Structure[i+1].ksi*Structure[i+1].lmb;
 			Beam[i+1]->Particle[j].phi-=Structure[i+1].dF;
 		}
@@ -3910,7 +4633,7 @@ void TBeamSolver::Solve()
 			ShowError(S);
 			SmartProgress->Reset();
 			#endif
-			return;
+			return ERR_ABORT;
         }
         for (int i=0;i<Ncoef;i++)
             memset(K[i], 0, sizeof(TIntegration));
@@ -3922,7 +4645,9 @@ void TBeamSolver::Solve()
     #ifndef RSLINAC
     SmartProgress->SetPercent(100);
     SmartProgress->SetTime(0);
-    #endif
+	#endif
+
+	return ERR_NO;
 }
 //---------------------------------------------------------------------------
 #ifndef RSLINAC

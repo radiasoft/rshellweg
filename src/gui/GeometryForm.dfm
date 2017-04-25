@@ -244,7 +244,6 @@ object GeomForm: TGeomForm
           'Geometry Parameters')
         BottomAxis.AxisValuesFormat = '#0.##'
         BottomAxis.GridCentered = True
-        BottomAxis.Increment = 0.010000000000000000
         BottomAxis.LabelsAngle = 90
         BottomAxis.LabelsFormat.Font.Height = -37
         BottomAxis.LabelStyle = talValue
@@ -262,7 +261,7 @@ object GeomForm: TGeomForm
         DepthTopAxis.AutomaticMinimum = False
         DepthTopAxis.Maximum = 1.040000000000000000
         DepthTopAxis.Minimum = 0.040000000000000240
-        LeftAxis.AxisValuesFormat = '#0.#'
+        LeftAxis.AxisValuesFormat = '#0.##'
         LeftAxis.ExactDateTime = False
         LeftAxis.GridCentered = True
         LeftAxis.LabelsFormat.Font.Height = -37
@@ -271,10 +270,16 @@ object GeomForm: TGeomForm
         LeftAxis.Title.Caption = 'I, mA'
         LeftAxis.Title.Font.Height = -48
         LeftAxis.Title.Font.Style = [fsBold]
-        RightAxis.Automatic = False
-        RightAxis.AutomaticMaximum = False
-        RightAxis.AutomaticMinimum = False
+        RightAxis.Grid.Visible = False
         RightAxis.GridCentered = True
+        RightAxis.LabelsFormat.Font.Color = clGreen
+        RightAxis.LabelsFormat.Font.Height = -24
+        RightAxis.MaximumRound = True
+        RightAxis.MinimumRound = True
+        RightAxis.Title.Angle = 90
+        RightAxis.Title.Caption = 'Br/r, Gs/cm'
+        RightAxis.Title.Font.Color = clGreen
+        RightAxis.Title.Font.Height = -24
         TopAxis.Automatic = False
         TopAxis.AutomaticMaximum = False
         TopAxis.AutomaticMinimum = False
@@ -290,9 +295,24 @@ object GeomForm: TGeomForm
           15
           10)
         ColorPaletteIndex = 13
-        object Series1: TLineSeries
+        object GeomSeries2: TLineSeries
+          ColorEachPoint = True
+          SeriesColor = clRed
+          Title = 'GeomSeries2'
+          Brush.BackColor = clDefault
+          LinePen.Width = 3
+          Pointer.InflateMargins = True
+          Pointer.Style = psCircle
+          Pointer.Visible = True
+          XValues.Name = 'X'
+          XValues.Order = loAscending
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object GeomSeries1: TLineSeries
           ColorEachPoint = True
           Depth = 0
+          Title = 'GeomSeries1'
           Brush.BackColor = clDefault
           LinePen.Width = 3
           Pointer.InflateMargins = True
@@ -310,19 +330,6 @@ object GeomForm: TGeomForm
             335367884000000000009C88401F85EB5168CB8840F6285C8F92938940A4703D
             0A27158940295C8FC28557884066666666F6AE874047E17A148E7F874047E17A
             148E7F87405C8FC2F5D8228840}
-        end
-        object Series2: TLineSeries
-          ColorEachPoint = True
-          SeriesColor = clRed
-          Brush.BackColor = clDefault
-          LinePen.Width = 3
-          Pointer.InflateMargins = True
-          Pointer.Style = psCircle
-          Pointer.Visible = True
-          XValues.Name = 'X'
-          XValues.Order = loAscending
-          YValues.Name = 'Y'
-          YValues.Order = loNone
         end
         object BeamSeries1: TPointSeries
           Legend.Visible = False
@@ -404,6 +411,21 @@ object GeomForm: TGeomForm
           Pointer.Style = psRectangle
           XValues.Name = 'X'
           XValues.Order = loNone
+          YValues.Name = 'Y'
+          YValues.Order = loNone
+        end
+        object DoubleSeries: TLineSeries
+          ColorEachLine = False
+          SeriesColor = clGreen
+          Title = 'DoubleSeries'
+          VertAxis = aRightAxis
+          Brush.BackColor = clDefault
+          LinePen.Width = 3
+          Pointer.InflateMargins = True
+          Pointer.Style = psCircle
+          Pointer.Visible = True
+          XValues.Name = 'X'
+          XValues.Order = loAscending
           YValues.Name = 'Y'
           YValues.Order = loNone
         end

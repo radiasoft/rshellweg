@@ -743,15 +743,16 @@ void TResForm::DrawLongtSpace()
 
 		if (VertFitCheck->Checked)
 		Wmax=Solver->GetMaxEnergy(j);
-
+   // Wmax=0.55;
 	ResetAxis(BeamChart->LeftAxis,0,Wmax,false);
 	ResetAxis(BeamChart->BottomAxis,MinPhase,MaxPhase,HorFitCheck->Checked);
-  /*	BeamChart->LeftAxis->Automatic=false;//VertFitCheck->Checked;
+
+  	BeamChart->LeftAxis->Automatic=VertFitCheck->Checked;
 	BeamChart->LeftAxis->Minimum=0;
 	BeamChart->LeftAxis->Maximum=Wmax;
 	BeamChart->BottomAxis->Automatic=HorFitCheck->Checked;
 	BeamChart->BottomAxis->Minimum=MinPhase;
-	BeamChart->BottomAxis->Maximum=MaxPhase; */
+	BeamChart->BottomAxis->Maximum=MaxPhase;
 
 	double Phi_min=RadToDegree(Solver->GetMinPhase(j));
 	double Phi_max=RadToDegree(Solver->GetMaxPhase(j));

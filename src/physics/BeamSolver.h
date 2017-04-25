@@ -34,14 +34,12 @@ private:
 	TBeamInput BeamPar;
 	TBeam **Beam;
 
-	//These should be removed
-
+	//These should be removed sometimes
 	double Kernel,Smooth;
 	double AngErr;
 	double dh;
 
-	int Np_beam,Nstat,Ngraph,Nav,Nliv,Ndump;
-	double I;
+	int Np_beam,Nstat,Ngraph,Nav,Nliv,Ndump;  //Move to TMeshParameters
 
 	TSplineType SplineType;
 	//STRUCTURE
@@ -49,14 +47,18 @@ private:
 	TStringList *InputStrings,*ParsedStrings;
 	TDump *BeamExport;
 	TStructureInput StructPar;
+	TFieldMap ExternalMagnetic;
+	TFieldMap2D *QuadMaps;
+
 	int ChangeCells(int N);
 	void ResetStructure();
 	void ResetDump(int Ns);
+	void ResetExternal();
+	void ResetMaps();
 
-	int Mode_N,Mode_M,MaxCells,Nmesh,Npoints;//,Ncells,Nlim;
-	double Rb,Lb,phi0,dphi,w,betta0; //create new structure TStructure
+	int Mode_N,Mode_M,MaxCells,Nmesh,Npoints;// //Move to TMeshParameters
 
-	int GetSolenoidPoints();
+	//int GetSolenoidPoints();
 	bool ReadSolenoid(int Nz,double *Z,double* B);
 
 	//OTHER
@@ -67,6 +69,7 @@ private:
 	//INITIALIZATION & PARSING
     void Initialize();
 	void LoadIniConstants();
+	double DefaultFrequency(int N);
 
 	AnsiString AddLines(TInputLine *Lines,int N1, int N2);
 
@@ -82,6 +85,7 @@ private:
 	TError ParseSingleCell (TInputLine *Line,int Ni,int Nsec, bool NewCell);
 	TError ParseMultipleCells (TInputLine *Line,int Ni,int Nsec, bool NewCell);
 	TError ParseDrift (TInputLine *Line,int Ni,int Nsec);
+	TError ParseQuad (TInputLine *Line,int Ni,int Nsec);
 	TError ParsePower (TInputLine *Line,int Nsec);
 	TError ParseDump (TInputLine *Line,int Ns, int Ni);
 
@@ -95,6 +99,28 @@ private:
 	TError ParseSPH (TInputLine *Line, AnsiString &F, int Nr);
 	TError ParseELL (TInputLine *Line, AnsiString &F, int Nr);
 	TError ParseNorm (TInputLine *Line, AnsiString &F, int Nz,int Zpos);
+
+	//STRUCTURE
+	void DeleteBeam();
+	void CreateMesh();
+	void CreateStrucutre();
+	void DeleteMesh();
+
+	TImportType ParseSolenoidType(AnsiString &F);
+	TDimensions ParseSolenoidLines(TMagnetParameters &P);
+	TFieldMap2D ParseMapFile(AnsiString &F); //Try to unite with solenoid parse
+	void CreateMaps();
+	void CreateMagneticMap();
+	void MakePivots();
+	void MakeUniformSolenoid();
+	void MakeAnalyticalSolenoid();
+	void ParseSolenoidFile(TParseStage P);
+	void CalculateRadialField();
+	void CalculateRadialField(double Rmax);
+	void CalculateFieldDerivative();
+	void TransformMagneticToCYL1D();
+	void TransformMagneticToCYL2D();
+	void AdjustMagneticMesh();
 
 	//INTERPOLATION
 	double *LinearInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
@@ -126,6 +152,7 @@ private:
 	bool IsTransverseKeyWord(TBeamType D);
 	bool IsLongitudinalKeyWord(TBeamType D);
 	bool IsFileKeyWord(TBeamType D);
+	bool IsImportType(TImportType T);
 
 	void ShowError(AnsiString &S);
 protected:
@@ -159,7 +186,7 @@ public:
    // bool LoadEnergyFromFile(AnsiString& Fname, int NpEnergy);     move to beam.h
 
     TError CreateBeam();
-    int CreateGeometry();
+	TError CreateGeometry();
     void SetBarsNumber(double Nbin);
     void ChangeInputCurrent(double Ib);
 
@@ -206,6 +233,7 @@ public:
 	double GetFrequency(int Ni);
 	double GetPower(int Ni);
 	double GetWavelength(int Ni);
+	double GetMaxAperture();
 	double GetAperture(int Ni);
 	double GetMaxEnergy(int Ni);
 	double GetMaxDivergence(int Ni);
@@ -222,15 +250,7 @@ public:
 	double GetStructureParameter(int Nknot,TStructureParameter P);
 	double *GetStructureParameters(TStructureParameter P);
 
-/*   OBSOLETE
-TSpectrumBar *GetEnergySpectrum(int Nknot,double& Wav,double& dW);// remove
-	TSpectrumBar *GetPhaseSpectrum(int Nknot,double& Fav,double& dF);  // remove
-	TSpectrumBar *GetEnergySpectrum(int Nknot,bool Env,double& Wav,double& dW);// remove
-	TSpectrumBar *GetPhaseSpectrum(int Nknot,bool Env,double& Fav,double& dF); */ // remove
-
-   //	double GetKernel();
-
-	void Solve();
+	TError Solve();
 	#ifndef RSLINAC
 	TResult Output(AnsiString& FileName,TMemo *Memo=NULL);
     #else

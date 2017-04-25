@@ -12,6 +12,7 @@ const int DigitConst=1e6;
 const int MAX_CHAR=256;
 const int PIT_LENGTH=10;
 const int PID_LENGTH=9;
+const double MESH_TOLERANCE=10;
 
 //PHYSICAL
 const double c=2.99792458e8;
@@ -43,6 +44,9 @@ const int PointsNumber=1000;
 const int SeparatrixNumber=20;
 const double SpecLevel=0.5;
 const double EnergyLimit=1e6;// MeV
+const int RMESH_DEFAULT=10;
+const int ZMESH_0D=8;//trapeze + derivative
+const double DerAccuracy=1e-3;
 
 //COLORS
 #ifndef RSLINAC

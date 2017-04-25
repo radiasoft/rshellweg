@@ -116,25 +116,51 @@ void TMainForm::DisplayInputData()
 
 	//SOLENOID
 	TMagnetParameters Solenoid=Solver->GetSolenoidInfo();
+	Label_Length->Caption="";
+	Label_Position->Caption="";
+	Label_Fringe->Caption="";
 	switch (Solenoid.ImportType) {
-		case ANALYTIC_0D:{
-			Label_B0->Caption="Mangetic Field = "+s.FormatFloat("#0.00",1e4*Solenoid.BField)+" Gs";
+		case ANALYTIC_1D:{
 			Label_Length->Caption="Effective Length = "+s.FormatFloat("#0.00",100*Solenoid.Length)+" cm";
 			Label_Position->Caption="Start Position = "+s.FormatFloat("#0.00",100*Solenoid.StartPos)+" cm";
+			Label_Fringe->Caption="Fringe Region = "+s.FormatFloat("#0.00",100*Solenoid.Lfringe)+" cm";
+		}
+		case ANALYTIC_0D:{
+			Label_B0->Caption="Mangetic Field = "+s.FormatFloat("#0.00",1e4*Solenoid.BField)+" Gs";
 			break;
 		}
+		case IMPORT_2DR:{ }
+		case IMPORT_2DC:{ }
+		case IMPORT_3DR:{ }
 		case IMPORT_1D:{
 			Label_B0->Caption="IMPORTED from";
 			Label_Position->Caption="File: '"+Solenoid.File+"'";
-			Label_Length->Caption="Distribution: 1D - Bz(z)";
+			//Label_Length->Caption="Distribution: 1D - Bz(z)";
 			break;
 		}
 		case NO_ELEMENT:{}
 		default: {
 			Label_B0->Caption="NO SOLENOID";
-			Label_Length->Caption="";
-			Label_Position->Caption="";
+			break;
 		};
+	}
+	switch (Solenoid.ImportType) {
+		case IMPORT_1D:{
+			Label_Length->Caption="Distribution: 1D - Bz(z)";
+			break;
+		}
+		case IMPORT_2DC:{
+			Label_Length->Caption="Distribution: 2D - Br,z(r,z)";
+			break;
+		}
+		case IMPORT_2DR:{
+			Label_Length->Caption="Distribution: 2D - Bx,y,z(r,z)";
+			break;
+		}
+		case IMPORT_3DR:{
+			Label_Length->Caption="Distribution: 3D - Bx,y,z(x,y,z)";
+			break;
+		}
 	}
 
 	//STRUCTURE
@@ -216,6 +242,7 @@ void __fastcall TMainForm::FormCreate(TObject *Sender)
 
 	InputFileName="INPUT.txt";
 
+	ReloadData=false;
 	InputReady=false;
 	DataReady=LoadInputData(false);
 	if (DataReady) {
@@ -247,16 +274,26 @@ void __fastcall TMainForm::FormCanResize(TObject *Sender, int &NewWidth,
 void __fastcall TMainForm::SolveButtonClick(TObject *Sender)
 {
 	AnsiString s,str;
+	TError Err;
+
+	if (ReloadData){
+		DataReady=false;
+		InputReady=false;
+		ReloadData=false;
+	}
 
 	if (!InputReady)
-		CreateInputData(true);
+		InputReady=CreateInputData(true);
 
 	try{
-		Solver->Solve();
-		AnsiString Fname="OUTPUT.TXT";
-		Solver->Output(Fname,ResultsMemo);
-		ResultsMemo->Visible=true;
-		ViewButton->Enabled=true;
+		Err=Solver->Solve();
+		if (Err==ERR_NO){
+			AnsiString Fname="OUTPUT.TXT";
+			Solver->Output(Fname,ResultsMemo);
+			ResultsMemo->Visible=true;
+			ViewButton->Enabled=true;
+		}
+		ReloadData=true; //reload data when repeat simulations
 	} catch(...){
 		ShowMessage("Error occurred while solving the task. Check the values in input file!");
 		return;

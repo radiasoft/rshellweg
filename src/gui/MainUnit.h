@@ -73,6 +73,7 @@ __published:    // IDE-managed Components
 	TLabel *Label_AlphaY;
 	TLabel *Label_BetaY;
 	TLabel *Label_EmittanceY;
+	TLabel *Label_Fringe;
     void __fastcall ExitButtonClick(TObject *Sender);
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
@@ -97,6 +98,7 @@ private:    // User declarations
 	AnsiString InputFileName;
 	bool DataReady;
 	bool InputReady;
+	bool ReloadData;
 public:     // User declarations
     TBeamSolver *Solver;
     __fastcall TMainForm(TComponent* Owner);

@@ -32,9 +32,9 @@ void TGeomForm::SignChart(TChartType ChartType)
             break;
         };
         case CH_ELP:{
-            GChart->Title->Caption="Deduced Electric Field";
+            GChart->Title->Caption="Electric Field Invaraint";
             GChart->BottomAxis->Title->Caption="z,cm";
-            GChart->LeftAxis->Title->Caption="E*lmb/sqrt(P), Ohm^-1/2";
+            GChart->LeftAxis->Title->Caption="E*lmb/P^1/2, Ohm^-1/2";
             break;
         };
         case CH_B:{
@@ -46,7 +46,7 @@ void TGeomForm::SignChart(TChartType ChartType)
         case CH_ATT:{
             GChart->Title->Caption="Attenuation";
             GChart->BottomAxis->Title->Caption="z,cm";
-            GChart->LeftAxis->Title->Caption="att, 1/m";
+            GChart->LeftAxis->Title->Caption="alpha, 1/m";
             break;
         };
         case CH_APP:{
@@ -58,7 +58,7 @@ void TGeomForm::SignChart(TChartType ChartType)
         case CH_BEXT:{
             GChart->Title->Caption="External Magnetic Field";
             GChart->BottomAxis->Title->Caption="z,cm";
-            GChart->LeftAxis->Title->Caption="Bz, Gs";
+            GChart->LeftAxis->Title->Caption="Bz (on-axis), Gs";
             break;
         };
         case CH_CLEAR:{}
@@ -516,20 +516,23 @@ void TGeomForm::DrawBarChart(TBarSeries *Series0,TBeamSolver *Solver,TColor Col1
 void TGeomForm::DrawChart(TLineSeries *Series0,TBeamSolver *Solver,TColor Col1, TColor Col2)
 {
     Series0->Clear();
+	DoubleSeries->Clear();
 
     int Np=Solver->GetNumberOfPoints();
  // double lmb=Solver->GetWaveLength();
     //int Nm=Solver->GetMeshPoints();
-    double *X0,*Y0;
+    double *X0,*Y0,*Z0;
     double *N0;
 
     X0= new double[Np];
-    Y0= new double[Np];
+	Y0= new double[Np];
+	Z0= new double[Np];
     N0= new double[Np];
 
 	N0=Solver->GetStructureParameters(NUM_PAR);
+	DoubleSeries->Visible=false;
     
-    switch (ChartGroup->ItemIndex) {
+	switch (ChartGroup->ItemIndex) {
         case (betta_chart):{
             SignChart(CH_BETTA);
 			Y0=Solver->GetStructureParameters(SBETA_PAR);
@@ -551,7 +554,7 @@ void TGeomForm::DrawChart(TLineSeries *Series0,TBeamSolver *Solver,TColor Col1, 
             SignChart(CH_B);
 			Y0=Solver->GetStructureParameters(E0_PAR);
             for (int i=0;i<Np;i++)
-                Y0[i]=1e-6*Y0[i];
+                Y0[i]*=1e-6;
             break;
         }
         case (alpha_chart):{
@@ -559,12 +562,16 @@ void TGeomForm::DrawChart(TLineSeries *Series0,TBeamSolver *Solver,TColor Col1, 
 			Y0=Solver->GetStructureParameters(ALPHA_PAR);
             break;
         }
-        case (Bz_chart):{
-            SignChart(CH_BEXT);
-			Y0=Solver->GetStructureParameters(B_EXT_PAR);
-            for (int i=0;i<Np;i++)
-                Y0[i]=10000*Y0[i];
-            break;
+		case (Bz_chart):{
+			SignChart(CH_BEXT);
+			DoubleSeries->Visible=true;
+			Y0=Solver->GetStructureParameters(BZ_EXT_PAR);
+			Z0=Solver->GetStructureParameters(BR_EXT_PAR);
+			for (int i=0;i<Np;i++){
+				Y0[i]*=10000;
+				Z0[i]*=100;
+			}
+			break;
         }
         case (Ra_chart):{
             SignChart(CH_APP);
@@ -593,39 +600,41 @@ void TGeomForm::DrawChart(TLineSeries *Series0,TBeamSolver *Solver,TColor Col1, 
        /*   if (i>0 && X0[i]==X0[i-1])
             X0[i]+=1e-6; */
 		Series0->AddXY(X0[i]*100,Y0[i],"",Col);
+		if (ChartGroup->ItemIndex==Bz_chart) {
+        	DoubleSeries->AddXY(X0[i]*100,Z0[i]);
+		}
 	}
 
     delete[] X0;
-    delete[] Y0;
+	delete[] Y0;
+	delete[] Z0;
     delete[] N0;
 }
 //---------------------------------------------------------------------------
 void __fastcall TGeomForm::FormShow(TObject *Sender)
 {
-    Series1->Visible=!Beam;
-    C1=false;
-    Series2->Visible=Compare1->Checked && !Beam;
-    ChartGroup->Enabled=!Beam;
+	//STRUCTURE GROUP
+	GeomSeries1->Visible=!Beam;
+	GeomSeries2->Visible=Compare1->Checked && !Beam;
 
-    BeamGroup->Enabled=Beam;
-    BeamSeries1->Visible=Beam;
-    
-    h=1;//MainSolver->GetKernel();
+	ChartGroup->Enabled=!Beam;
+	GCompare=false;
+
+	//BEAM GROUP
+	BeamSeries1->Visible=Beam;
+	BeamSeries2->Visible=Beam;
+	EnvelopeSeries1->Visible=Beam;
+	EnvelopeSeries2->Visible=Beam;
+	BarSeries1->Visible=Beam;
+
+	BeamGroup->Enabled=Beam;
+	BeamBox->Enabled=Beam;
+	EnvelopeCB->Enabled=Beam;
+
+	h=1;//MainSolver->GetKernel();
  // ChartSeries1->Visible=false;
 
- 	Draw();
-
-   /* if (Beam){
-        if (BeamBox->Checked)
-            DrawBeam(BeamSeries1,MainSolver,Particle_col);
-        if (EnvelopeCB->Checked)
-			DrawBeamEnvelope(EnvelopeSeries1,MainSolver,Envelope_col);
-        SetParameters();
-    }
-    else{
-        DrawChart(Series1,MainSolver,Line1_col_a,Line1_col_b);
-        ClearParameters();
-	}   */
+	Draw();
 }
 //---------------------------------------------------------------------------
 
@@ -649,10 +658,10 @@ void __fastcall TGeomForm::OpenButton1Click(TObject *Sender)
 
 	if (Err==ERR_NO){
 		//DrawChart(Series2,CompData1,Line2_col_a,Line2_col_b);
-		C1=true;
+		GCompare=true;
 		Draw();
     } else
-		C1=false;
+		GCompare=false;
 }
 //---------------------------------------------------------------------------
 void __fastcall TGeomForm::FormCreate(TObject *Sender)
@@ -675,7 +684,7 @@ void __fastcall TGeomForm::FormDestroy(TObject *Sender)
 
 void __fastcall TGeomForm::Compare1Click(TObject *Sender)
 {
-	Series2->Visible=Compare1->Checked;// && !Beam;
+	GeomSeries2->Visible=Compare1->Checked;// && !Beam;
 	BeamSeries2->Visible=Compare1->Checked;
 	EnvelopeSeries2->Visible=Compare1->Checked;
 	Draw();
@@ -684,9 +693,9 @@ void __fastcall TGeomForm::Compare1Click(TObject *Sender)
 
 void __fastcall TGeomForm::ChartGroupClick(TObject *Sender)
 {
-    DrawChart(Series1,MainSolver,Line1_col_a,Line1_col_b);
-    if (C1)
-		DrawChart(Series2,CompData1,Line2_col_a,Line2_col_b);
+	DrawChart(GeomSeries1,MainSolver,Line1_col_a,Line1_col_b);
+	if (GCompare)
+		DrawChart(GeomSeries2,CompData1,Line2_col_a,Line2_col_b);
 }
 //---------------------------------------------------------------------------
 void TGeomForm::Rescale()
@@ -714,6 +723,7 @@ void TGeomForm::Rescale()
 void TGeomForm::Draw()
 {
 	if (!Beam) {
+		DrawChart(GeomSeries1,MainSolver,Line1_col_a,Line1_col_b);
         return;
 	}
 	try{
@@ -722,7 +732,7 @@ void TGeomForm::Draw()
 		GChart->BottomAxis->Automatic=true;
 		if (EnvelopeCB->Checked){
 			DrawBeamEnvelope(EnvelopeSeries1,MainSolver,Envelope_col);
-            if (C1 && Compare1->Checked) {
+			if (GCompare && Compare1->Checked) {
 				DrawBeamEnvelope(EnvelopeSeries2,CompData1,clNavy);
 			}
 		}else{
@@ -733,7 +743,7 @@ void TGeomForm::Draw()
 		if (BeamBox->Checked){
 			DrawBeam(BeamSeries1,MainSolver,Particle_col);
 			DrawBarChart(BarSeries1,MainSolver,clRed);
-			if (C1 && Compare1->Checked) {
+			if (GCompare && Compare1->Checked) {
 				DrawBeam(BeamSeries2,CompData1,clMaroon);
 			}
 		}else{
