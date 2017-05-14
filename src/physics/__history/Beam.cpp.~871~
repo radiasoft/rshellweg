@@ -14,7 +14,7 @@ __fastcall TBeam::TBeam(int N)
     lmb=1;
     Cmag=0;
     SetKernel(Kernel);
-    
+
     Particle=new TParticle[Np];
     for (int i=0;i<Np;i++)
         Particle[i].lost=LIVE;
@@ -50,7 +50,7 @@ void TBeam::SetKernel(double Ker)
 
     if (Ran1<1e-5)
         Ran1=1e-5;
-        
+
     x1=sqrt(-2*ln(Ran1))*cos(2*pi*Ran2);
     x2=sqrt(-2*ln(Ran1))*sin(2*pi*Ran2);
 }        */
@@ -181,9 +181,15 @@ bool TBeam::ImportEnergy(TBeamInput *BeamPar)
 			}
 		}
 		int N=0;
-		switch (BeamPar->ZBeamType){
-			case FILE_1D: {N=1;break;}
-			case FILE_2D: {N=2;break;}
+		switch (BeamPar->ZBeamType) {
+			case FILE_1D:
+                            N=1;
+                            break;
+			case FILE_2D:
+                            N=2;
+                            break;
+                        default:
+							throw std::runtime_error("ImportEnergy error: Unhandled ZBeamType");
 		}
 		X=DeleteDoubleArray(X,N);
 		Success=true;
@@ -250,13 +256,15 @@ bool TBeam::BeamFromCST(TBeamInput *BeamPar)
 
 					//fprintf(logFile,"%f %f %f\n",px,pr*cos(th)-pth*sin(th),px-pr*cos(th)+pth*sin(th));
 				}
-				default: {};
+				default:
+									throw std::runtime_error("BeamFromCST error: Unhandled RBeamType");
 			}
 		}
 		int N=0;
 		switch (BeamPar->RBeamType){
 			case CST_PIT: {N=PIT_LENGTH;break;}
 			case CST_PID: {N=PID_LENGTH;break;}
+						default: throw std::runtime_error("BeamFromCST error: Unhandled RBeamType value");
 		}
 		X=DeleteDoubleArray(X,N);
 		Success=true;
@@ -406,6 +414,7 @@ bool TBeam::BeamFromFile(TBeamInput *BeamPar)
 			case FILE_2D: {N=2;break;}
 			case TWO_FILES_2D: {N=2;Y=DeleteDoubleArray(Y,N);break;}
 			case FILE_4D: {N=4;break;}
+						default: throw std::runtime_error("BeamFromFile error: Unhandled RBeamType value");
 		}
 		X=DeleteDoubleArray(X,N);
 		Success=true;
@@ -573,6 +582,8 @@ void TBeam::SetParameters(double *X,TBeamParameter Par)
 				Particle[i].beta.z=X[i];
 			break;
 		}
+        default:
+			throw std::runtime_error("SetParameters error: Unhandled TBeamParameter value");
 	}
 }
 //---------------------------------------------------------------------------
@@ -761,7 +772,7 @@ TEllipse TBeam::FindEmittanceAngle(TBeamParameter P)
 			Beam1->Particle[k].lost=Particle[k].lost;
 			Beam1->Particle[k].beta=Particle[k].beta;
 			Beam1->Particle[k].th=Particle[k].th;
-			Beam1->Particle[k].lost==Particle[k].lost;
+			Beam1->Particle[k].lost=Particle[k].lost;
 			if (Particle[k].lost==LIVE){
 				Beam1->Particle[k].r=X0[j]*cos(Angle1)+Bx0[j]*sin(Angle1);
 				Beam1->Particle[k].beta.r=Bx0[j]*cos(Angle1)-X0[j]*sin(Angle1);
@@ -1194,8 +1205,6 @@ TGauss TBeam::GetStatistics(TBeamParameter P,bool FWHM)
 
 	G=GetStatistics(X,FWHM);
 
-	//delete[] X;
-
 	return G;
 }
 //---------------------------------------------------------------------------
@@ -1214,7 +1223,6 @@ TGauss TBeam::GetStatistics(double *X,bool FWHM,bool Core)
 		G.core=Spectrum->GetCore();
 
 	delete Spectrum;
-	//delete[] X;
 
 	return G;
 }
@@ -1225,8 +1233,6 @@ TSpectrum *TBeam::GetSpectrum(TBeamParameter P)
 
 	TSpectrum *Spectrum=GetSpectrum(X);
 
-	//delete[] X;
-
 	return Spectrum;
 }
 //---------------------------------------------------------------------------
@@ -1236,7 +1242,6 @@ TSpectrum *TBeam::GetSpectrum(double *X)
 	Spectrum=new TSpectrum;
 
 	Spectrum->SetMesh(X,Nbars,Nliv);
-	delete[] X;
 
 	return Spectrum;
 }
@@ -1246,8 +1251,6 @@ TSpectrumBar *TBeam::GetSpectrumBar(TBeamParameter P,bool Smooth)
 	double *X=GetLivingParameter(P);
 
 	TSpectrumBar *SpectrumBar=GetSpectrumBar(X,Smooth);
-
-	//delete[] X;
 
 	return SpectrumBar;
 }
@@ -1429,11 +1432,16 @@ double TBeam::CosSum(TIntParameters& Par,TIntegration *I)
 double TBeam::BesselSum(TIntParameters& Par,TIntegration *I,TTrig Trig)
 {
     double S=0,N=0,S1=0;
-    double phi=0,r=0,bw=0,c=0;
+	double phi=0,r=0,bw=0,c=0,bz=0;
     double Res=0;
 
     for (int i=0;i<Np;i++){
-        if (Particle[i].lost==LIVE){
+		if (Particle[i].lost==LIVE){
+			bz=Particle[i].beta.z+I[i].beta.z*Par.h;
+			if (bz<0 || bz>1) {
+				Particle[i].lost=BZ_LOST;
+				continue;
+			}
             phi=Particle[i].phi+I[i].phi*Par.h;
 			r=Particle[i].r+I[i].r*Par.h;
             bw=Par.bw;
@@ -1497,11 +1505,10 @@ TGauss TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices)
 	TGauss G;
 	int j=0;
 
-	double *L;
+		double L[Nliv];
 	double phi=0,Iphi=0,x=0;
 
 	CountLiving();
-	L=new double[Nliv];
 
     for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){
@@ -1516,7 +1523,6 @@ TGauss TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices)
 
 	bool FWHM=false,Core=true;
 	G=GetStatistics(L,FWHM,Core);
-	delete[] L;
 
 	return G;
 }
@@ -1526,11 +1532,10 @@ TGauss TBeam::iGetBeamRadius(TIntParameters& Par,TIntegration *I,TBeamParameter 
 	TGauss G;
 	int j=0;
 
-	double *R;//,Rav=0,dR=0;
+		double R[Nliv];
 	double r=0, th=0,Ir=0,Ith=0,x=0;
 	//TSpectrumBar *Spectrum;
 	CountLiving();
-    R=new double[Nliv];
 
     for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){
@@ -1560,7 +1565,6 @@ TGauss TBeam::iGetBeamRadius(TIntParameters& Par,TIntegration *I,TBeamParameter 
 	}
 	bool FWHM=false,Core=true;
 	G=GetStatistics(R,FWHM,Core);
-	delete[] R;
 
 	return G;
 }
@@ -1629,6 +1633,10 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 	for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){
 			beta.z=Particle[i].beta.z+I[Si][i].beta.z*Par.h;
+			if (beta.z<0) {
+				Particle[i].lost=BZ_LOST;
+				continue;
+			}
 			beta.r=Particle[i].beta.r+I[Si][i].beta.r*Par.h;
 			beta.th=Particle[i].beta.th+I[Si][i].beta.th*Par.h;
 			beta0=sqrt(sqr(beta.z)+sqr(beta.r)+sqr(beta.th));
@@ -1680,14 +1688,9 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 				Hx.r+=C.px;
 				Hx.th+=C.py;
 			}
-			beta.r=0;
-			beta.th=0;
-			E.r=0;
-			E.th=0;
-			//gamma=VelocityToEnergy(beta.z);
 			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th+Hx.th-beta.z*E.r)-beta.th*(H.r+Hx.r+beta.z*E.th))/(gamma*beta.z);
-			k_beta.r=0;//((1-sqr(beta.r))*E.r+beta.th*(H.z+Hx.z-beta.r*E.th)-beta.z*(H.th+Hx.th+beta.r*E.z))/(gamma*beta.z)+sqr(beta.th)/(r*beta.z);
-			k_beta.th=0;//((1-sqr(beta.th))*E.th+beta.z*(H.r+Hx.r-beta.th*E.z)-beta.r*(H.z+Hx.z+beta.th*E.r))/(gamma*beta.z)-beta.th*beta.r/(r*beta.z);
+			k_beta.r=((1-sqr(beta.r))*E.r+beta.th*(H.z+Hx.z-beta.r*E.th)-beta.z*(H.th+Hx.th+beta.r*E.z))/(gamma*beta.z)+sqr(beta.th)/(r*beta.z);
+			k_beta.th=((1-sqr(beta.th))*E.th+beta.z*(H.r+Hx.r-beta.th*E.z)-beta.r*(H.z+Hx.z+beta.th*E.r))/(gamma*beta.z)-beta.th*beta.r/(r*beta.z);
 		   /*
 			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th-beta.z*E.r)-beta.th*r*Par.Hext.r)/(gamma*beta.z); //k_bz = dbz/dz  ; Br=-Bz'/2!;
 			k_beta.r=((E.r-beta.z*H.th-beta.r*(beta.z*E.z+beta.r*E.r))+beta.th*Par.Hext.z)/(gamma*beta.z)+r*sqr(th_dot)/(beta.z);
@@ -1742,6 +1745,7 @@ void TBeam::Next(TBeam *nBeam,TIntParameters& Par,TIntegration **I)
 			nParticle[i].beta.z=0;
 			dbz=(I[0][i].beta.z+I[1][i].beta.z+2*I[2][i].beta.z+2*I[3][i].beta.z)*Par.h/6;
 			nParticle[i].beta.z=Particle[i].beta.z+dbz;
+
 			//nParticle[i].beta=0;
 			//nParticle[i].beta=Particle[i].beta+dbz;//(I[0][i].bz+I[1][i].bz+2*I[2][i].bz+2*I[3][i].bz)*Par.h/6;
 

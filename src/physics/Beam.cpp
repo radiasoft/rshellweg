@@ -189,7 +189,7 @@ bool TBeam::ImportEnergy(TBeamInput *BeamPar)
                             N=2;
                             break;
                         default:
-                            throw runtime_error("ImportEnergy error: Unhandled ZBeamType");
+							throw std::runtime_error("ImportEnergy error: Unhandled ZBeamType");
 		}
 		X=DeleteDoubleArray(X,N);
 		Success=true;
@@ -257,14 +257,14 @@ bool TBeam::BeamFromCST(TBeamInput *BeamPar)
 					//fprintf(logFile,"%f %f %f\n",px,pr*cos(th)-pth*sin(th),px-pr*cos(th)+pth*sin(th));
 				}
 				default:
-                                    throw runtime_error("BeamFromCST error: Unhandled RBeamType");
+									throw std::runtime_error("BeamFromCST error: Unhandled RBeamType");
 			}
 		}
 		int N=0;
 		switch (BeamPar->RBeamType){
 			case CST_PIT: {N=PIT_LENGTH;break;}
 			case CST_PID: {N=PID_LENGTH;break;}
-                        default: throw runtime_error("BeamFromCST error: Unhandled RBeamType value");
+						default: throw std::runtime_error("BeamFromCST error: Unhandled RBeamType value");
 		}
 		X=DeleteDoubleArray(X,N);
 		Success=true;
@@ -414,7 +414,7 @@ bool TBeam::BeamFromFile(TBeamInput *BeamPar)
 			case FILE_2D: {N=2;break;}
 			case TWO_FILES_2D: {N=2;Y=DeleteDoubleArray(Y,N);break;}
 			case FILE_4D: {N=4;break;}
-                        default: throw runtime_error("BeamFromFile error: Unhandled RBeamType value");
+						default: throw std::runtime_error("BeamFromFile error: Unhandled RBeamType value");
 		}
 		X=DeleteDoubleArray(X,N);
 		Success=true;
@@ -583,7 +583,7 @@ void TBeam::SetParameters(double *X,TBeamParameter Par)
 			break;
 		}
         default:
-            throw runtime_error("SetParameters error: Unhandled TBeamParameter value");
+			throw std::runtime_error("SetParameters error: Unhandled TBeamParameter value");
 	}
 }
 //---------------------------------------------------------------------------
@@ -1504,8 +1504,10 @@ TGauss TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices)
 {
 	TGauss G;
 	int j=0;
+	double *L;
+	L=new double [Nliv];
 
-        double L[Nliv];
+	//	double L[Nliv];
 	double phi=0,Iphi=0,x=0;
 
 	CountLiving();
@@ -1524,6 +1526,8 @@ TGauss TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices)
 	bool FWHM=false,Core=true;
 	G=GetStatistics(L,FWHM,Core);
 
+	delete[] L;
+
 	return G;
 }
 //---------------------------------------------------------------------------
@@ -1531,8 +1535,10 @@ TGauss TBeam::iGetBeamRadius(TIntParameters& Par,TIntegration *I,TBeamParameter 
 {
 	TGauss G;
 	int j=0;
+	double *R;
 
-        double R[Nliv];
+	R=new double [Nliv];
+	//double R[Nliv];
 	double r=0, th=0,Ir=0,Ith=0,x=0;
 	//TSpectrumBar *Spectrum;
 	CountLiving();
@@ -1565,6 +1571,8 @@ TGauss TBeam::iGetBeamRadius(TIntParameters& Par,TIntegration *I,TBeamParameter 
 	}
 	bool FWHM=false,Core=true;
 	G=GetStatistics(R,FWHM,Core);
+
+	delete[] R;
 
 	return G;
 }

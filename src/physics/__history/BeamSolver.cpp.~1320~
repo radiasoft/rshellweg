@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------
 
- 
+
 #pragma hdrstop
 
 #include "BeamSolver.h"
@@ -201,7 +201,9 @@ void TBeamSolver::ResetDump(int Ns)
 //---------------------------------------------------------------------------
 void TBeamSolver::ShowError(AnsiString &S)
 {
+        #ifndef RSLINAC
 	ShowMessage(S);
+        #endif
 	ParsedStrings->Add(S);
 }
 //---------------------------------------------------------------------------
@@ -301,7 +303,7 @@ void TBeamSolver::LoadIniConstants()
     	else
     	Kernel=0.9;
 
-    
+
     t=UserIni->ReadInteger("NUMERIC","Spline Interpolation",t);
     switch (t) {
         case (0):{
@@ -433,7 +435,7 @@ bool TBeamSolver::IsKeyWord(AnsiString &S)
 		S=="CELLS" ||
 		S=="SAVE" ||
         S=="OPTIONS" ||
-		S=="SPCHARGE"; 
+		S=="SPCHARGE";
 	  //	S=="COMMENT";
 }
 //---------------------------------------------------------------------------
@@ -591,36 +593,36 @@ TSpaceChargeType TBeamSolver::ParseSpchType(AnsiString &S)
 //---------------------------------------------------------------------------
 void TBeamSolver::GetDimensions(TCell& Cell)
 {
-    
+
     int Nbp=0,Nep=0;
     int Nar=0,Nab=0;
     int Mode=Cell.Mode;
 
     switch (Mode) {
-        case 90:    
-            Nbp=Nb12; 
+        case 90:
+            Nbp=Nb12;
             Nep=Ne12;
-            Nar=Nar23; 
-            Nab=Nab23; 
+            Nar=Nar23;
+            Nab=Nab23;
             break;
-        case 120:   
-            Nbp=Nb23; 
+        case 120:
+            Nbp=Nb23;
             Nep=Ne23;
-            Nar=Nar23; 
-            Nab=Nab23; 
+            Nar=Nar23;
+            Nab=Nab23;
             break;
-        case 240:   
-            Nbp=Nb43; 
+        case 240:
+            Nbp=Nb43;
             Nep=Ne43;
-            Nar=Nar43; 
-            Nab=Nab23; 
+            Nar=Nar43;
+            Nab=Nab23;
             break;
-        default: 
+        default:
             return;
     }
 
     double *Xo,*Yo,*Xi,*Yi;
-    
+
     Xo=new double[Nep];
     Yo=new double[Nep];
     Xi=new double[Nbp];
@@ -634,19 +636,19 @@ void TBeamSolver::GetDimensions(TCell& Cell)
     for (int i=0;i<Nbp;i++){
         for (int j=0;j<Nep;j++){
             switch (Mode) {
-                case 90:    
-                    Xo[j]=E12[Nbp-i-1][j]; 
-                    Yo[j]=R12[Nbp-i-1][j]; 
+                case 90:
+                    Xo[j]=E12[Nbp-i-1][j];
+                    Yo[j]=R12[Nbp-i-1][j];
                     break;
-                case 120:   
-                    Xo[j]=E23[Nbp-i-1][j]; 
-                    Yo[j]=R23[Nbp-i-1][j]; 
+                case 120:
+                    Xo[j]=E23[Nbp-i-1][j];
+                    Yo[j]=R23[Nbp-i-1][j];
                     break;
-                case 240:   
-                    Xo[j]=E43[Nbp-i-1][j]; 
-                    Yo[j]=R43[Nbp-i-1][j]; 
+                case 240:
+                    Xo[j]=E43[Nbp-i-1][j];
+                    Yo[j]=R43[Nbp-i-1][j];
                     break;
-                default: 
+                default:
                     return;
             }
         }
@@ -656,16 +658,16 @@ void TBeamSolver::GetDimensions(TCell& Cell)
         Yi[i]=Spline.Interpolate(Cell.ELP);
        //   Xi[i]=mode90?B12[i]:B23[i];
         switch (Mode) {
-            case 90:    
+            case 90:
                 Xi[i]=B12[i];
                 break;
-            case 120:   
+            case 120:
                 Xi[i]=B23[i];
                 break;
-            case 240:   
+            case 240:
                 Xi[i]=B43[i];
                 break;
-            default: 
+            default:
                 return;
         }
     }
@@ -688,19 +690,19 @@ void TBeamSolver::GetDimensions(TCell& Cell)
     for (int i=0;i<Nab;i++){
         for (int j=0;j<Nar;j++){
             switch (Mode) {
-                case 90:    
-                    Xo[j]=AR[j]; 
-                    Yo[j]=A12[i][j]; 
+                case 90:
+                    Xo[j]=AR[j];
+                    Yo[j]=A12[i][j];
                     break;
-                case 120:   
-                    Xo[j]=AR[j]; 
-                    Yo[j]=A23[i][j]; 
+                case 120:
+                    Xo[j]=AR[j];
+                    Yo[j]=A23[i][j];
                     break;
-                case 240:   
-                    Xo[j]=AR43[j]; 
-                    Yo[j]=A43[i][j]; 
+                case 240:
+                    Xo[j]=AR43[j];
+                    Yo[j]=A43[i][j];
                     break;
-                default: 
+                default:
                     return;
             }
 
@@ -713,16 +715,16 @@ void TBeamSolver::GetDimensions(TCell& Cell)
         Yi[i]=Spline.Interpolate(Cell.AkL);
         //Xi[i]=AB[i];
         switch (Mode) {
-            case 90:    
+            case 90:
                 Xi[i]=AB[i];
                 break;
-            case 120:   
+            case 120:
                 Xi[i]=AB[i];
                 break;
-            case 240:   
+            case 240:
                 Xi[i]=AB[i];
                 break;
-            default: 
+            default:
                 return;
         }
     }
@@ -741,7 +743,7 @@ void TBeamSolver::GetDimensions(TCell& Cell)
     fclose(T);  */
 	//ShowError(E12[0][1]);
 
-    
+
   /*    for (int i=0;i<Nbt;i++){
         akl[i]=solve(ELP(akl),ELP=E0,bf[i]);
     }
@@ -990,10 +992,10 @@ TError TBeamSolver::ParseSPH(TInputLine *Line, AnsiString &F, int Nr)
 		F+=AddLines(Line,0,1);
 		if (Nr>1) {
 			BeamPar.Sph.Rsph=Line->S[2].ToDouble()/100;  //Rsph cm
-			F+=" \t"+Line->S[1];
+			F+=" \t"+Line->S[2];
 			if (Nr>2){
 				BeamPar.Sph.kT=Line->S[3].ToDouble(); //kT
-				F+=" \t"+Line->S[1];
+				F+=" \t"+Line->S[3];
 			} else
 				BeamPar.Sph.kT=0;
 		} else {
@@ -1164,17 +1166,22 @@ TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 	}else{
 		for (int i = 1; i < Line->N; i++) {
 			if (Line->S[i]=="TRAIN") {
-				Ntr=i+1;
+				//Ntr++;//=i+1;
+				Ntr=Line->N-i;
 				break;
 			}
 		}
 		int Nsp=Line->N-Ntr;
-		if (Nsp<2) {
+		if (Nsp>2) {
+			S="ERROR: Too many parameters in SPCHARGE line!";
+			ShowError(S);
+			return ERR_SPCHARGE;
+		}else{
 			BeamPar.SpaceCharge.Type=ParseSpchType(Line->S[0]);
 			F=F+"\t"+Line->S[0];
 			switch (BeamPar.SpaceCharge.Type) {
 				case SPCH_GW: {
-					if (Nsp==1){
+					if (Nsp==2){
 						BeamPar.SpaceCharge.NSlices=Line->S[1].ToInt();
 						F=F+"\t"+Line->S[1];
 					}
@@ -1182,7 +1189,7 @@ TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 				}
 				case SPCH_LPST: { }
 				case SPCH_ELL: {
-					if (Nsp==1){
+					if (Nsp==2){
 						BeamPar.SpaceCharge.Nrms=Line->S[1].ToDouble();
 						F=F+"\t"+Line->S[1];
 					}
@@ -1191,25 +1198,21 @@ TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 				case SPCH_NO: { break;}
 				default: {return ERR_SPCHARGE;};
 			}
-		} else {
-			S="ERROR: Too many parameters in SPCHARGE line!";
-			ShowError(S);
-			return ERR_SPCHARGE;
 		}
 
 		if (Ntr>0) {
 			BeamPar.SpaceCharge.Train=true;
 			F=F+"\t"+"TRAIN";
-			if (Line->N==Ntr+1){
-				BeamPar.SpaceCharge.Ltrain=1e-2*Line->S[Ntr].ToDouble();
-				F=F+"\t"+Line->S[1];
-			}else if (Line->N!=Ntr) {
+			if (Ntr==1){
+				BeamPar.SpaceCharge.Ltrain=0;
+			} else if (Ntr==2){
+				BeamPar.SpaceCharge.Ltrain=1e-2*Line->S[Nsp+1].ToDouble();
+				F=F+"\t"+Line->S[Nsp+1];
+			}else {
 				S="ERROR: Too many parameters after TRAIN keyword!";
 				ShowError(S);
 				return ERR_SPCHARGE;
-			}else {
-                BeamPar.SpaceCharge.Ltrain=0;
-            }
+			}
 		}
 	}
 
@@ -1264,7 +1267,7 @@ TError TBeamSolver::ParseSolenoid(TInputLine *Line)
 			if (Line->N==2){
 				StructPar.SolenoidPar.StartPos=Line->S[1].ToDouble()/100;
 				F=F+"\t"+Line->S[1];
-			}else{
+			}else if (Line->N>2){
 				S="WARNING: Excessive parameters in SOLENOID line. They will be ingored!";
 				ShowError(S);
 			}
@@ -2056,7 +2059,7 @@ TError TBeamSolver::LoadData(int Nlim)
 	Parsed=ParseLines(Lines,N);
     ParsedStrings->Add("END");
     InputStrings->AddStrings(ParsedStrings);
-    
+
     ParsedStrings->SaveToFile("PARSED.TXT");
 
     delete[] Lines;
@@ -2075,7 +2078,7 @@ TError TBeamSolver::MakeBuncher(TCell& iCell)
 
     if (strncmp(FileName, "", 1) == 0) {
         return ERR_NOFILE;
-    } 
+    }
     if (!FileExists(FileName)) {
         return ERR_OPENFILE;
     }
@@ -2199,12 +2202,12 @@ int TBeamSolver::ChangeCells(int N)
 	StructPar.NElements=N;
 
 	StructPar.Cells=new TCell[StructPar.NElements];
-    
+
     for (int i=0;i<Nnew;i++)
         StructPar.Cells[i]=iCells[i];
 
     delete[] iCells;
-    
+
     return Nprev;
 }
 //---------------------------------------------------------------------------
@@ -2383,8 +2386,8 @@ TFieldMap2D TBeamSolver::ParseMapFile(AnsiString &F)
 	for (int i = 0; i < Map.Dim.Nx; i++)
 		Map.Field[i]=new TField [Map.Dim.Ny];
 
-	Map.Piv.X=MakePivot(Unq[0],Nmax,ExternalMagnetic.Dim.Nx);
-	Map.Piv.Y=MakePivot(Unq[1],Nmax,ExternalMagnetic.Dim.Ny);
+	Map.Piv.X=MakePivot(Unq[0],Nmax,Map.Dim.Nx);
+	Map.Piv.Y=MakePivot(Unq[1],Nmax,Map.Dim.Ny);
 
 	for (int j = 0; j < Map.Dim.Nx; j++) {
 		x=Map.Piv.X[j];
@@ -2410,22 +2413,24 @@ void TBeamSolver::CreateMaps()
 {
 	ResetMaps();
 	double kc=0;
+	int q=0;
 
 	QuadMaps=new TFieldMap2D [StructPar.NMaps];
 	for(int i=0;i<StructPar.NElements;i++){
-		kc=sqr(c)/(We0*StructPar.Cells[i].F0);
-		if (StructPar.Cells[i].Magnet.MagnetType==QUAD){
-			QuadMaps[i]=ParseMapFile(StructPar.Cells[i].Magnet.File);
-			for (int j = 0; j < QuadMaps[i].Dim.Nx; j++) {
-				QuadMaps[i].Piv.X[j]*=StructPar.Cells[i].F0/c;
-				for (int k = 0; k < QuadMaps[i].Dim.Ny; k++) {
-					QuadMaps[i].Field[j][k].r*=StructPar.Cells[i].Magnet.BField*kc;
-					QuadMaps[i].Field[j][k].th*=StructPar.Cells[i].Magnet.BField*kc;
+		if (StructPar.Cells[i].Magnet.MagnetType==MAG_QUAD){
+			kc=sqr(c)/(We0*StructPar.Cells[i].F0);
+			QuadMaps[q]=ParseMapFile(StructPar.Cells[i].Magnet.File);
+			for (int j = 0; j < QuadMaps[q].Dim.Nx; j++) {
+				QuadMaps[q].Piv.X[j]*=StructPar.Cells[i].F0/c;
+				for (int k = 0; k < QuadMaps[q].Dim.Ny; k++) {
+					QuadMaps[q].Field[j][k].r*=StructPar.Cells[i].Magnet.BField*kc;
+					QuadMaps[q].Field[j][k].th*=StructPar.Cells[i].Magnet.BField*kc;
 				}
 			}
-			for (int k = 0; k < QuadMaps[i].Dim.Ny; k++) {
-				QuadMaps[i].Piv.Y[k]*=StructPar.Cells[i].F0/c;
-            }
+			for (int k = 0; k < QuadMaps[q].Dim.Ny; k++) {
+				QuadMaps[q].Piv.Y[k]*=StructPar.Cells[i].F0/c;
+			}
+			q++;
 		}
 	}
 }
@@ -2733,6 +2738,7 @@ void TBeamSolver::CalculateRadialField(double Rmax)
 			ExternalMagnetic.Field[i][0][j].z=ExternalMagnetic.Field[i][0][0].z;
 			ExternalMagnetic.Field[i][0][j].r=ExternalMagnetic.Field[i][0][0].r;
 			ExternalMagnetic.Field[i][0][j].r*=-(r/2); //Er=-r/2 * dEz/dz
+			ExternalMagnetic.Field[i][0][j].th=0;
 		}
 	}
 }
@@ -3115,7 +3121,7 @@ TError TBeamSolver::CreateBeam()
 	}
 	Beam[0]->SetCurrent(BeamPar.Current);
 	Np_beam=Npoints;
-    
+
 	for (int i=0;i<BeamPar.NParticles;i++)
         Beam[0]->Particle[i].z=Structure[0].ksi*Structure[0].lmb;
 
@@ -3648,10 +3654,9 @@ double TBeamSolver::GetStructureParameter(int Nknot, TStructureParameter P)
 			x=T.epsilon;
 			break;
 		}
-		/*case (LMB_PAR):{
-            x=Structure[Nknot].lmb;
-			break;
-		}    */
+                default: {
+                        throw runtime_error("GetStructureParameter error: Unhandled TStructureParameter value");
+                }
 	}
 
 	return x;
@@ -3701,9 +3706,9 @@ double TBeamSolver::GetEigenFactor(double x, double y, double z,double a, double
 	q=(2*cub(B)-9*A*B*C+27*sqr(A)*D)/(27*cub(A));
 	Q=cub(p/3)+sqr(q/2);
 
-	if (Q>0) {
+	if (Q > 0) {
 		s=cubrt(sqrt(Q)-q/2)-cubrt(sqrt(Q)+q/2);
-	} else if (Q=0) {
+	} else if (Q == 0) {
 		s1=2*cubrt(q/2);
 		s2=-2*cubrt(q/2);
 		s=s2>s1?s2:s1;
@@ -4064,8 +4069,8 @@ void TBeamSolver::Integrate(int Si, int Sj)
 //		        GInt +=.5*z*w12[i]*func/abs(((Lb2/d2-1)*ksi+1));
 		        GInt +=.5*z*w12[i]*func/((Lb2/d2-1)*ksi+1);
 		   }
-		} 
-	} 
+		}
+	}
 	return GInt;
 }
 //---------------------------------------------------------------------------
@@ -4350,7 +4355,7 @@ void TBeamSolver::Step(int Si)
     Beam[Si]->lmb=lmb;
 	CountLiving(Si);
    //	I=BeamPar.Current*Nliv/BeamPar.NParticles;
-  /*    
+  /*
     Rb=Beam[i]->GetBeamRadius();
     phi0=Beam[i]->GetAveragePhase();
     dphi=Beam[i]->GetPhaseLength();
@@ -4537,7 +4542,7 @@ void TBeamSolver::Step(int Si)
 		Par[3].dH=d2Bzx/d2h;
 	}
 
-   /*	FILE *logFile=fopen("beam.log","a");
+   	FILE *logFile=fopen("beam.log","a");
 	//fprintf(logFile,"Phase Radius Betta\n");
     //for (int i=0;i<Np;i++)
 		fprintf(logFile,"%i %f %f %f %f\n",Si,Par[0].dH,Par[1].dH,Par[2].dH,Par[3].dH);
@@ -4564,7 +4569,7 @@ TError TBeamSolver::Solve()
         Beam[0]->Particle[i].x/=Structure[0].lmb;
     }                                             */
  // fclose(logFile);
-    
+
     for (int i=0;i<Ncoef;i++){
         delete[] K[i];
 		K[i]=new TIntegration[BeamPar.NParticles];
@@ -4636,7 +4641,7 @@ TError TBeamSolver::Solve()
         //}
     }
 
-   //   
+   //
 
     #ifndef RSLINAC
     SmartProgress->SetPercent(100);
@@ -4675,13 +4680,12 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	OutputStrings->Add("========================================");
     OutputStrings->Add("");
 
-	bool FWHM=true;
     double Ws=0;
    //   AnsiString s;
     int j=Npoints-1;
     double z=100*Structure[j].ksi*Structure[j].lmb;
 
-	TGauss Gw=GetEnergyStats(j,FWHM);
+	TGauss Gw=GetEnergyStats(j,D_FWHM);
 
 	double Wm=Beam[j]->GetMaxEnergy();
 	double I=Beam[j]->GetCurrent();
@@ -4689,7 +4693,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     double kc=100.0*Beam[j]->GetLivingNumber()/Beam[0]->GetLivingNumber();
 	double r=1e3*Beam[j]->GetRadius();
 
-	TGauss Gphi=GetPhaseStats(j,FWHM);
+	TGauss Gphi=GetPhaseStats(j,D_FWHM);
 
     double f=1e-6*c/Structure[j].lmb;
 	double Ra=1e3*Structure[j].Ra*Structure[j].lmb;
@@ -4788,7 +4792,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	double Pbeam0=0, Wb0=0;
 	double Ib=0, Wb=0, P0=0;
 	for (int i=0;i<=j;i++){
-		if (Structure[i].jump && !Structure[i].drift || i==j) {
+		if ((Structure[i].jump && !Structure[i].drift) || i==j) {
 			Ib=Beam[i]->GetCurrent();
 			Wb=Beam[i]->GetAverageEnergy();
 
@@ -4836,7 +4840,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     delete OutputStrings;
    //   delete Strings;
 
-    
+
 
     return Result;
 }

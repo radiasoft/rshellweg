@@ -199,8 +199,12 @@ void TMainForm::DisplayInputData()
 	L="";
 	TSpaceCharge Spch=Solver->GetSpaceChargeInfo();
 	switch (Spch.Type) {
+		case SPCH_LPST: {
+			Label_Spch->Caption="Lapostolle Elliptical Model";
+			break;
+		}
 		case SPCH_ELL: {
-			Label_Spch->Caption="Elliptical Model";
+			Label_Spch->Caption="Elliptical Integral Model";
 			break;
 		}
 		case SPCH_GW: {

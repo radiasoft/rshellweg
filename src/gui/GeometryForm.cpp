@@ -626,6 +626,7 @@ void __fastcall TGeomForm::FormShow(TObject *Sender)
 	EnvelopeSeries1->Visible=Beam;
 	EnvelopeSeries2->Visible=Beam;
 	BarSeries1->Visible=Beam;
+	DoubleSeries->Visible=!Beam;
 
 	BeamGroup->Enabled=Beam;
 	BeamBox->Enabled=Beam;

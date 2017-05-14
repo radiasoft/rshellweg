@@ -1267,7 +1267,7 @@ TError TBeamSolver::ParseSolenoid(TInputLine *Line)
 			if (Line->N==2){
 				StructPar.SolenoidPar.StartPos=Line->S[1].ToDouble()/100;
 				F=F+"\t"+Line->S[1];
-			}else{
+			}else if (Line->N>2){
 				S="WARNING: Excessive parameters in SOLENOID line. They will be ingored!";
 				ShowError(S);
 			}
@@ -2738,6 +2738,7 @@ void TBeamSolver::CalculateRadialField(double Rmax)
 			ExternalMagnetic.Field[i][0][j].z=ExternalMagnetic.Field[i][0][0].z;
 			ExternalMagnetic.Field[i][0][j].r=ExternalMagnetic.Field[i][0][0].r;
 			ExternalMagnetic.Field[i][0][j].r*=-(r/2); //Er=-r/2 * dEz/dz
+			ExternalMagnetic.Field[i][0][j].th=0;
 		}
 	}
 }
@@ -4492,12 +4493,6 @@ void TBeamSolver::Step(int Si)
 			}
 		}
 
-		for (int k = 0; k < 4; k++) {
-			for (int i = 0; i < ExternalMagnetic.Dim.Ny; i++) {
-				delete[] Par[k].Hext.Field[i];
-			}
-			delete[] Par[k].Hext.Field;
-		}
 	}  else {
 		Par[0].Hext.Field=NULL;
 		Par[1].Hext.Field=NULL;
@@ -4549,7 +4544,14 @@ void TBeamSolver::Step(int Si)
 	fclose(logFile);   */
 
     for (int j=0;j<Ncoef;j++)
-        Integrate(Si,j);
+		Integrate(Si,j);
+
+	for (int k = 0; k < 4; k++) {
+		for (int i = 0; i < ExternalMagnetic.Dim.Ny; i++) {
+			delete[] Par[k].Hext.Field[i];
+		}
+		delete[] Par[k].Hext.Field;
+	}
 }
 //---------------------------------------------------------------------------
 TError TBeamSolver::Solve()

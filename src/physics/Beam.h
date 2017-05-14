@@ -7,6 +7,7 @@
 #include "Spectrum.h"
 #include "SpectrumPhase.h"
 #include <stdlib.h>
+#include <stdexcept>
 
 const int Ncoef=4;
 //---------------------------------------------------------------------------
