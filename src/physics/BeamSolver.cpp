@@ -67,7 +67,7 @@ void TBeamSolver::Initialize()
 	BeamPar.RBeamType=NOBEAM;
 	BeamPar.ZBeamType=NOBEAM;
 	BeamPar.NParticles=1;
-   //	BeamPar.Magnetized=false;
+	BeamPar.Demagnetize=false;
 
 	StructPar.NSections=0;
 	StructPar.Sections=NULL;
@@ -1138,6 +1138,8 @@ TError TBeamSolver::ParseOptions(TInputLine *Line)
 	for (int j=0;j<Line->N;j++){
 		if (Line->S[j]=="REVERSE")
 			StructPar.Reverse=true;
+		if (Line->S[j]=="DEMAGNETIZE")
+			BeamPar.Demagnetize=true;
 
 	/*	if (Line->S[j]=="MAGNETIZED")
 			BeamPar.Magnetized=true;   */
@@ -1154,7 +1156,7 @@ TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 	AnsiString F="SPCHARGE ",S;
 	BeamPar.SpaceCharge.Type=SPCH_NO;
 	BeamPar.SpaceCharge.NSlices=1;
-	BeamPar.SpaceCharge.Nrms=3;
+	BeamPar.SpaceCharge.Nrms=2.4;
 	BeamPar.SpaceCharge.Train=false;
 	BeamPar.SpaceCharge.Ltrain=0;
 
@@ -1599,7 +1601,8 @@ TError TBeamSolver::ParseMultipleCells(TInputLine *Line,int Ni, int Nsec, bool N
 double TBeamSolver::DefaultFrequency(int N)
 {
 	double f=0;
-	f=N>0?arc(StructPar.Sections[N-1].Frequency):c;
+	//f=N>0?arc(StructPar.Sections[N-1].Frequency):c;
+	f=N>0?StructPar.Sections[N-1].Frequency:c;
 	return f;
 }
 //---------------------------------------------------------------------------
@@ -2437,7 +2440,7 @@ void TBeamSolver::CreateMaps()
 //---------------------------------------------------------------------------
 void TBeamSolver::CreateStrucutre()
 {
-	int Extra=0,k0=0,k=0,q=0;
+	int Extra=0,k0=0,k=0,q=0,first_drift=0;
 	double z=0,zm=0,D=0,x=0,lmb=0,theta=0;
 	bool isInput=false;
 	TFieldMap2D Map;
@@ -2478,12 +2481,15 @@ void TBeamSolver::CreateStrucutre()
 						lmb=c/StructPar.Cells[j].F0;
 						isInput=true; //Same wavelength as previously defined
 						break;
-					}
+					} else
+						first_drift=j;
 				}
 			}
-            if (!isInput){
+			if (!isInput){
+				StructPar.Cells[i].beta=StructPar.Cells[first_drift].beta;
+				lmb=c/StructPar.Cells[first_drift].F0;
 				StructPar.Cells[i].beta=1;
-				lmb=1;
+				//lmb=1;
 			}
         }else{
 			lmb=c/StructPar.Cells[i].F0;
@@ -2536,9 +2542,11 @@ void TBeamSolver::CreateStrucutre()
 		if (StructPar.Cells[i].First)
 			Structure[k0].jump=true;
 		for (int j=0; j < Ndump; j++) {
-			if (BeamExport[j].NElement==i) {
-				BeamExport[j].Nmesh=k0;
-			}
+			if (BeamExport[j].NElement==0)
+				BeamExport[j].Nmesh=0;
+			else if (BeamExport[j].NElement==i+1)
+				BeamExport[j].Nmesh=k-1;
+
 		}
 	}
 }
@@ -2707,7 +2715,11 @@ void TBeamSolver::AdjustMagneticMesh()
 //---------------------------------------------------------------------------
 void TBeamSolver::CalculateFieldDerivative()
 {
-	ExternalMagnetic.Field[0][0][0].r=0;
+	if (BeamPar.Demagnetize)
+		ExternalMagnetic.Field[0][0][0].r=ExternalMagnetic.Field[0][0][0].z/0.01;
+	else
+		ExternalMagnetic.Field[0][0][0].r=0;
+
 	ExternalMagnetic.Field[ExternalMagnetic.Dim.Nz-1][0][0].r=0;
 
 	double z1=0,z2=0,B1=0,B2=0,dBdr=0;
@@ -3687,44 +3699,58 @@ void TBeamSolver::Abort()
 //---------------------------------------------------------------------------
 double TBeamSolver::GetEigenFactor(double x, double y, double z,double a, double b, double c)
 {
-	double s=0,s1=0,s2=0,s3=0;
+	double s=0,s0=0,s1=0,s2=0,s3=0;
 	double A=0, B=0, C=0, D=0;
-	double q=0, p=0, Q=0;
-	double rho=0, cph=0, phi=0;
+	double AA=0, BB=0, CC=0;
+	double q=0, p=0, p3=0, Q=0;
+	double rho=0, r=0, cph=0, phi=0;
+	double err=1e-10;
 
 	double xx=sqr(x/a),yy=sqr(y/b),zz=sqr(z/c),bb=sqr(a/b),cc=sqr(a/c);
 
 	A=bb*cc;
 	//B=(bb*cc+bb+cc)-(xx*bb*cc+yy*cc+zz*bb);
-	B=A*(1-xx)+bb*(1-zz)+cc*(1-zz);
+	B=A*(1-xx)+bb*(1-zz)+cc*(1-yy);
 	//C=1-yy-zz+bb*(1-xx-zz)+cc*(1-xx-yy);
 	//C=(1-xx)*(bb+cc)-yy*(1+cc)-zz*(1+bb);
+	//C=1+bb+cc-xx*(bb+cc)-yy*(1+cc)-zz*(1+bb);
 	C=1+bb+cc-xx*(bb+cc)-yy*(1+cc)-zz*(1+bb);
 	D=1-(xx+yy+zz);
 
-	p=C/A-sqr(B/A)/3;
-	q=(2*cub(B)-9*A*B*C+27*sqr(A)*D)/(27*cub(A));
-	Q=cub(p/3)+sqr(q/2);
+	AA=B/A;
+	BB=C/A;
+	CC=D/A;
 
-	if (Q > 0) {
-		s=cubrt(sqrt(Q)-q/2)-cubrt(sqrt(Q)+q/2);
-	} else if (Q == 0) {
-		s1=2*cubrt(q/2);
-		s2=-2*cubrt(q/2);
-		s=s2>s1?s2:s1;
+	//p=C/A-sqr(B/A)/3;
+	p=BB-sqr(AA)/3;
+
+	//q=(2*cub(B)-9*A*B*C+27*sqr(A)*D)/(27*cub(A));
+	//q=2*cub(B/A)/27-B*C/(3*sqr(A))+D/A;;
+	q=2*cub(AA/3)-AA*BB/3+CC;
+	p3=cub(p/3);
+	Q=p3+sqr(q/2);
+
+	if (Q > err) {
+		s0=cubrt(sqrt(Q)-q/2)-cubrt(sqrt(Q)+q/2);
 	} else {
-		rho=sqrt(-p/3);//sqrt(-cub(p)/27);
-		//cph=-q/(2*rho);
-		cph=-q*pow(-3/p,1.5)/2;
-		phi=acos(cph);
-		//double r=sqrt(-p/3);
-		s1=2*rho*cos(phi/3);
-		s2=2*rho*cos(phi/3+2*pi/3);
-		s3=2*rho*cos(phi/3+4*pi/3);
-		s=s2>s1?s2:s1;
-		s=s3>s?s3:s;
-		s=/*sqr(a)*/(s-B/(3*A));
-    }
+		if (mod(Q)<err) {
+			s1=cubrt(q/2);
+			s2=-2*cubrt(q/2);
+			s3=s2;//-2*cubrt(q/2);
+		} else {
+			rho=sqrt(-p/3);
+			cph=-q/(2*cub(rho));
+			phi=acos(cph);
+
+			r=2*rho;
+			s1=r*cos(phi/3);
+			s2=r*cos(phi/3+2*pi/3);
+			s3=r*cos(phi/3-2*pi/3);
+		}
+		s0=s2>s1?s2:s1;
+		s0=s3>s0?s3:s0;
+	}
+	s=s0-AA/3;
 
 	return s;
 }
@@ -3912,16 +3938,37 @@ void TBeamSolver::Integrate(int Si, int Sj)
 			lmb=Beam[Si]->lmb;
 			Icur=Beam[Si]->GetCurrent();
 			Qbunch=Icur*lmb/c;
+		 //	rx=0.2e-2;
+		   //	ry=rx;
+		   //	rz=rx/0.1;
 			V=mod(4*pi*rx*ry*rz/3);
 			Rho=Qbunch/V;
 			//Rho*=2*pi/eps0;
-			Rho/=eps0;
+			Rho/=2*eps0;
 
 			if (BeamPar.SpaceCharge.Train) {
 				Ltrain=BeamPar.SpaceCharge.Ltrain>0?BeamPar.SpaceCharge.Ltrain:lmb;
 			}
 
 			if (V!=0) {
+				//DEBUGGING
+
+			 /*	FILE *F,*F2;
+				F=fopen("beam.log","w");
+				F2=fopen("beam2.log","w");
+				for (int j = 1; j < 2; j++){
+				Nrms=4.5*j/9;
+				rx=Nrms*Gx.sigma;
+				ry=Nrms*Gy.sigma;
+				rz=Nrms*Gz.sigma;
+				V=mod(4*pi*rx*ry*rz/3);
+				Rho=Qbunch/V;
+			//Rho*=2*pi/eps0;
+				Rho/=eps0;
+				Ncore=0;            */
+				//END DEBUGGING
+
+				//ACTUAL CODE!!!
 				if (BeamPar.SpaceCharge.Type==SPCH_LPST) {  //Lapostolle
 					p=gamma0*rz/sqrt(rx*ry);
 					M=FormFactorLpst(p);
@@ -3932,70 +3979,200 @@ void TBeamSolver::Integrate(int Si, int Sj)
 					My=FormFactor(ix,iy,Y_PAR);
 					Mz=FormFactor(ix,iy,Z0_PAR);
 				}
+				//END ACTUAL CODE!!
+
+				//FORM FACTOR DEBUGGING
+		/*		FILE *F3;
+				F3=fopen("beam3.log","w");
+				rx=1.6e-3;
+				ry=rx;
+				rz=rx;
+				int Ns=11;
+
+				for (int ks = 0; ks < Ns; ks++) {
+					double x=0,y=0,z=0,s=0,p=0,f=0;
+					ix=1;//1-2.0*ks/(Ns-1);;
+					//ix=pow(10.0,ix);
+					iy=-1+2.0*ks/(Ns-1);;
+					iy=pow(10.0,iy);
+					ry=rx*ix;
+					rz=rx/iy;
+
+                    x=0;
+					y=0;
+					z=0;
+					//z=rz/2;
+
+					double r3=sqr(x/rx)+sqr(y/ry)+sqr(z/rz);
+					if (r3<1) {
+						Mxx=FormFactor(ix,iy,X_PAR);
+						Myy=FormFactor(ix,iy,Y_PAR);
+						Mzz=FormFactor(ix,iy,Z0_PAR);
+					} else {
+						s=GetEigenFactor(x,y,z,rx,ry,rz);
+						Mxx=FormFactor(ix,iy,X_PAR,s);
+						Myy=FormFactor(ix,iy,Y_PAR,s);
+						Mzz=FormFactor(ix,iy,Z0_PAR,s);
+					}
+
+					V=mod(4*pi*rx*ry*rz/3);
+					Rho=Qbunch/V;
+					Rho/=2*eps0;
+
+				   //	fprintf(F3,"%e %e %e %e\n",ix,Mxx,Myy,Mzz);
+
+
+					p=rz/sqrt(ry*rx);
+					f=FormFactorLpst(p);
+					fprintf(F3,"%f %f %f %f %f\n",iy,Mxx,Mzz,(1-f),2*f);
+					//fprintf(F3,"%f %f %f %f %f\n",1/ix,Mxx,Myy,(1-f)*2*ry/(rx+ry),(1-f)*2*rx/(rx+ry));
+
+					Mxx*=Rho;
+					Myy*=Rho;
+					Mzz*=Rho;
+				}   //kz
+
+				//fo.close();
+				fclose(F3);         */
+				//END DEBUGGING
+
+				//TRAIN DEBUGGING
+		  /*		FILE *F2;
+				F2=fopen("beam2.log","w");
+				int Nz=101, Nr=1;
+				double x=0,y=0,z=0,s=0,Q=0;
+				double Ez=0, Ehead=0, Etail=0, Etot=0;
+                rx=1.6e-3;
+				ry=rx;
+				rz=20*rx;
+				ix=ry/rx;
+				iy=rx/rz;
+				//std::ofstream fo("beam2.log");
+				AnsiString S;
+				Q=Qbunch;
+				for (int kz = 0; kz < Nz; kz++) {
+					x=0;
+					y=0;
+					z=-lmb+2*lmb*kz/(Nz-1);
+
+					//S=S.FormatFloat("#0.00\t",z/lmb);
+					//fo<<S.c_str();
+
+				   //	for (int kr = 0; kr < Nr; kr++) {
+						//rz=(2*kr+1)*Gz.sigma;
+						//s=GetEigenFactor(x,y,z,rx,ry,rz);
+						double r3=sqr(x/rx)+sqr(y/ry)+sqr(z/rz);
+						if (r3<1) {
+							Mxx=FormFactor(ix,iy,X_PAR);
+							Myy=FormFactor(ix,iy,Y_PAR);
+							Mzz=FormFactor(ix,iy,Z0_PAR);
+						} else {
+							s=GetEigenFactor(x,y,z,rx,ry,rz);
+							Mxx=FormFactor(ix,iy,X_PAR,s);
+							Myy=FormFactor(ix,iy,Y_PAR,s);
+							Mzz=FormFactor(ix,iy,Z0_PAR,s);
+						}
+						Ez=Mzz*z;
+						if (rz<lmb/2) {
+							s_tail=GetEigenFactor(x,y,z+Ltrain,rx,ry,rz);
+							s_head=GetEigenFactor(x,y,z-Ltrain,rx,ry,rz);
+
+							Mz_head=FormFactor(ix,iy,Z0_PAR,s_head);
+							Mz_tail=FormFactor(ix,iy,Z0_PAR,s_tail);
+							Ehead=Mz_head*(z-Ltrain);
+							Etail=Mz_tail*(z+Ltrain);
+						 //	Etot=Ez+Ehead+Etail;
+
+						}   else {
+							Ehead=0;
+							Etail=0;
+							//Q=3*Qbunch;
+						}
+						Etot=Ez+Ehead+Etail;
+						V=mod(4*pi*rx*ry*rz/3);
+						Rho=Q/(2*eps0*V);
+						//S=S.FormatFloat("#.#######\t",Etot*Rho/2);
+						//fo<<S.c_str();
+						fprintf(F2,"%e %e %e %e %e\n",z/lmb,Rho*Ez,Rho*Ehead,Rho*Etail,Rho*Etot);
+				   //	}
+					//fo<<"\n";
+				}
+				//fo.close();
+				fclose(F2);   */
+				//END OF DEBUGGING
+
 				for (int i=0;i<BeamPar.NParticles;i++){
 					if (Particle[i].lost==LIVE){
-						double x=0,y=0,z=0,r=0,th=0,phi=0,gamma=1,g2=1;
-						double Ex=0,Ey=0,Ez=0;
-						double r3=0,s=0;
+						double x=0,y=0,z=0,r=0,th=0,phi=0,gamma=1,beta_z=1,beta=1,g2=1;
+						double Ex=0,Ey=0,Ez=0,Lx=0,Ly=0,Lz=0;
+						double r3=0,r2=0,rv=0,s=0;
 
 						phi=Particle[i].phi+K[Sj][i].phi*Par[Sj].h;
 						r=(Particle[i].r+K[Sj][i].r*Par[Sj].h)*lmb;
 						th=Particle[i].th+K[Sj][i].th*Par[Sj].h;
 
+						beta_z=Particle[i].beta.z+K[Sj][i].beta.z*Par[Sj].h;
+						beta=Particle[i].beta0;
+						//+K[Sj][i].beta.z*Par[Sj].h;
+
 						x=r*cos(th)-x0;
 						y=r*sin(th)-y0;
-						z=phi*lmb/(2*pi)-z0;
+						z=phi*beta*lmb/(2*pi)-z0;
+
 						r3=sqr(x/rx)+sqr(y/ry)+sqr(z/rz);
-						gamma=VelocityToEnergy(Particle[i].beta.z+K[Sj][i].beta.z*Par[Sj].h); //change to beta
+//					   	z=rz;
+
+						gamma=VelocityToEnergy(beta); //change to beta
 						g2=1/sqr(gamma);
 
 						if  (BeamPar.SpaceCharge.Type==SPCH_LPST) { //Lapostolle
-							Ex=Rho*(1-M)*x*ry/(rx+ry);
-							Ey=Rho*(1-M)*x*rx/(rx+ry);
-							Ez=Rho*M*z;
-						}  else {//Elliptic
+							Lx=2*(1-M)*ry/(rx+ry);
+							Ly=2*(1-M)*rx/(rx+ry);
+							Lz=2*M;
 							if (r3<1) {
-							   /*	s=0;
-								Ex=Rho*Mx*x/2;
-								Ey=Rho*My*y/2;
-								Ez=Rho*Mz*z/2;     */
+								Ncore++;
+								Mxx=Lx;
+								Myy=Ly;
+								Mzz=Lz;
+							} else {
+								r2=sqrt(sqr(x)+sqr(y)+sqr(z));
+								rv=rx*ry*rz;
+								Mxx=(2.0/3.0)*rv/pow(r2,3.0);
+								Myy=Mxx;
+								Mzz=Mxx;
+							}
+						} else {//Elliptic
+							if (r3<1){
 								Mxx=Mx;
 								Myy=My;
 								Mzz=Mz;
+								Lz=2*M;
 								Ncore++;
-							} else {
+							}else{
+								r2=sqrt(sqr(x)+sqr(y)+sqr(z));
+								rv=rx*ry*rz;
 								s=GetEigenFactor(x,y,z,rx,ry,rz);
 								Mxx=FormFactor(ix,iy,X_PAR,s);
 								Myy=FormFactor(ix,iy,Y_PAR,s);
 								Mzz=FormFactor(ix,iy,Z0_PAR,s);
-
-						   /*		Ex=Rho*Mxx*x/2;
-								Ey=Rho*Myy*y/2;
-								Ez=Rho*Mzz*z/2;  */
+								Lz=(2.0/3.0)*rv/pow(r2,3.0);
 							}
 						}
-
 						Ex=Mxx*x;
 						Ey=Myy*y;
 						Ez=Mzz*z;
 
 						if (BeamPar.SpaceCharge.Train) {
-							s_tail=GetEigenFactor(x,y,z+Ltrain,rx,ry,rz);
-							s_head=GetEigenFactor(x,y,z-Ltrain,rx,ry,rz);
+							if (rz<=lmb/2) {
+								s_tail=GetEigenFactor(x,y,z+Ltrain,rx,ry,rz);
+								s_head=GetEigenFactor(x,y,z-Ltrain,rx,ry,rz);
 
-							if (s_tail<0)
-								s_tail=1;
+								Mz_head=FormFactor(ix,iy,Z0_PAR,s_head);
+								Mz_tail=FormFactor(ix,iy,Z0_PAR,s_tail);
 
-							if (s_head<0)
-								s_head=1;
-
-							Mz_head=FormFactor(ix,iy,Z0_PAR,s_head);
-							Mz_tail=FormFactor(ix,iy,Z0_PAR,s_tail);
-							/*Mz_tail=(2.0/3.0)/pow(s_tail,1.5);
-							Mz_head=(2.0/3.0)/pow(s_head,1.5);     */
-
-							Ez+=Mz_head*(z-Ltrain)+Mz_tail*(z+Ltrain);
-							//(2.0/3.0)*(1/pow(s_tail,1.5)-1/pow(s_head,1.5));
+								Ez+=Mz_head*(z-Ltrain)+Mz_tail*(z+Ltrain);
+							}  else
+								Ez=0;
 
 						}
 
@@ -4004,24 +4181,149 @@ void TBeamSolver::Integrate(int Si, int Sj)
 						Ez*=Rho/2;
 
 						Ex*=(g2*lmb/We0);
-						Ey*=(g2*lmb/We0);
-						Ez*=(lmb/We0);
+					   	Ey*=(g2*lmb/We0);
+					  /*	Ex*=lmb/We0;
+						Ey*=lmb/We0;  */
+						Ez*=lmb/We0;
 
 						Par[Sj].Eq[i].z=Ez;
 						Par[Sj].Eq[i].r=Ex*cos(th)+Ey*sin(th);
 						Par[Sj].Eq[i].th=-Ex*sin(th)+Ey*cos(th);
 					}
 				}
-				if (BeamPar.SpaceCharge.Type==SPCH_ELL) {// elliptic
+
+			  /*	if (BeamPar.SpaceCharge.Type==SPCH_ELL) {// elliptic
 					Mcore=Ncore/Nliv;
 					for (int i=0;i<BeamPar.NParticles;i++){
 						Par[Sj].Eq[i].z*=Mcore;
 						Par[Sj].Eq[i].r*=Mcore;
 						Par[Sj].Eq[i].th*=Mcore;
 					}
+				}      */
+
+				//FIELDS DEBUGGIGNG
+		 /*		FILE *F,*F2;
+				F=fopen("beam.log","w");
+
+				rx=1.6e-3;
+				ry=rx/3;
+				rz=10*rx;
+				ix=ry/rx;
+				iy=rx/rz;
+				V=mod(4*pi*rx*ry*rz/3);
+				Rho=Qbunch/V;
+				Rho/=2*eps0;
+
+				int Nx=1, Ny=1, Nz=51;
+
+				for (int kx = 0; kx < Nx; kx++) {
+				for (int ky = 0; ky < Ny; ky++) {
+				for (int kz = 0; kz < Nz; kz++) {
+					double x=0,y=0,z=0,r=0,th=0,phi=0,gamma=1,g2=1;
+					double Ex=0,Ey=0,Ez=0;
+					double Lx=0,Ly=0,Lz=0;
+					double Lxx=0,Lyy=0,Lzz=0;
+					double r3=0,r2=0,rv=0,s=0;
+
+				   //	x=-5*Gx.sigma+10*Gx.sigma*kx/(Nx-1);
+				   //	y=-5*Gy.sigma+10*Gy.sigma*ky/(Ny-1);
+				   //	z=-5*Gz.sigma+10*Gz.sigma*kz/(Nz-1);
+
+					x=0.9*rx;//-1.0*rx+2*rx*kx/(Nx-1);
+					y=0.9*ry;//-1.0*ry+2*ry*ky/(Ny-1);
+					//z=0.9*rz;
+					//x=-1.0*rx+2*rx*kx/(Nx-1);
+					//y=-1.0*ry+2*ry*ky/(Ny-1);
+					z=-1.0*rz+2.0*rz*kz/(Nz-1);
+					//z=-0.025+0.05*kz/(Nz-1);
+
+					r3=sqr(x/rx)+sqr(y/ry)+sqr(z/rz);
+					r2=sqrt(sqr(x)+sqr(y)+sqr(z));
+					rv=rx*ry*rz;
+					//rv=cub(sqrt(sqr(rx)+sqr(ry)+sqr(rz)));
+					gamma=1;//1.2;//VelocityToEnergy(Particle[i].beta.z+K[Sj][i].beta.z*Par[Sj].h); //change to beta
+					g2=1/sqr(gamma);
+
+				   //	if  (BeamPar.SpaceCharge.Type==SPCH_LPST) { //Lapostolle
+						p=rz/sqrt(rx*ry);
+						M=FormFactorLpst(p);
+						Lx=2*(1-M)*ry/(rx+ry);
+						Ly=2*(1-M)*rx/(rx+ry);
+						Lz=2*M;
+				  //	} else {
+						if (r3<1) {
+							Mxx=FormFactor(ix,iy,X_PAR);
+							Myy=FormFactor(ix,iy,Y_PAR);
+							Mzz=FormFactor(ix,iy,Z0_PAR);
+							Lxx=Lx*x;
+							Lyy=Ly*y;
+							Lzz=Lz;
+						} else {
+							s=GetEigenFactor(x,y,z,rx,ry,rz);
+							Mxx=FormFactor(ix,iy,X_PAR,s);
+							Myy=FormFactor(ix,iy,Y_PAR,s);
+							Mzz=FormFactor(ix,iy,Z0_PAR,s);
+							//Lzz=Lz*z;
+							Lxx=(2.0/3.0)*rv/pow(r2,3.0);
+							Lyy=Lxx;//(2.0/3.0)*rv/pow(r2,3.0);
+							Lzz=Lxx;//(2.0/3.0)*rv/pow(r2,3.0);
+							//Lz=(2.0*rv/3.0)*(1.0/pow(r2,3.0)-((rx*ry-sqr(rz))/(5*pow(r2,5.0)))*(1-5*(0.5*(sqr(x)+sqr(y)-2*sqr(z)))/sqr(r2)));
+							//Lz=(2.0*rv/3.0)*(1.0/pow(r2,3.0)+2.0*(rx*ry-sqr(rz))/(5*pow(r2,5.0)));
+							//Lzz=Lz*sign(z)*rv/r2;
+						}
+						Ex=Mxx*x;
+						Ey=Myy*y;
+						Ez=Mzz*z;
+					//}
+
+					Ex*=Rho;
+					Ey*=Rho;
+					Ez*=Rho;
+
+					Ex*=g2;
+					Ey*=g2;
+
+					double E0=sqrt(sqr(Ez)+sqr(Ex));
+					Mcore=1;
+
+					//fprintf(F2,"%f %f %f %f %f\n",1000*z,1000*x,Ex,Ez,E0);
+					fprintf(F,"%f %f %f %f\n",z/rz,Mcore*Ez,Rho*Mcore*Lzz*z,Rho*Mcore*Lz*z);
+					//fprintf(F,"%f %f %f %f\n",x/rx,Mcore*Ex,Rho*Mcore*Lxx*x,Rho*Mcore*Lx*x);
+					//fprintf(F,"%f %f %f %f\n",y/ry,Mcore*Ey,Rho*Mcore*Lyy*y,Rho*Mcore*Ly*y);
+					//fprintf(F,"%f %f %f %f\n",1000*x,Ex,Rho*Lx*x,Rho*Lxx);
+					//fprintf(F,"%f %f %f %f\n",1000*y,Ey,Rho*Ly*y,Rho*Lyy);
+					//fprintf(F,"%f %f %f %f\n",100*z,Mcore*Ez,Rho*Mcore*Lzz*z,Rho*Mcore*Lz*z);
+					//fprintf(F,"%f %f \n",1000*z,Ez,);
+					//fprintf(F2,"%f %f %f\n",1000*z,Mzz,s);
 				}
-			}
+				}
+				}
+				fclose(F);        */
+				//END OF DEBUGGING
+
+				//DBG
+			  /*	for (int i = 0; i < Nx*Ny*Nz; i++) {
+					double Ea=sqrt(sqr(Mcore*E[i].r)+sqr(Mcore*E[i].th)+sqr(Mcore*E[i].z));
+					//fprintf(F,"%f %f %f %f %f %f %f\n",1000*C[i].r,1000*C[i].th,1000*C[i].z,Mcore*E[i].r,Mcore*E[i].th,Mcore*E[i].z,Ea);
+					fprintf(F,"%f %f %f %f %f %f %f\n",C[i].r,C[i].th,C[i].z,Mcore*E[i].r,Mcore*E[i].th,Mcore*E[i].z,Ea);
+					//fprintf(F,"%f %f %f %f\n",1000*C[i].r,1000*C[i].th,1000*C[i].z,sqrt(sqr(Mcore*E[i].r)+sqr(Mcore*E[i].th)+sqr(Mcore*E[i].z)));
+				   //	Ix+=Mcore*E[i].r*C[i].r;
+				}
+			   //	fprintf(F2,"%f %f %e %f\n",Nrms,Mcore,V,Ix);
+				delete[] C;
+				delete[] E;
+
+			//}//nrms loop
+			fclose(F);
+			fclose(F2);           */
+		   //	fclose(F3);
+		   //DBG END
+
+
+			}  // V!=0 loop
+
 			break;
+
 		}
 		case SPCH_GW: {
 		  /*	for (int i=0;i<BeamPar.NParticles;i++){
@@ -4078,14 +4380,14 @@ void TBeamSolver::CountLiving(int Si)
 {
     Nliv=Beam[Si]->GetLivingNumber();
     if (Nliv==0){
-      /*    FILE *F;
-        F=fopen("beam.log","w");
-        for (int i=Si;i<Npoints;i++){
-            for (int j=0;j<Np;j++)
-                fprintf(F,"%i ",Beam[i]->Particle[j].lost);
-            fprintf(F,"\n");
-        }
-        fclose(F);   */
+	  /*    FILE *F;
+		F=fopen("beam.log","w");
+		for (int i=Si;i<Npoints;i++){
+			for (int j=0;j<Np;j++)
+				fprintf(F,"%i ",Beam[i]->Particle[j].lost);
+			fprintf(F,"\n");
+		}
+		fclose(F);   */
 		#ifndef RSLINAC
 		AnsiString S="Beam Lost!";
 		ShowError(S);
@@ -4249,14 +4551,22 @@ void TBeamSolver::DumpCST(ofstream &fo,int Sn,int j)
 	double m=0, q=0, I=0,t=0;
 
 	int Si=BeamExport[Sn].Nmesh;
+	if (!Beam[Si]->GetParameter(j,LIVE_PAR)) {
+    	return;
+	}
+//	double l=Structure[Si].lmb;
+	double beta=Beam[Si]->GetParameter(j,BETA_PAR);
 
 	x=Beam[Si]->GetParameter(j,X_PAR);
 	y=Beam[Si]->GetParameter(j,Y_PAR);
-	t=Beam[Si]->GetParameter(j,PHI_PAR)*Structure[Si].lmb/(2*pi*c);
+	//z=Beam[Si]->GetParameter(j,PHI_PAR)*beta*Structure[Si].lmb/(2*pi);
+	t=Beam[Si]->GetParameter(j,PHI_PAR)*Structure[Si].lmb/(2.0*pi*c);
+
+   	//z=4.0*z*1.1;
 
 	double W=Beam[Si]->GetParameter(j,W_PAR);
 	double p=MeVToBetaGamma(W);
-	double beta=Beam[Si]->GetParameter(j,BETA_PAR);
+
 	px=p*Beam[Si]->GetParameter(j,BX_PAR)/beta;
 	py=p*Beam[Si]->GetParameter(j,BY_PAR)/beta;
 	pz=p*Beam[Si]->GetParameter(j,BZ_PAR)/beta;

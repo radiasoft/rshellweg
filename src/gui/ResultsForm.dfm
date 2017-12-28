@@ -409,9 +409,9 @@ object ResForm: TResForm
       Title.Font.Height = -32
       Title.Text.Strings = (
         'Beam Portrait')
-      BottomAxis.AxisValuesFormat = '#,##0.0'
       BottomAxis.LabelsAngle = 90
       BottomAxis.LabelsFormat.Font.Height = -24
+      BottomAxis.TickOnLabelsOnly = False
       BottomAxis.Title.Font.Height = -29
       LeftAxis.ExactDateTime = False
       LeftAxis.LabelsFormat.Font.Height = -24

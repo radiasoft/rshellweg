@@ -154,8 +154,8 @@ void TResForm::ParticlesActive()
 //---------------------------------------------------------------------------
 void TResForm::EnvelopeActive()
 {
-    BeamActive();
-    EnvelopeSeries->Visible=true;
+	BeamActive();
+    EnvelopeSeries->Visible=EnvelopeCheck->Checked;
     EnvelopeSeries->Clear();
 }
 //---------------------------------------------------------------------------
@@ -700,7 +700,7 @@ void TResForm::DrawEmittance()
 //---------------------------------------------------------------------------
 void TResForm::DrawLongtSection(bool sliding)
 {
-    gType=sliding?PHASE_SLID:LONGT_SEC;
+	gType=sliding?PHASE_SLID:LONGT_SEC;
 	EnvelopeActive();
 	int j=PositionTrackBar->Position;
 
@@ -732,7 +732,7 @@ void TResForm::DrawLongtSection(bool sliding)
 //---------------------------------------------------------------------------
 void TResForm::DrawLongtSpace()
 {
-    gType=LONGT_SPACE;
+	gType=LONGT_SPACE;
     //ParticlesActive();
 	EnvelopeActive();
 	int j=PositionTrackBar->Position;
@@ -994,9 +994,11 @@ void TResForm::DrawTransSpace()
 //---------------------------------------------------------------------------
 void TResForm::DrawLongtMotion()
 {
-    gType=LONGT_MOTION;
+	gType=LONGT_MOTION;
 	EnvelopeActive();
 	int j=PositionTrackBar->Position;
+	AnsiString Ytit;
+	TBeamParameter P;
 
 	double ksi=Solver->GetStructureParameter(j,KSI_PAR);
 	double zmin=100*Solver->GetStructureParameter(0,Z_PAR);
@@ -1004,7 +1006,27 @@ void TResForm::DrawLongtMotion()
 
 	BeamChart->Title->Caption="Longitudinal Motion";// at position z="+s.FormatFloat("#0.000",z)+" cm";
 	BeamChart->BottomAxis->Title->Caption="z,cm";
-	BeamChart->LeftAxis->Title->Caption="r,mm";
+
+	switch (RadiusGroup->ItemIndex) {
+		case x_coord:{
+			P=X_PAR;
+			Ytit="x,mm";
+			break;
+		}
+		case y_coord:{
+			P=Y_PAR;
+			Ytit="y,mm";
+			break;
+		}
+		case r_coord:{ }
+		default :{
+			P=R_PAR;
+			Ytit="r,mm";
+			break;
+		}
+
+	}
+	BeamChart->LeftAxis->Title->Caption=Ytit;
 	ResetAxis(BeamChart->LeftAxis,-1000*Rmax,1000*Rmax,VertFitCheck->Checked);
 	ResetAxis(BeamChart->BottomAxis,zmin,zmax,HorFitCheck->Checked);
 
@@ -1033,7 +1055,7 @@ void TResForm::DrawLongtMotion()
 		}     */
 
 	if (ChartCheck->Checked){
-		DrawSpace(j,ZREL_PAR,R_PAR);
+		DrawSpace(j,ZREL_PAR,P);
 		/*for (int i=0;i<Np;i++){
 			if (Solver->Beam[j]->Particle[i].lost==LIVE){
                 double r=1e3*Solver->Beam[j]->Particle[i].r*Solver->Structure[j].lmb;

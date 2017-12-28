@@ -1,0 +1,48 @@
+========================================
+INPUT DATA from:
+INPUT.txt
+========================================
+!SOLENOID 1000 25 2
+BEAM 	SPH2D 	0.001 	0 	0.0 	NORM2D 	10.00 	0.001 	90 	0.01
+CURRENT	1.5	1000
+POWER 5.0	2856.0	
+CELLS 20	120	0.999	470.000	0.006800	0.100000
+!SAVE output PID
+END
+========================================
+RESULTS
+========================================
+
+Total Length = 69.910 cm
+Average Energy = 6.538 MeV
+Maximum Energy = 6.540 MeV
+Energy Spectrum (FWHM) = 0.03 %
+Input Current = 1500.00 mA
+Beam Current = 1500.00 mA
+Particles Transmitted = 100.00 %
+Beam Radius (RMS) = 0.00 mm
+Average Phase = 137.31 deg
+Phase Length (FWHM) = 0.02 deg
+Twiss Parameters (R):
+alpha= -2252.11317
+betta = 347632.26713 cm/rad
+emittance = 0.000000 um
+emittance (norm) = 0.000000 um
+Twiss Parameters (X):
+alpha= -8814.47961
+betta = 1314622.98207 cm/rad
+emittance = 0.000000 um
+emittance (norm) = 0.000000 um
+Twiss Parameters (Y):
+alpha= -9218.78456
+betta = 1372226.43665 cm/rad
+emittance = 0.000000 um
+emittance (norm) = 0.000000 um
+===========Section #1 ======================
+Input Power = 5.0000 MW
+Frequency = 2856.0000 MHz
+Beam Energy Gain = -3.4623 MeV
+Beam Power Gain = -5.1935 MW
+Load Power = 8.4967 MW
+Loss Power = 1.6968 MW
+========================================

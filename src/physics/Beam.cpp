@@ -255,6 +255,7 @@ bool TBeam::BeamFromCST(TBeamInput *BeamPar)
 					Particle[i].beta.th=(pth/p)*beta;
 
 					//fprintf(logFile,"%f %f %f\n",px,pr*cos(th)-pth*sin(th),px-pr*cos(th)+pth*sin(th));
+                    break;
 				}
 				default:
 									throw std::runtime_error("BeamFromCST error: Unhandled RBeamType");
@@ -1439,7 +1440,7 @@ double TBeam::BesselSum(TIntParameters& Par,TIntegration *I,TTrig Trig)
 		if (Particle[i].lost==LIVE){
 			bz=Particle[i].beta.z+I[i].beta.z*Par.h;
 			if (bz<0 || bz>1) {
-				Particle[i].lost=BZ_LOST;
+			  //	Particle[i].lost=BZ_LOST;
 				continue;
 			}
             phi=Particle[i].phi+I[i].phi*Par.h;
@@ -1473,7 +1474,7 @@ double TBeam::iGetAverageEnergy(TIntParameters& Par,TIntegration *I)
 	double G=0,Gav=0,dB=0;
 	double bz=0,br=0,bth=0,beta=0;
 
-    for (int i=0;i<Np;i++){
+	for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){
 			bz=Particle[i].beta.z+I[i].beta.z*Par.h;
 			br=Particle[i].beta.r+I[i].beta.r*Par.h;
@@ -1482,13 +1483,15 @@ double TBeam::iGetAverageEnergy(TIntParameters& Par,TIntegration *I)
 		   /*	double betta=Particle[i].beta+I[i].betta*Par.h;
 			double bx=Particle[i].Br+I[i].bx*Par.h;
 			double b=betta;  */
-			if (mod(beta)>=1)
-				Particle[i].lost=STEP_LOST;//BZ_LOST;
-            else{
+			if (mod(beta)>=1){
+			  //	Particle[i].lost=LIVE;//STEP_LOST;//BZ_LOST;
+				continue;
+			}else{
+			//if (mod(beta)<1) {
                 G+=VelocityToEnergy(beta);
-                j++;
+				j++;
 			}
-        }
+		}
 	}
     if (j>0)
         Gav=G/j;
@@ -1508,7 +1511,7 @@ TGauss TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices)
 	L=new double [Nliv];
 
 	//	double L[Nliv];
-	double phi=0,Iphi=0,x=0;
+	double phi=0,Iphi=0,x=0,beta=1,Ib=0,b=1;
 
 	CountLiving();
 
@@ -1518,7 +1521,11 @@ TGauss TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices)
 			Iphi=I[i].phi;
 			x=phi+Iphi*Par.h;
 
-			L[j]=x*lmb/(2*pi);
+			beta=Particle[i].beta.z;
+			Ib=I[i].beta.z;
+			b=beta+Ib*Par.h;
+
+			L[j]=x*b*lmb/(2*pi);
 			j++;
 		}
 	}
@@ -1608,6 +1615,7 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 {
 	double Sr=0,beta0=1,gamma=1,C=0;
 	double k_phi=0,/*k_Az=0,k_Ar=0,k_Hth=0,k_bz=0,k_br=0,k_bth=0,*/k_r=0,k_th=0,k_A=0,A=0,dA=0,th_dot=0;
+	double k_rr=0, k_rth=0;
 	int Sj=0;
 	double r=0,r0=0,phi=0,th=0;//,bz=0,br=0,bth=0;
 	double s=-1;
@@ -1641,14 +1649,18 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 	for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){
 			beta.z=Particle[i].beta.z+I[Si][i].beta.z*Par.h;
-			if (beta.z<0) {
+		 /*	if (beta.z<0) {
 				Particle[i].lost=BZ_LOST;
 				continue;
-			}
+			}  */
 			beta.r=Particle[i].beta.r+I[Si][i].beta.r*Par.h;
 			beta.th=Particle[i].beta.th+I[Si][i].beta.th*Par.h;
 			beta0=sqrt(sqr(beta.z)+sqr(beta.r)+sqr(beta.th));
 			//bz=beta;  //I don't understand why, but without it, the emittance doesn't preserve
+			if (beta0>1) {
+            	Particle[i].lost=STEP_LOST;
+				continue;
+			}
 			gamma=VelocityToEnergy(beta0);
 			//gamma=VelocityToEnergy(beta.z);
 			//C=Particle[i].Cmag;
@@ -1683,6 +1695,9 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 					Hx=BiLinearInterpolation(th,r*lmb,Par.Hext.Piv.Y,Par.Hext.Piv.X,Par.Hext.Dim.Ny,Par.Hext.Dim.Nx,Par.Hext.Field);
 			}
 
+			//Hx.r=0;
+		   //	Hx.th=0;
+
             //LOCAL EXTERNAL FIELDS (QUADS)
 			if (Par.Hmap.Field!=NULL) {
 				TPhaseSpace C,R;
@@ -1696,9 +1711,13 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 				Hx.r+=C.px;
 				Hx.th+=C.py;
 			}
+		   //beta.th=0;
 			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th+Hx.th-beta.z*E.r)-beta.th*(H.r+Hx.r+beta.z*E.th))/(gamma*beta.z);
-			k_beta.r=((1-sqr(beta.r))*E.r+beta.th*(H.z+Hx.z-beta.r*E.th)-beta.z*(H.th+Hx.th+beta.r*E.z))/(gamma*beta.z)+sqr(beta.th)/(r*beta.z);
-			k_beta.th=((1-sqr(beta.th))*E.th+beta.z*(H.r+Hx.r-beta.th*E.z)-beta.r*(H.z+Hx.z+beta.th*E.r))/(gamma*beta.z)-beta.th*beta.r/(r*beta.z);
+			k_rr=r==0?0:sqr(beta.th)/(r*beta.z);
+			k_beta.r=((1-sqr(beta.r))*E.r+beta.th*(H.z+Hx.z-beta.r*E.th)-beta.z*(H.th+Hx.th+beta.r*E.z))/(gamma*beta.z)+k_rr;//sqr(beta.th)/(r*beta.z);
+			k_rth=r==0?0:beta.th*beta.r/(r*beta.z);
+			k_beta.th=((1-sqr(beta.th))*E.th+beta.z*(H.r+Hx.r-beta.th*E.z)-beta.r*(H.z+Hx.z+beta.th*E.r))/(gamma*beta.z)-k_rth;//beta.th*beta.r/(r*beta.z);
+			//k_beta.th=0;
 		   /*
 			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th-beta.z*E.r)-beta.th*r*Par.Hext.r)/(gamma*beta.z); //k_bz = dbz/dz  ; Br=-Bz'/2!;
 			k_beta.r=((E.r-beta.z*H.th-beta.r*(beta.z*E.z+beta.r*E.r))+beta.th*Par.Hext.z)/(gamma*beta.z)+r*sqr(th_dot)/(beta.z);
@@ -1709,7 +1728,7 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 
 			//k_r=PulseToAngle(br,bz);  //I don't understand why, but without it, the emittance doesn't preserve
 			k_r=beta.r/beta.z;
-			k_th=beta.th/(r*beta.z);
+			k_th=r==0?0:beta.th/(r*beta.z);
 			//k_th=PulseToAngle(bth/r,bz);
 
 		   //	if (i==0)
@@ -1779,7 +1798,7 @@ void TBeam::Next(TBeam *nBeam,TIntParameters& Par,TIntegration **I)
 			if (mod(nParticle[i].beta.th)>1){
 				nParticle[i].lost=BTH_LOST;
 			}
-			if (nParticle[i].beta.z>1 || nParticle[i].beta.z<0){
+			if (nParticle[i].beta.z>1 /*|| nParticle[i].beta.z<0*/){
 				nParticle[i].lost=BZ_LOST;
 			}
 
@@ -1800,7 +1819,7 @@ void TBeam::Next(TBeam *nBeam,TIntParameters& Par,TIntegration **I)
 
             }
            /*   if (b>1)
-                nParticle[i].lost=B_LOST;   */
+				nParticle[i].lost=B_LOST;   */
 
            //   nParticle[i].Bth=(nParticle[i].Th-Particle[i].Th)*nParticle[i].x*lmb;
         }

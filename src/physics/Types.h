@@ -140,7 +140,7 @@ struct TBeamInput
 	double Current;
 	int NParticles;
 	bool ZCompress;
-   //	bool Magnetized;
+   	bool Demagnetize;
 };
 
 struct TDimensions

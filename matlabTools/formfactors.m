@@ -58,8 +58,8 @@ for k=1:2*nY-1
         formMx(n,k)=aY*aZ*quadgk(func,0,inf);                       % Sretensky 
         func= @(x) sqrt((1+x).*(aZ^2+x).*(aY^2+x).^3).^(-1);        % Sretensky 
         formMy(n,k)=aY*aZ*quadgk(func,0,inf);                       % Sretensky 
-        func= @(x) aY*aZ*sqrt((1+x).*(aY^2+x).*(aZ^2+x).^3).^(-1);  % Sretensky 
-        formMz(n,k)=quadgk(func,0,inf);                             % Sretensky 
+        func= @(x) sqrt((1+x).*(aY^2+x).*(aZ^2+x).^3).^(-1);  % Sretensky 
+        formMz(n,k)=aY*aZ*quadgk(func,0,inf);                             % Sretensky 
     end
     display(['y(',int2str(k),')=',num2str(y(k),'%6.3f')])
 end
@@ -143,7 +143,7 @@ ylabel('M_z','FontSize',16,'Color','m')
 xlim([0,5])
 legend(['R_y/R_x=',num2str(y(1),'%5.3f')],['R_y/R_x=',num2str(y(8),'%5.3f')],['R_y/R_x=',num2str(y(20),'%5.3f')], ...
         ['R_y/R_x=',num2str(y(40),'%5.3f')],['R_y/R_x=',num2str(y(60),'%5.3f')],['R_y/R_x=',num2str(y(80),'%5.3f')], ...
-        ['R_y/R_x=',num2str(y(y(100),'%5.3f')],['R_y/R_x=',num2str(y(101),'%5.3f')],['R_y/R_x=',num2str(y(104),'%5.3f')], ...
+        ['R_y/R_x=',num2str(y(100),'%5.3f')],['R_y/R_x=',num2str(y(101),'%5.3f')],['R_y/R_x=',num2str(y(104),'%5.3f')], ...
         ['R_y/R_x=',num2str(y(109),'%5.3f')],'Location','ne')
 
 fnalHome=1;    % =1 for FNAL and =0 fore home
@@ -151,8 +151,8 @@ if (fnalHome == 0)
     cd ('C:/Users/Yury/My Personal Documents/My WORK/ESS/ASTRA/highBeta') 
     dirname='C:/Users/Yury/My Personal Documents/My WORK/ESS/ASTRA/highBeta/';
 elseif (fnalHome == 1)
-    cd ('/home/eidelyur/radiaSoft/astra/comparison_Hellweg/') 
-    dirname='/home/eidelyur/radiaSoft/astra/comparison_Hellweg/';
+%  cd ('/home/eidelyur/radiaSoft/astra/comparison_Hellweg/') 
+%    dirname='/home/eidelyur/radiaSoft/astra/comparison_Hellweg/';
 end
 
 %------------------------------------------------
@@ -168,7 +168,7 @@ end
 %         1st column - R_x/R_z
 %         2nd - 11th column - Mx for corresponding R_y/R_x
 %
-filename=strcat(dirname,'formfactorMx.data')
+filename=strcat(dirname,'formfactorMx1.data')
 
 indxRyRx=[1 10 20 40 60 80 100 101 104 109]';
 indxRxRz=[199 109 101 100 67 50 40 33 28 25 22 20]';
@@ -192,7 +192,7 @@ end
 
 fclose(fileID)
 
-filename=strcat(dirname,'formfactorMy.data')
+filename=strcat(dirname,'formfactorMy1.data')
 
 indxRyRx=[1 10 20 40 60 80 100 101 104 109]';
 fileID=fopen(filename,'w')
@@ -214,7 +214,7 @@ end
 
 fclose(fileID)
 
-filename=strcat(dirname,'formfactorMz.data')
+filename=strcat(dirname,'formfactorMz1.data')
 
 indxRyRx=[1 10 8 40 60 80 100 101 104 109]';
 fileID=fopen(filename,'w')
@@ -244,7 +244,7 @@ fclose(fileID)
 
 RyRx=zeros(10,1);
 
-filename=strcat(dirname,'formfactorMx.data')
+filename=strcat(dirname,'formfactorMx1.data')
 
 MxReaded=[];
 rX_rZ=zeros(100,1);

@@ -1,0 +1,59 @@
+========================================
+INPUT DATA from:
+INPUT.txt
+========================================
+OPTIONS 
+!SOLENOID 500
+!SOLENOID 1500 15.0 3.0 1.0
+!SOLENOID solenoid.txt 
+!SOLENOID solenoid2DS.txt 2.0
+!SOLENOID solenoid3D.txt 
+!BEAM CST_PIT drift_tube.PIT
+!BEAM SPH2D 0.5 0.0 NORM2D 3.00 0.00001 0 180
+!BEAM TWISS2D -0.6 6.6 0.001 NORM2D 3.00 0.00001 0 180
+BEAM 	FILE4D 	wb6dt_q.txt 	FILE2D 	wb6dz_q.txt
+CURRENT	0.0 10001
+!SPCHARGE ELLIPTIC 3.0 TRAIN 10.5
+!SAVE hwg_solenoid PID 
+DRIFT 42.0 	2.0 100
+QUAD	quad.txt 	9.5 	0.450 	100
+DRIFT 1.5 	2.0 100
+QUAD	quad.txt 	9.5 	-0.520 	100
+DRIFT 15.0 	2.0 100
+POWER 1.0	2856.0	
+!CELL 120 0.999 500
+!DRIFT 10.0 1.0 100
+!POWER 1.0 5712.0
+!DRIFT 10.0 1.0 100
+!DRIFT 10.0 1.0 100
+END
+========================================
+RESULTS
+========================================
+
+Total Length = 77.500 cm
+Average Energy = 0.514 MeV
+Maximum Energy = 3.000 MeV
+Energy Spectrum (FWHM) = 10.05 %
+Input Current = 0.00 mA
+Beam Current = 0.00 mA
+Particles Transmitted = 0.07 %
+Beam Radius (RMS) = 5.47 mm
+Average Phase = -254.80 deg
+Phase Length (FWHM) = 489.50 deg
+Twiss Parameters (R):
+alpha= -5.49338
+betta = 234.80363 cm/rad
+emittance = 12.731342 um
+emittance (norm) = 22.145670 um
+Twiss Parameters (X):
+alpha= -2311.62917
+betta = 32065.16762 cm/rad
+emittance = 0.149889 um
+emittance (norm) = 0.260725 um
+Twiss Parameters (Y):
+alpha= -107.00096
+betta = 2346.25134 cm/rad
+emittance = 2.006556 um
+emittance (norm) = 3.490325 um
+========================================
