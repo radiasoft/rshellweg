@@ -3,7 +3,7 @@ The rslinac repository is where RadiaSoft maintains open source software for mod
 
 ### Hellweg
 #### Author
-Original author and primary developer: Sergey V. Kutsaev, RadiaBeam Technologies LLC
+Original author and primary developer: [Sergey V. Kutsaev](https://www.linkedin.com/in/sergey-kutsaev-9990147), RadiaBeam Technologies LLC
 
 Hellweg was initially developed at the [RF laboratory of the National Research Nuclear University (MEPhI)](http://rflab.mephi.ru/en/).
 
