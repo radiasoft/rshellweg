@@ -14,7 +14,7 @@ Porting to GNU/Linux: [Jose 'Pepe' Barbe-Welzel](https://github.com/elventear)
 Porting to the cloud: [Paul Moeller](https://www.linkedin.com/in/paul-moeller-a002b0) and [Robert Nagler](https://www.linkedin.com/in/robnagler), RadiaSoft LLC
 
 #### Rapid simulation of beams in cavities, with beam loading
-<a target="_blank" class="btn btn-default lp-code-button" href="/hellweg"><h4>Hellweg</h4></a>
+<h4>[Hellweg](https://github.com/radiasoft/rslinac/blob/master/README.md)</h4>
 
 Hellweg is a C++ application for simulating high-average-power, traveling wave (TW) electron linacs, including the important effects of beam loading. It can also be used for modeling beam transport with a variety of standard elements.
 
