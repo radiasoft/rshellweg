@@ -27,7 +27,7 @@ The Hellweg physics kernel compiles on Linux without the GUI. The C++ physics ke
 ### Publications
 S.V. Kutsaev, “Electron dynamics simulations with Hellweg 2D code”, [Nuclear Instruments and Methods in Physics Research A618, pp. 298–305](http://www.sciencedirect.com/science/article/pii/S0168900210003141) (2010).
 
-S.V. Kutsaev, N.P. Sobenin, A.Yu. Smirnov, D.S. Kamenschikov, M.A. Gusarov, K.I. Nikolskiy, A.A. Zavadtsev and M.V. Lalayan, “Design of hybrid electron linac with standing wave buncher and traveling wave structure”, [Nuclear Instruments and Methods in Physics Research A636, p. 13](http://www.sciencedirect.com/science/article/pii/S0168900211001252) (2011).
+S.V. Kutsaev, N.P. Sobenin, A.Yu. Smirnov, D.S. Kamenschikov, M.A. Gusarova, K.I. Nikolskiy, A.A. Zavadtsev and M.V. Lalayan, “Design of hybrid electron linac with standing wave buncher and traveling wave structure”, [Nuclear Instruments and Methods in Physics Research A636, p. 13](http://www.sciencedirect.com/science/article/pii/S0168900211001252) (2011).
 
 S.V. Kutsaev, R.B. Agustsson, A. Arodzero, R.D.B. Berry, S. Boucher, Y.C. Chen, J.J. Hartzell, B.T. Jacobson, A. Laurich, A.Y. Murokh, E.A. Savin, A.Yu. Smirnov and A. Verma, “Design, Simulations and Experimental Demonstration of an Intra-Pulse Ramped-Energy Travelling Wave Linac for Cargo Inspection”, [Proc. of NAPAC, TUPOA68](http://vrws.de/napac2016/papers/tupoa68.pdf) (2016).
 
