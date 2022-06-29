@@ -74,7 +74,9 @@ void TBeamSolver::Initialize()
 	StructPar.NElements=0;
 	StructPar.ElementsLimit=-1;
 	StructPar.NStructData=0;
+    StructPar.NMaps=0;
 	StructPar.StructData=NULL;
+	StructPar.Reverse=false;
 
 	ExternalMagnetic.Dim.Nz=0;
 	ExternalMagnetic.Dim.Nx=0;
@@ -182,12 +184,17 @@ void TBeamSolver::ResetMaps()
 		for (int i = 0; i < StructPar.NMaps; i++) {
 			for (int j = 0; j < QuadMaps[i].Dim.Nx; i++) {
 				delete[] QuadMaps[i].Field[j];
+
 			}
+
 			delete[] QuadMaps[i].Field;
 			delete[] QuadMaps[i].Piv.X;
 			delete[] QuadMaps[i].Piv.Y;
+
 		}
 		delete[] QuadMaps;
+		QuadMaps=NULL;
+		StructPar.NMaps=0;
 	}
 }
 //---------------------------------------------------------------------------
@@ -505,6 +512,8 @@ TBeamType TBeamSolver::ParseDistribution(AnsiString &S)
 			D=FILE_4D;
 		else if (S=="NORM2D")
 			D=NORM_2D;
+		else if (S=="PARMELA_T2")
+			D=PARMELA_T2;
 		/*else if (S=="NORM4D")
 			D=NORM_4D;  */
 	 return D;
@@ -515,6 +524,7 @@ bool TBeamSolver::IsFullFileKeyWord(TBeamType D)
 	bool R=false;
 
 	switch (D) {
+    	case PARMELA_T2:{}
 		case CST_PID:{}
 		case CST_PIT:{R=true;break;}
 		default: R=false;
@@ -559,6 +569,7 @@ bool TBeamSolver::IsFileKeyWord(TBeamType D)
 	switch (D) {
 		case CST_PID:{}
 		case CST_PIT: {}
+		case PARMELA_T2:{}
 		case FILE_1D:{}
 		case FILE_2D:{}
 		case TWO_FILES_2D:{}
@@ -946,6 +957,11 @@ AnsiString TBeamSolver::AddLines(TInputLine *Lines,int N1,int N2)
 	}
 
 	return S;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseT2(TInputLine *Line, AnsiString &F)
+{
+    return ParsePIT(Line, F);
 }
 //---------------------------------------------------------------------------
 TError TBeamSolver::ParsePID(TInputLine *Line, AnsiString &F)
@@ -1419,6 +1435,10 @@ TError TBeamSolver::ParseBeam(TInputLine *Line)
 					Error=ParsePIT(Line,F);
 					break;
 				}
+				case PARMELA_T2: {
+					Error=ParseT2(Line,F);
+					break;
+				}
 				default: {
 					S="ERROR: Unexpected Input File Type";
 					ShowError(S);
@@ -1552,6 +1572,10 @@ TError TBeamSolver::ParseCurrent(TInputLine *Line)
 					}
 					case CST_PIT:{
 						Nr=NumPointsInFile(BeamPar.RFile,PIT_LENGTH);
+						break;
+					}
+					case PARMELA_T2:{
+						Nr=NumPointsInFile(BeamPar.RFile,T2_LENGTH);
 						break;
 					}
 					default:  {
@@ -2680,7 +2704,10 @@ void TBeamSolver::CreateMaps()
 				QuadMaps[q].Piv.Y[k]*=StructPar.Cells[i].F0/c;
 			}
 			q++;
-		}
+		}  else {
+		   QuadMaps[q].Piv.X=NULL;
+           QuadMaps[q].Piv.Y=NULL;
+        }
 	}
 }
 //---------------------------------------------------------------------------
@@ -3354,7 +3381,7 @@ TError TBeamSolver::CreateBeam()
 	if (Beam!=NULL)
 		DeleteBeam();
 
-    Beam=new TBeam*[Npoints];
+	Beam=new TBeam*[Npoints];
 	for (int i=0;i<Npoints;i++){
 		Beam[i]=new TBeam(BeamPar.NParticles);
 	  //  Beam[i]->SetBarsNumber(Nbars);
@@ -3412,11 +3439,14 @@ TError TBeamSolver::CreateBeam()
 		case CST_PID:{
 			Beam[0]->GeneratePhase(BeamPar.ZNorm);
 		}
+        case PARMELA_T2:{
+		}
 		case CST_PIT:{
-			if (!Beam[0]->BeamFromCST(&BeamPar))
+			if (!Beam[0]->BeamFromImport(&BeamPar))
 				return ERR_BEAM;
 			break;
 		}
+
 		case TWISS_2D:{}
 		case TWISS_4D:{
 			Beam[0]->BeamFromTwiss(&BeamPar);
@@ -3449,6 +3479,8 @@ TError TBeamSolver::CreateBeam()
 			return ERR_BEAM;
 		}
 	}
+
+	Beam[0]->ShiftPhase(StructPar.Cells[0].dF);
 
 	return ERR_NO;
 }
@@ -3987,7 +4019,16 @@ double TBeamSolver::GetEigenFactor(double x, double y, double z,double a, double
 		} else {
 			rho=sqrt(-p/3);
 			cph=-q/(2*cub(rho));
-			phi=acos(cph);
+
+			if (mod(cph)<=1)
+				phi=acos(cph);
+			else if (cph>=1)
+				phi=0;
+			else if (cph<=-1)
+				phi=pi;
+			else
+				ShowMessage("Big boom badaboom!");
+
 
 			r=2*rho;
 			s1=r*cos(phi/3);
@@ -4402,6 +4443,8 @@ void TBeamSolver::Integrate(int Si, int Sj)
 								Mxx=FormFactor(ix,iy,X_PAR,s);
 								Myy=FormFactor(ix,iy,Y_PAR,s);
 								Mzz=FormFactor(ix,iy,Z0_PAR,s);
+
+
 								Lz=(2.0/3.0)*rv/pow(r2,3.0);
 							}
 						}

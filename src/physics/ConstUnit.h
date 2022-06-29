@@ -12,6 +12,7 @@ const int DigitConst=1e6;
 const int MAX_CHAR=256;
 const int PIT_LENGTH=10;
 const int PID_LENGTH=9;
+const int T2_LENGTH=7;
 const int DEFAULT_MESH=20;
 const double MESH_TOLERANCE=10;
 

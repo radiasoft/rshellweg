@@ -14,8 +14,9 @@
 #include "BeamSolver.h"
 #include "Optimizer.h"
 #include "OptimizerResults.h"
-#include "Spin.hpp"
+//#include "Spin.hpp"
 #include "cspin.h"
+#include <Vcl.Samples.Spin.hpp>
 
 const int sDLS=0;
 

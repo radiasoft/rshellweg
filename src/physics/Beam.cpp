@@ -76,6 +76,12 @@ void TBeam::GenerateAzimuth(TGauss G)
 	MakeGaussDistribution(G,TH_PAR);
 }
 //---------------------------------------------------------------------------
+void TBeam::ShiftPhase(double phi0)
+{
+	for (int i=0;i<Np;i++)
+		Particle[i].phi+=phi0;
+}
+//---------------------------------------------------------------------------
 double **TBeam::ImportFromFile(TBeamType BeamType,TBeamInput *BeamPar,bool T)
 {
 	AnsiString F,L,S;
@@ -92,6 +98,11 @@ double **TBeam::ImportFromFile(TBeamType BeamType,TBeamInput *BeamPar,bool T)
 		case CST_PID:{
 			F=BeamPar->RFile;
 			LineLength=PID_LENGTH;
+			break;
+		}
+		case PARMELA_T2:{
+			F=BeamPar->RFile;
+			LineLength=T2_LENGTH;
 			break;
 		}
 		case FILE_1D:{
@@ -199,10 +210,11 @@ bool TBeam::ImportEnergy(TBeamInput *BeamPar)
 	return Success;
 }
 //---------------------------------------------------------------------------
-bool TBeam::BeamFromCST(TBeamInput *BeamPar)
+bool TBeam::BeamFromImport(TBeamInput *BeamPar)
 {
 	double **X=NULL;
 	double x=0,y=0,z=0,px=0,py=0,pz=0,t=0;
+	double phi=0,W=0;
 	double r=0,th=0,p=0,pr=0,pth=0,beta=0;
 	int i=0;
 	bool Success=false;
@@ -221,10 +233,11 @@ bool TBeam::BeamFromCST(TBeamInput *BeamPar)
 					t=X[9][i];
 					Particle[i].phi=-2*pi*t*c/lmb;
 					if (BeamPar->ZCompress){
-						int phase_dig=-DigitConst*Particle[i].phi;
+					   /*	int phase_dig=-DigitConst*Particle[i].phi;
 						int max_dig=DigitConst*2*pi;
 						int phase_trunc=phase_dig%max_dig;
-						Particle[i].phi=(1.0*phase_trunc)/DigitConst;
+						Particle[i].phi=(1.0*phase_trunc)/DigitConst; */
+						CompressPhase(Particle[i].phi);
 					}
 				}
 				case CST_PID:
@@ -257,6 +270,37 @@ bool TBeam::BeamFromCST(TBeamInput *BeamPar)
 					//fprintf(logFile,"%f %f %f\n",px,pr*cos(th)-pth*sin(th),px-pr*cos(th)+pth*sin(th));
                     break;
 				}
+				case PARMELA_T2:
+				{
+					x=X[0][i]/100;  //cm
+					px=X[1][i]/1000;  //mrad
+					y=X[2][i]/100;
+					py=X[3][i]/1000;
+					phi=X[4][i];   //deg
+					W=X[5][i];     //MeV
+
+                    C=CartesianToCylinrical(x,y,px,py);
+					r=C.x;
+					th=C.y;
+					pr=C.px;
+					pth=C.py;
+
+					beta=MeVToVelocity(W);
+					p=1/sqrt(1/sqr(beta)-1);
+
+					Particle[i].phi=DegreeToRad(phi);
+					if (BeamPar->ZCompress)
+						CompressPhase(Particle[i].phi);
+
+
+					Particle[i].beta0=beta;
+					Particle[i].beta.z=beta;
+					Particle[i].r=r/lmb;
+					Particle[i].beta.r=(pr/p)*beta;
+					Particle[i].th=th;
+					Particle[i].beta.th=(pth/p)*beta;
+                    break;
+				}
 				default:
 									throw std::runtime_error("BeamFromCST error: Unhandled RBeamType");
 			}
@@ -265,6 +309,7 @@ bool TBeam::BeamFromCST(TBeamInput *BeamPar)
 		switch (BeamPar->RBeamType){
 			case CST_PIT: {N=PIT_LENGTH;break;}
 			case CST_PID: {N=PID_LENGTH;break;}
+			case PARMELA_T2: {N=T2_LENGTH;break;}
 						default: throw std::runtime_error("BeamFromCST error: Unhandled RBeamType value");
 		}
 		X=DeleteDoubleArray(X,N);
@@ -1437,7 +1482,7 @@ double TBeam::BesselSum(TIntParameters& Par,TIntegration *I,TTrig Trig)
 	double phi=0,r=0,bw=0,c=0,bz=0;
     double Res=0;
 
-    for (int i=0;i<Np;i++){
+	for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){
 			bz=Particle[i].beta.z+I[i].beta.z*Par.h;
 			if (bz<0 || bz>1) {

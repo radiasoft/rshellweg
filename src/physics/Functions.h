@@ -118,6 +118,14 @@ inline double PulseToAngle(double beta_x,double beta_z)
 	return mod(beta_z) > 0? arctg(beta_x/beta_z) : sign(beta_x)*pi/2;
 }
 //---------------------------------------------------------------------------
+inline CompressPhase(double &phi)
+{
+	int phase_dig=-DigitConst*phi;
+	int max_dig=DigitConst*2*pi;
+	int phase_trunc=phase_dig%max_dig;
+	phi=(1.0*phase_trunc)/DigitConst;
+}
+//---------------------------------------------------------------------------
 inline int Fact(int n){
     int F=1;
     for (int i=1;i<=n;i++)
