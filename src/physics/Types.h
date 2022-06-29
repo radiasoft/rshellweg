@@ -39,7 +39,7 @@ using namespace std;
 
 enum TError {ERR_NO,ERR_NOFILE,ERR_OPENFILE,ERR_COUPLER,ERR_SOLENOID,ERR_BEAM,ERR_QUAD,
 				ERR_CURRENT,ERR_DRIFT,ERR_CELL,ERR_CELLS,ERR_OPTIONS,ERR_DUMP,
-				ERR_FORMAT,ERR_IMPORT,ERR_SPCHARGE,ERR_ABORT,ERR_OTHER};
+				ERR_FORMAT,ERR_IMPORT,ERR_SPCHARGE,ERR_ABORT,ERR_STRUCT,ERR_OTHER};
 
 enum TBeamParameter {R_PAR,TH_PAR,BR_PAR,BTH_PAR,BZ_PAR,PHI_PAR,Z0_PAR,ZREL_PAR,BETA_PAR,X_PAR,Y_PAR,BX_PAR,BY_PAR,
 					AR_PAR,ATH_PAR,AX_PAR,AY_PAR,AZ_PAR,W_PAR,RTH_PAR,NO_PAR,LIVE_PAR} ;
@@ -49,7 +49,7 @@ enum TStructureParameter {KSI_PAR,Z_PAR,A_PAR,RP_PAR,ALPHA_PAR,SBETA_PAR,RA_PAR,
 enum TSplineType {ZSPLINE,LSPLINE,CSPLINE,SSPLINE};
 enum TChartType {CH_EMITTANCE,CH_SECTION,CH_PORTRAIT,CH_PHASE,CH_ENERGY,CH_BETTA,CH_A,CH_B,CH_ELP,CH_ATT,CH_APP,CH_BEXT,CH_CLEAR};
 
-enum TInputParameter {POWER,SOLENOID,BEAM,CURRENT,DRIFT,CELL,CELLS,OPTIONS,DUMP,COMMENT,UNDEFINED,SPCHARGE,QUAD};
+enum TInputParameter {POWER,SOLENOID,BEAM,CURRENT,DRIFT,CELL,CELLS,OPTIONS,DUMP,COMMENT,UNDEFINED,SPCHARGE,QUAD,STRUCT};
 enum TTrig {SIN,COS,TG,CTG,SEC,CSC};
 enum TDeviation {D_RMS,D_FWHM};
 enum TLoss {LIVE,RADIUS_LOST,PHASE_LOST,BZ_LOST,BR_LOST,BTH_LOST,BETA_LOST,STEP_LOST};
@@ -141,6 +141,19 @@ struct TBeamInput
 	int NParticles;
 	bool ZCompress;
    	bool Demagnetize;
+};
+
+struct TStructData
+{
+	bool Default;
+	bool DataReady;
+	double Phase;
+	int N_bph;
+	int N_akl;
+	double *Bph;
+	double *AKL;
+	double **ELP;
+	double **AL32;
 };
 
 struct TDimensions
@@ -280,9 +293,11 @@ struct TStructureInput
 	int NSections;
 	int NElements;
 	int NMaps;
+	int NStructData;
 	int ElementsLimit;
 	TSectionParameters *Sections;
 	TCell *Cells;
+	TStructData *StructData;
 	TMagnetParameters SolenoidPar;
 	bool Reverse;
 };

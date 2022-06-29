@@ -9,6 +9,7 @@ USEFORM("GeometryForm.cpp", GeomForm);
 USEFORM("ResultsForm.cpp", ResForm);
 USEFORM("OptimizerResults.cpp", OptForm);
 USEFORM("OptimizerUnit.cpp", OptimizerForm);
+USEFORM("BuncherUnit.cpp", BuncherForm);
 //---------------------------------------------------------------------------
 int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int) {
 	try {
@@ -19,6 +20,7 @@ int WINAPI _tWinMain(HINSTANCE, HINSTANCE, LPTSTR, int) {
 		Application->CreateForm(__classid(TResForm), &ResForm);
 		Application->CreateForm(__classid(TOptimizerForm), &OptimizerForm);
 		Application->CreateForm(__classid(TOptForm), &OptForm);
+		Application->CreateForm(__classid(TBuncherForm), &BuncherForm);
 		Application->Run();
 	}
 	catch (Exception &exception) {

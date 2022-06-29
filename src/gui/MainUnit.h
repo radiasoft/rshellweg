@@ -18,6 +18,7 @@
 #include "GeometryForm.h"
 #include "ResultsForm.h"
 #include "OptimizerUnit.h"
+#include "BuncherUnit.h"
 
 //---------------------------------------------------------------------------
 class TMainForm : public TForm
@@ -74,6 +75,7 @@ __published:    // IDE-managed Components
 	TLabel *Label_BetaY;
 	TLabel *Label_EmittanceY;
 	TLabel *Label_Fringe;
+	TButton *cBuncherButton;
     void __fastcall ExitButtonClick(TObject *Sender);
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
@@ -86,7 +88,8 @@ __published:    // IDE-managed Components
     void __fastcall AbortButtonClick(TObject *Sender);
     void __fastcall ViewButtonClick(TObject *Sender);
     void __fastcall LoadResultsButtonClick(TObject *Sender);
-    void __fastcall OptButtonClick(TObject *Sender);
+	void __fastcall OptButtonClick(TObject *Sender);
+	void __fastcall cBuncherButtonClick(TObject *Sender);
 private:    // User declarations
 //    TBeamSolver *Solver;
     void DisplayError();

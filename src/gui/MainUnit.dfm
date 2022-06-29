@@ -365,6 +365,15 @@ object MainForm: TMainForm
         TabOrder = 2
         OnClick = LoadResultsButtonClick
       end
+      object cBuncherButton: TButton
+        Left = 16
+        Top = 101
+        Width = 75
+        Height = 25
+        Caption = 'Buncher'
+        TabOrder = 3
+        OnClick = cBuncherButtonClick
+      end
     end
   end
   object ControlGroup: TGroupBox

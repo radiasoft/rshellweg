@@ -47,7 +47,7 @@ __fastcall TBeamSolver::~TBeamSolver()
 void TBeamSolver::Initialize()
 {
     MaxCells=500;
-    Nmesh=20;
+    Nmesh=DEFAULT_MESH;
    	Kernel=0;
     SplineType=LSPLINE;
     Nstat=100;
@@ -73,6 +73,8 @@ void TBeamSolver::Initialize()
 	StructPar.Sections=NULL;
 	StructPar.NElements=0;
 	StructPar.ElementsLimit=-1;
+	StructPar.NStructData=0;
+	StructPar.StructData=NULL;
 
 	ExternalMagnetic.Dim.Nz=0;
 	ExternalMagnetic.Dim.Nx=0;
@@ -132,6 +134,46 @@ void TBeamSolver::ResetStructure()
 
 	ResetExternal();
 	ResetMaps();
+	ResetStructData();
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::DeleteStructData(TStructData &D)
+{
+
+	if (D.ELP!=NULL) {
+		for (int i = 0; i < D.N_bph; i++)
+			delete[] D.ELP[i];
+	}
+	if (D.AL32!=NULL) {
+		for (int i = 0; i < D.N_bph; i++)
+			delete[] D.AL32[i];
+	}
+	if (D.Bph!=NULL)
+		delete [] D.Bph ;
+	if (D.AKL!=NULL)
+		delete [] D.AKL ;
+
+	D.Bph=NULL;
+	D.AKL=NULL;
+	D.ELP=NULL;
+	D.AL32=NULL;
+
+	D.N_bph=0;
+	D.N_akl=0;
+	D.Phase=-1;
+	D.Default=false;
+
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::ResetStructData()
+{
+	if (StructPar.StructData!=NULL) {
+		for (int i = 0; i < StructPar.NStructData; i++)
+			DeleteStructData(StructPar.StructData[i]);
+	}
+	StructPar.NStructData=0;
+	delete [] StructPar.StructData;
+	StructPar.StructData=NULL;
 }
 //---------------------------------------------------------------------------
 void TBeamSolver::ResetMaps()
@@ -434,7 +476,8 @@ bool TBeamSolver::IsKeyWord(AnsiString &S)
         S=="CELL" ||
 		S=="CELLS" ||
 		S=="SAVE" ||
-        S=="OPTIONS" ||
+		S=="OPTIONS" ||
+		S=="STRUCT" ||
 		S=="SPCHARGE";
 	  //	S=="COMMENT";
 }
@@ -570,7 +613,9 @@ TInputParameter TBeamSolver::Parse(AnsiString &S)
 		P=DUMP;
     else if (S=="SPCHARGE")
 		P=SPCHARGE;
-    else if (S[1]=='!')
+	else if (S=="STRUCT")
+		P=STRUCT;
+	else if (S[1]=='!')
 		P=COMMENT;
 	return  P;
 }
@@ -591,12 +636,12 @@ TSpaceChargeType TBeamSolver::ParseSpchType(AnsiString &S)
 	return T;
 }
 //---------------------------------------------------------------------------
-void TBeamSolver::GetDimensions(TCell& Cell)
+void TBeamSolver::GetDimensionsFromTab(TCell& Cell)
 {
 
-    int Nbp=0,Nep=0;
+	int Nbp=0,Nep=0;
     int Nar=0,Nab=0;
-    int Mode=Cell.Mode;
+	int Mode=Cell.Mode;
 
     switch (Mode) {
         case 90:
@@ -635,7 +680,7 @@ void TBeamSolver::GetDimensions(TCell& Cell)
 
     for (int i=0;i<Nbp;i++){
         for (int j=0;j<Nep;j++){
-            switch (Mode) {
+			switch (Mode) {
                 case 90:
                     Xo[j]=E12[Nbp-i-1][j];
                     Yo[j]=R12[Nbp-i-1][j];
@@ -751,6 +796,68 @@ void TBeamSolver::GetDimensions(TCell& Cell)
     y=interp(akl(bf),bf);    */
 
 
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::GetDimensionsFromFile(TCell& Cell,TStructData *D)
+{
+	double *A, *C, *Einv, *Ainv;
+	A=new double [D->N_bph];
+	C=new double [D->N_bph];
+	Einv=new double [D->N_akl];
+	Ainv=new double [D->N_akl];
+
+	for (int j = 0; j < D->N_akl; j++)
+		Ainv[j]=D->AKL[D->N_akl-1-j];
+
+	for (int i=0;i<D->N_bph;i++){
+		TSpline eSpline, aSpline;
+		eSpline.SoftBoundaries=false;
+		aSpline.SoftBoundaries=false;
+
+		for (int j = 0; j < D->N_akl; j++)
+			Einv[j]=D->ELP[i][D->N_akl-1-j];
+
+		eSpline.MakeLinearSpline(Einv,Ainv,D->N_akl);
+		aSpline.MakeLinearSpline(D->AKL,D->AL32[i],D->N_akl);
+
+		A[i]=eSpline.Interpolate(Cell.ELP);
+		C[i]=aSpline.Interpolate(A[i]);
+    }
+
+	TSpline bSpline, cSpline;
+	bSpline.SoftBoundaries=false;
+	cSpline.SoftBoundaries=false;
+
+	bSpline.MakeLinearSpline(D->Bph,A,D->N_bph);
+	cSpline.MakeLinearSpline(D->Bph,C,D->N_bph);
+	Cell.AkL=bSpline.Interpolate(Cell.beta);
+	Cell.AL32=cSpline.Interpolate(Cell.beta);
+
+	delete[] A;
+	delete[] C;
+	delete[] Einv;
+	delete[] Ainv;
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::GetDimensions(TCell& Cell)
+{
+	int i_struct=-1;
+	bool Priority=false;
+	for (int i=0; i < StructPar.NStructData; i++) {
+		if (StructPar.StructData[i].DataReady) {
+			if (!Priority && StructPar.StructData[i].Default)
+				i_struct=i;
+			if (StructPar.StructData[i].Phase==Cell.Mode) {
+				i_struct=i;
+				Priority=true;
+			}
+		}
+	}
+
+	if (i_struct<0)
+		GetDimensionsFromTab(Cell);
+	else
+		GetDimensionsFromFile(Cell,&StructPar.StructData[i_struct]);
 }
 //---------------------------------------------------------------------------
 TInputLine *TBeamSolver::ParseFile(int& N)
@@ -1533,6 +1640,130 @@ TError TBeamSolver::ParseCurrent(TInputLine *Line)
 	return ERR_NO;
 }
 //---------------------------------------------------------------------------
+TError TBeamSolver::CheckStructFile(TStructData &D, AnsiString &F)
+{
+	TError Error=ERR_NO;
+	AnsiString S,L;
+	std::ifstream fs(F.c_str());
+	int N=0;
+
+	L=GetLine(fs);
+	D.N_bph=NumWords(L);
+	L=GetLine(fs);
+	D.N_akl=NumWords(L);
+
+	try {
+		for (int i=0; i < 2*D.N_bph; i++) {
+			L=GetLine(fs);
+			N=NumWords(L);
+			if (N!=D.N_akl){
+				Error=ERR_STRUCT;
+				break;
+			}
+		}
+	} catch (...) {
+		Error=ERR_STRUCT;
+	}
+
+	fs.close();
+
+	if (Error!=ERR_NO) {
+		S="ERROR: The format of file "+F+" is not correct! Please, refer to manual for the correct format. This line will be ignored.";
+		ShowError(S);
+	}
+
+	return Error;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseStructFile(TStructData &D, AnsiString &F)
+{
+	TError Error=ERR_NO;
+	AnsiString S,L;
+
+	Error=CheckStructFile(D,F);
+	if (Error==ERR_NO) {
+		D.Bph=new double [D.N_bph];
+		D.AKL=new double [D.N_akl];
+		D.ELP=new double *[D.N_bph];
+		D.AL32=new double *[D.N_bph];
+		for (int i = 0; i < D.N_bph; i++){
+			D.ELP[i]=new double [D.N_akl];
+			D.AL32[i]=new double [D.N_akl];
+		}
+		std::ifstream fs(F.c_str());
+		try {
+		L=GetLine(fs);      //Betas
+		for (int j=0;j<D.N_bph;j++){
+			S=ReadWord(L,j+1);
+			D.Bph[j]=S.ToDouble();
+		}
+
+		L=GetLine(fs);     //akls
+		for (int j=0;j<D.N_akl;j++){
+			S=ReadWord(L,j+1);
+			D.AKL[j]=S.ToDouble();
+		}
+
+		for (int i = 0; i < D.N_bph; i++){
+			L=GetLine(fs);     //ELPs
+			for (int j=0;j<D.N_akl;j++){
+				S=ReadWord(L,j+1);
+				D.ELP[i][j]=S.ToDouble();
+			}
+		}
+		for (int i = 0; i < D.N_bph; i++){
+			L=GetLine(fs);     //AL32s
+			for (int j=0;j<D.N_akl;j++){
+				S=ReadWord(L,j+1);
+				D.AL32[i][j]=S.ToDouble();
+			}
+		}
+		} catch (...) {
+			Error=ERR_STRUCT;
+		}
+		fs.close();
+	}
+
+	D.DataReady=Error==ERR_NO;
+
+ 	return Error;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::ParseStruct(TInputLine *Line,int Ni)
+{
+	AnsiString F="STRUCT",StructFile,S;
+	TError Error=ERR_NO;
+
+	if (Line->N>0){
+		//Read File
+		StructFile=Line->S[0];
+		F+="\t"+StructFile;
+		if (CheckFile(StructFile)){
+			Error=ParseStructFile(StructPar.StructData[Ni],StructFile);
+			if (Error==ERR_NO) {
+				if (Line->N==1)
+					StructPar.StructData[Ni].Default=true;
+				else {
+					StructPar.StructData[Ni].Phase=Line->S[1].ToDouble();
+					F+="\t"+Line->S[1];
+					if (Line->N>2){
+						S="WARNING: Excessive parameters in STRUCT line. They will be ingored!";
+						ShowError(S);
+					}
+				}
+			}
+		}else {
+			S="ERROR: The file "+StructFile+" is missing!";
+			ShowError(S);
+			Error=ERR_STRUCT;
+		}
+	 } else
+		Error=ERR_STRUCT;
+
+	ParsedStrings->Add(F);
+	return Error;
+}
+//---------------------------------------------------------------------------
 TError TBeamSolver::ParseCell(TInputLine *Line,int Ni, int Nsec, bool NewCell)
 {
 	if (Line->N==3 || Line->N==5){
@@ -1857,7 +2088,7 @@ TError TBeamSolver::ParseDump(TInputLine *Line, int Ns, int Ni)
 //---------------------------------------------------------------------------
 TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 {
-	int Ni=0, Nsec=0, Ns=0, Nq=0;
+	int Ni=0, Nsec=0, Ns=0, Nq=0, Ndat=0;
 	double dF=0;
 	double F_last=0, P_last=0;
 
@@ -1901,6 +2132,11 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 			case CURRENT:{
 				Error=ParseCurrent(&Lines[k]);
 				CurrentDefined=Error==ERR_NO;
+				break;
+			}
+			case STRUCT:{
+				Error=ParseStruct(&Lines[k],Ndat);
+				Ndat++;
 				break;
 			}
 			case CELL:{ }
@@ -2032,7 +2268,8 @@ TError TBeamSolver::LoadData(int Nlim)
 		else if (Lines[k].P==QUAD) {
 			StructPar.NElements++;
 			StructPar.NMaps++;
-		}
+		} else if (Lines[k].P==STRUCT)
+			StructPar.NStructData++;
 	}
 
 	if (StructPar.ElementsLimit>-1 && StructPar.NElements>=StructPar.ElementsLimit){  //# of cells limit. Needed for optimizer
@@ -2058,6 +2295,15 @@ TError TBeamSolver::LoadData(int Nlim)
 		StructPar.Sections[0].NCells=0;
 	} else
 		StructPar.Sections=new TSectionParameters [StructPar.NSections];
+
+	if (StructPar.NStructData!=0) {
+		StructPar.StructData=new TStructData [StructPar.NStructData];
+		for (int k = 0; k < StructPar.NStructData; k++) {
+			StructPar.StructData[k].Default=false;
+			StructPar.StructData[k].Phase=0;
+			StructPar.StructData[k].DataReady=false;
+		}
+	}
 
 	Parsed=ParseLines(Lines,N);
     ParsedStrings->Add("END");
@@ -3203,6 +3449,7 @@ TError TBeamSolver::CreateBeam()
 			return ERR_BEAM;
 		}
 	}
+
 	return ERR_NO;
 }
 //---------------------------------------------------------------------------
@@ -4872,7 +5119,9 @@ TError TBeamSolver::Solve()
         return ERR_OTHER;
     }
     SmartProgress->Reset(Npoints-1/*Np*/);
-    #endif
+	#endif
+
+	double phi0=0, phi_s=0, phi_p=0;
 
   //    logFile=fopen("beam.log","w");
  /* for (int i=0;i<Np;i++){
@@ -4912,6 +5161,7 @@ TError TBeamSolver::Solve()
 		}
 
 		for (int j=0;j<BeamPar.NParticles;j++){
+			phi_s=Structure[i+1].ksi*2*pi;
 			if (Beam[i+1]->Particle[j].lost==LIVE){
 				if (Structure[i+1].Bmap.Field==NULL) {
 					if (mod(Beam[i+1]->Particle[j].r)>=Structure[i+1].Ra)
@@ -4926,8 +5176,13 @@ TError TBeamSolver::Solve()
 					ymin=Structure[i+1].Bmap.Piv.Y[0];
 					ymax=Structure[i+1].Bmap.Piv.Y[Structure[i+1].Bmap.Dim.Ny-1];
 					if (R.x<xmin || R.x>xmax || R.y<ymin || R.y>ymax) {
-                    	Beam[i+1]->Particle[j].lost=RADIUS_LOST;
+						Beam[i+1]->Particle[j].lost=RADIUS_LOST;
 					}
+				}
+				phi0=Beam[0]->Particle[j].phi;
+				phi_p=Beam[i+1]->Particle[j].phi;
+				if ((phi_p-phi0+phi_s)<-pi/2) {
+					Beam[i+1]->Particle[j].lost=PHASE_LOST;
 				}
 			}
 			Beam[i+1]->Particle[j].z=Structure[i+1].ksi*Structure[i+1].lmb;

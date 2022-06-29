@@ -44,6 +44,7 @@ void __fastcall TResForm::FormShow(TObject *Sender)
 	KernelChanged();
 	AccuracyChanged();
 	BinsChanged();
+	SynchChanged();
 
     PositionTrackBar->Max=Npts-1;
     PositionTrackBar->Position=PositionTrackBar->Max;
@@ -118,16 +119,18 @@ void TResForm::AllPassive()
     PackChart->Visible=false;
     BarsChart->Visible=false;
     BeamChart->Visible=false;
-    PieChart->Visible=false;
-    SpectrumChart->Visible=false;
+	PieChart->Visible=false;
+	SpectrumChart->Visible=false;
+	MultLineChart->Visible=false;
 }
 //---------------------------------------------------------------------------
 void TResForm::ChartActive()
 {
     BarsChart->Visible=false;
     BeamChart->Visible=false;
-    PieChart->Visible=false;
-    SpectrumChart->Visible=false;
+	PieChart->Visible=false;
+	SpectrumChart->Visible=false;
+	MultLineChart->Visible=false;
 
     PackChart->Visible=true;
     PackSeries->Clear();
@@ -140,7 +143,8 @@ void TResForm::BeamActive()
     PackChart->Visible=false;
     BarsChart->Visible=false;
     PieChart->Visible=false;
-    SpectrumChart->Visible=false;
+	SpectrumChart->Visible=false;
+	MultLineChart->Visible=false;
 
     BeamChart->Visible=true;
     BeamSeries->Clear();
@@ -165,7 +169,8 @@ void TResForm::PackActive()
     PackSeries->Visible=true;
     LineSeries->Visible=false;
     AddSeries->Visible=false;
-    PackChart->Legend->Visible=false;
+	PackChart->Legend->Visible=false;
+	MultLineChart->Visible=false;
 }
 //---------------------------------------------------------------------------
 void TResForm::LineActive()
@@ -175,6 +180,7 @@ void TResForm::LineActive()
     LineSeries->Visible=true;
     AddSeries->Visible=true;
 	PackChart->Legend->Visible=true;
+	MultLineChart->Visible=false;
 	//ExtraSeries->Visible=false;//gType==EPS_PLOT;
 }
 //---------------------------------------------------------------------------
@@ -183,27 +189,49 @@ void TResForm::BarsActive()
     PackChart->Visible=false;
     BeamChart->Visible=false;
     PieChart->Visible=false;
-    SpectrumChart->Visible=false;
+	SpectrumChart->Visible=false;
+	MultLineChart->Visible=false;
 
     BarsChart->Visible=true;
 
     BarSeries1->Clear();
     BarSeries2->Clear();
     BarSeries3->Clear();
-    BarSeries4->Clear();
+	BarSeries4->Clear();
     BarSeries5->Clear();
-    BarSeries6->Clear();
+	BarSeries6->Clear();
+	BarSeries7->Clear();
 }
 //---------------------------------------------------------------------------
 void TResForm::PieActive()
 {
-    PackChart->Visible=false;
-    BarsChart->Visible=false;
-    BeamChart->Visible=false;
-    SpectrumChart->Visible=false;
+	PackChart->Visible=false;
+	BarsChart->Visible=false;
+	BeamChart->Visible=false;
+	SpectrumChart->Visible=false;
+	MultLineChart->Visible=false;
 
-    PieChart->Visible=true;
-    PieSeries->Clear();
+	PieChart->Visible=true;
+	PieSeries->Clear();
+}
+//---------------------------------------------------------------------------
+void TResForm::MultLineActive()
+{
+	PackChart->Visible=false;
+	BarsChart->Visible=false;
+	BeamChart->Visible=false;
+	SpectrumChart->Visible=false;
+	PieChart->Visible=false;
+	MultLineChart->Visible=true;
+
+	MultSeries1->Clear();
+	MultSeries2->Clear();
+	MultSeries3->Clear();
+	MultSeries4->Clear();
+	MultSeries5->Clear();
+	MultSeries6->Clear();
+	MultSeries7->Clear();
+	MultSeries8->Clear();
 }
 //---------------------------------------------------------------------------
 void TResForm::SpectrumActive()
@@ -211,7 +239,8 @@ void TResForm::SpectrumActive()
     PackChart->Visible=false;
     BarsChart->Visible=false;
     BeamChart->Visible=false;
-    PieChart->Visible=false;
+	PieChart->Visible=false;
+	MultLineChart->Visible=false;
     SpectrumChart->Visible=true;
     SpectrumSeries->Clear();
     SpecEnvSeries->Clear();
@@ -635,14 +664,14 @@ void TResForm::DrawAvEnergy()
 void TResForm::DrawAvRadius()
 {
 	gType=R_PLOT;
-    LineActive();
+	LineActive();
 
-    PackChart->Title->Caption="Radius";
-    PackChart->BottomAxis->Title->Caption="z,cm";
-    PackChart->LeftAxis->Title->Caption="r,mm";
+	PackChart->Title->Caption="Radius";
+	PackChart->BottomAxis->Title->Caption="z,cm";
+	PackChart->LeftAxis->Title->Caption="r,mm";
 
-    LineSeries->Title="Beam Radius (RMS)";
-    AddSeries->Title="Aperture";
+	LineSeries->Title="Beam Radius (RMS)";
+	AddSeries->Title="Aperture";
 
 	DrawPlots(RB_PAR,RA_PAR);
 }
@@ -741,21 +770,32 @@ void TResForm::DrawLongtSpace()
     BeamChart->BottomAxis->Title->Caption="phi,deg";
     BeamChart->LeftAxis->Title->Caption="W,MeV";
 
-		if (VertFitCheck->Checked)
+	if (VertFitCheck->Checked)
 		Wmax=Solver->GetMaxEnergy(j);
-   // Wmax=0.55;
+	else
+		Wmax=7;
+
+	double Phi_min=0;
+	double Phi_max=0;
+
+	if (HorFitCheck->Checked){
+		Phi_min=RadToDegree(Solver->GetMinPhase(j));
+		Phi_max=RadToDegree(Solver->GetMaxPhase(j));
+	}   else {
+		Phi_min=MinPhase;
+		Phi_max=MaxPhase;
+	}
+
+	   // Wmax=0.55;
 	ResetAxis(BeamChart->LeftAxis,0,Wmax,false);
-	ResetAxis(BeamChart->BottomAxis,MinPhase,MaxPhase,HorFitCheck->Checked);
+	ResetAxis(BeamChart->BottomAxis,Phi_min,Phi_max,HorFitCheck->Checked);
 
   	BeamChart->LeftAxis->Automatic=VertFitCheck->Checked;
 	BeamChart->LeftAxis->Minimum=0;
 	BeamChart->LeftAxis->Maximum=Wmax;
 	BeamChart->BottomAxis->Automatic=HorFitCheck->Checked;
-	BeamChart->BottomAxis->Minimum=MinPhase;
-	BeamChart->BottomAxis->Maximum=MaxPhase;
-
-	double Phi_min=RadToDegree(Solver->GetMinPhase(j));
-	double Phi_max=RadToDegree(Solver->GetMaxPhase(j));
+	BeamChart->BottomAxis->Minimum=Phi_min;
+	BeamChart->BottomAxis->Maximum=Phi_max;
 
 	if (EnvelopeCheck->Checked){
 		//EnvelopeSeries->Transparency=50;
@@ -772,15 +812,15 @@ void TResForm::DrawLongtSpace()
 			gamma=MeVToGamma(W);
 		 // for (int i=0;i<PointsNumber;i++){
 			   //   phi=MinPhase+i*(MaxPhase-MinPhase)/(PointsNumber-1);
-			   phi=90;
-				H=GetH(gamma,phi,beta_w,A);
+			   //phi=90;
+				H=GetH(gamma,90,beta_w,A);
 				if (H>Hmax)
 					Hmax=H;
 				if (H<Hmin)
 					Hmin=H;
 
       //        }
-        }
+		}
 
         for (int n=0; n < 2; n++) {
 			for (int k=0; k < SeparatrixNumber; k++) {
@@ -1297,37 +1337,37 @@ void __fastcall TResForm::RSpectrumButtonClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TResForm::LossButtonClick(TObject *Sender)
 {
-    BarsActive();
+	BarsActive();
 
 	int Nr=0,Nf=0,Nbz=0,Nbr=0,Nbth=0,Ns=0,Nb=0;
 
-    for (int i=0;i<Npts;i++){
+	for (int i=0;i<Npts;i++){
 		Nr=0;Nf=0;Nbz=0;Nbr=0;Nbth=0;Ns=0;Nb=0;
-        for (int j=0;j<Np;j++){
+		for (int j=0;j<Np;j++){
 			switch (Solver->GetLossType(i,j)){
-                case RADIUS_LOST: Nr++; break;
-                case PHASE_LOST: Nf++; break;
+				case RADIUS_LOST: Nr++; break;
+				case PHASE_LOST: Nf++; break;
 				case BETA_LOST: Nb++; break;
 				case BZ_LOST: Nbz++; break;
 				case BR_LOST: Nbr++; break;
 				case BTH_LOST: Nbth++; break;
-                case STEP_LOST: Ns++; break;
-            }
-        }
-        BarSeries1->AddXY(i,100.0*Nr/Np,"",clRed);
-        BarSeries2->AddXY(i,100.0*Nf/Np,"",clBlue);
-        BarSeries3->AddXY(i,100.0*Nb/Np,"",clGreen);
+				case STEP_LOST: Ns++; break;
+			}
+		}
+		BarSeries1->AddXY(i,100.0*Nr/Np,"",clRed);
+		BarSeries2->AddXY(i,100.0*Nf/Np,"",clBlue);
+		BarSeries3->AddXY(i,100.0*Nb/Np,"",clGreen);
 		BarSeries4->AddXY(i,100.0*Nbz/Np,"",clYellow);
 		BarSeries5->AddXY(i,100.0*Nbr/Np,"",clPurple);
 		BarSeries6->AddXY(i,100.0*Nbth/Np,"",clOrange);
 		BarSeries7->AddXY(i,100.0*Ns/Np,"",clGray);
-    }
+	}
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TResForm::LossPieButtonClick(TObject *Sender)
 {
-    PieActive();
+	PieActive();
 
 		int Nr=0,Nf=0,Nbz=0,Nbr=0,Nbth=0,Ns=0,Nb=0,Nl=0;
 
@@ -1352,6 +1392,37 @@ void __fastcall TResForm::LossPieButtonClick(TObject *Sender)
 	PieSeries->AddPie(Nbth,"Bth Losses",clOrange);
 	PieSeries->AddPie(Ns,"Step Losses",clGray);
     PieSeries->AddPie(Nl,"Living",clOlive);
+}
+//---------------------------------------------------------------------------
+void __fastcall TResForm::LossPlotButtonClick(TObject *Sender)
+{
+	MultLineActive();
+	int Nr=0,Nf=0,Nbz=0,Nbr=0,Nbth=0,Ns=0,Nb=0,Ntot=0;
+
+	for (int i=0;i<Npts;i++){
+		Nr=0;Nf=0;Nbz=0;Nbr=0;Nbth=0;Ns=0;Nb=0;Ntot=0;
+		for (int j=0;j<Np;j++){
+			switch (Solver->GetLossType(i,j)){
+				case RADIUS_LOST: Nr++; break;
+				case PHASE_LOST: Nf++; break;
+				case BETA_LOST: Nb++; break;
+				case BZ_LOST: Nbz++; break;
+				case BR_LOST: Nbr++; break;
+				case BTH_LOST: Nbth++; break;
+				case STEP_LOST: Ns++; break;
+			}
+		}
+		Ntot=Solver->GetLivingNumber(i);
+
+		MultSeries1->AddXY(i,100.0*Nr/Np,"",clRed);
+		MultSeries2->AddXY(i,100.0*Nf/Np,"",clBlue);
+		MultSeries3->AddXY(i,100.0*Nb/Np,"",clGreen);
+		MultSeries4->AddXY(i,100.0*Nbz/Np,"",clYellow);
+		MultSeries5->AddXY(i,100.0*Nbr/Np,"",clPurple);
+		MultSeries6->AddXY(i,100.0*Nbth/Np,"",clOrange);
+		MultSeries7->AddXY(i,100.0*Ns/Np,"",clGray);
+		MultSeries8->AddXY(i,100.0*(1-1.0*Ntot/Np),"",clBlack);
+	}
 }
 //---------------------------------------------------------------------------
 void TResForm::ShowParameters()
@@ -1481,6 +1552,14 @@ void TResForm::KernelChanged()
 	Hcore=sqrt(-2*ln(1-Kernel));
 }
 //---------------------------------------------------------------------------
+void TResForm::SynchChanged()
+{
+	AnsiString S;
+	int Pos=SynchTrack->Position;
+	SynchLabel->Caption=S.FormatFloat("0 deg",5*Pos);
+	SynchPhase=5*Pos;
+}
+//---------------------------------------------------------------------------
 void TResForm::PositionChanged()
 {
 	int j=PositionTrackBar->Position;
@@ -1552,7 +1631,7 @@ void __fastcall TResForm::PositionTrackBarChange(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TResForm::PlayButtonClick(TObject *Sender)
 {
-    if (PlayButton->Down)
+	if (PlayButton->Down)
         PlayButton->Caption="||";
     else
         PlayButton->Caption=">";
@@ -1737,5 +1816,10 @@ void __fastcall TResForm::BinsTrackChange(TObject *Sender)
 	PositionChanged();
 }
 //---------------------------------------------------------------------------
-
+void __fastcall TResForm::SynchTrackChange(TObject *Sender)
+{
+	SynchChanged();
+	PositionChanged();
+}
+//---------------------------------------------------------------------------
 

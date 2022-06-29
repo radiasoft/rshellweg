@@ -1120,6 +1120,7 @@ double TBeam::GetParameter(int i,TBeamParameter P)
 			break;
 		}
         case (ZREL_PAR):{
+			//x=lmb*(Particle[i].phi-Particle[i].phi0)/(2*pi);
 			x=lmb*Particle[i].phi/(2*pi);
 			break;
 		}
@@ -1758,7 +1759,7 @@ void TBeam::Next(TBeam *nBeam,TIntParameters& Par,TIntegration **I)
 	//logFile=fopen("next.log","a");
 
 	for (int i=0;i<Np;i++){
-        nParticle[i].lost=Particle[i].lost;
+		nParticle[i].lost=Particle[i].lost;
 		if (Particle[i].lost==LIVE){
 			nParticle[i].phi=0;
 			nParticle[i].phi=Particle[i].phi+(I[0][i].phi+I[1][i].phi+2*I[2][i].phi+2*I[3][i].phi)*Par.h/6;
@@ -1801,6 +1802,13 @@ void TBeam::Next(TBeam *nBeam,TIntParameters& Par,TIntegration **I)
 			if (nParticle[i].beta.z>1 /*|| nParticle[i].beta.z<0*/){
 				nParticle[i].lost=BZ_LOST;
 			}
+
+			if (nParticle[i].beta.z<0){
+				nParticle[i].lost=PHASE_LOST;
+			}
+			/*if ((nParticle[i].phi+Particle[i+1].phi0)<-2*pi){
+				nParticle[i].lost=PHASE_LOST;
+			} */
 
 			for (int j=0;j<4;j++){
 				I[j][i].r=0;

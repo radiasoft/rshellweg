@@ -55,6 +55,8 @@ private:
 	void ResetDump(int Ns);
 	void ResetExternal();
 	void ResetMaps();
+	void ResetStructData();
+	void DeleteStructData(TStructData &D);
 
 	int Mode_N,Mode_M,MaxCells,Nmesh,Npoints;// //Move to TMeshParameters
 
@@ -81,6 +83,7 @@ private:
 	TError ParseSolenoid (TInputLine *Line);
 	TError ParseBeam (TInputLine *Line);
 	TError ParseCurrent (TInputLine *Line);
+	TError ParseStruct (TInputLine *Line, int Ni);
 	TError ParseCell (TInputLine *Line,int Ni,int Nsec, bool NewCell);
 	TError ParseSingleCell (TInputLine *Line,int Ni,int Nsec, bool NewCell);
 	TError ParseMultipleCells (TInputLine *Line,int Ni,int Nsec, bool NewCell);
@@ -89,6 +92,8 @@ private:
 	TError ParsePower (TInputLine *Line,int Nsec);
 	TError ParseDump (TInputLine *Line,int Ns, int Ni);
 
+	TError CheckStructFile (TStructData &D, AnsiString &F);
+	TError ParseStructFile (TStructData &D, AnsiString &F);
 	TError ParsePID (TInputLine *Line, AnsiString &F);
 	TError ParsePIT (TInputLine *Line, AnsiString &F);
 	TError ParseFile2R (TInputLine *Line, AnsiString &F, int Nr);
@@ -127,6 +132,8 @@ private:
     double *SplineInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
     double *SmoothInterpolation(double *x,double *X,double *Y,int Nbase,int Nint,double p0,double *W=NULL);
 	void GetDimensions(TCell& Cell);
+	void GetDimensionsFromTab(TCell& Cell);
+	void GetDimensionsFromFile(TCell& Cell,TStructData *D);
 	double FormFactor(double ryrx, double rxrz, TBeamParameter P, double s=0);
 	double GetEigenFactor(double x, double y, double z,double a, double b, double c);
 

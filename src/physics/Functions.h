@@ -407,13 +407,15 @@ static AnsiString GetWord(ifstream &f)   //Reads the next word from fstream
 //---------------------------------------------------------------------------
 static AnsiString GetLine(ifstream &f)   //Reads the next line from fstream
 {
-   AnsiString S;
-   char s[MAX_CHAR];
+	AnsiString S;
+	char s[MAX_CHAR];
 
-   f.getline(s, sizeof(s)) ;
-   S=AnsiString(s);
+	do {
+		f.getline(s, sizeof(s)) ;
+		S=AnsiString(s);
+	} while(S.IsEmpty() || S==' ');
 
-   return S;
+	return S;
 }
 //---------------------------------------------------------------------------
 static int NumWords(AnsiString &L)  //Counts number of words in the line
