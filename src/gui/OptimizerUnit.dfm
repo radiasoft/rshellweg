@@ -39,7 +39,6 @@ object OptimizerForm: TOptimizerForm
         Align = alClient
         Caption = 'Optimize Buncher'
         TabOrder = 0
-        ExplicitHeight = 406
         object BuncherCheck: TCheckBox
           Left = 16
           Top = 16
@@ -123,7 +122,7 @@ object OptimizerForm: TOptimizerForm
             Left = 95
             Top = 69
             Width = 64
-            Height = 25
+            Height = 21
             TabOrder = 2
             Text = '0.0'
           end
@@ -131,7 +130,7 @@ object OptimizerForm: TOptimizerForm
             Left = 95
             Top = 96
             Width = 64
-            Height = 25
+            Height = 21
             TabOrder = 3
             Text = '0.0'
           end
@@ -181,7 +180,7 @@ object OptimizerForm: TOptimizerForm
             Left = 70
             Top = 39
             Width = 64
-            Height = 25
+            Height = 21
             TabOrder = 1
             Text = '1.0'
           end
@@ -189,7 +188,7 @@ object OptimizerForm: TOptimizerForm
             Left = 151
             Top = 39
             Width = 64
-            Height = 25
+            Height = 21
             TabOrder = 2
             Text = '2.0'
           end
@@ -253,7 +252,7 @@ object OptimizerForm: TOptimizerForm
             Left = 75
             Top = 66
             Width = 59
-            Height = 27
+            Height = 22
             MaxValue = 1000
             MinValue = 2
             TabOrder = 3
@@ -272,8 +271,8 @@ object OptimizerForm: TOptimizerForm
       object AccelGroup: TGroupBox
         Left = 1
         Top = 1
-        Width = 218
-        Height = 406
+        Width = 217
+        Height = 405
         Align = alClient
         Caption = 'OptimizeAccelerator'
         TabOrder = 0
@@ -339,7 +338,7 @@ object OptimizerForm: TOptimizerForm
           Left = 56
           Top = 15
           Width = 65
-          Height = 25
+          Height = 21
           TabOrder = 0
           Text = '20.0'
         end
@@ -356,7 +355,7 @@ object OptimizerForm: TOptimizerForm
           Left = 111
           Top = 65
           Width = 50
-          Height = 27
+          Height = 22
           TabOrder = 2
         end
       end

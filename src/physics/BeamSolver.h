@@ -96,6 +96,7 @@ private:
 	TError ParseStructFile (TStructData &D, AnsiString &F);
 	TError ParsePID (TInputLine *Line, AnsiString &F);
 	TError ParsePIT (TInputLine *Line, AnsiString &F);
+    TError ParseT2 (TInputLine *Line, AnsiString &F);
 	TError ParseFile2R (TInputLine *Line, AnsiString &F, int Nr);
 	TError ParseFile1Z (TInputLine *Line, AnsiString &F, int Nz,int Zpos);
 	TError ParseFile2Z (TInputLine *Line, AnsiString &F, int Nz,int Zpos);

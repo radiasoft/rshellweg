@@ -1,0 +1,170 @@
+06/14/2021
+-Added the capability to import the beam distribution from Parmela T2 files'
+-Fixed a bug with memory leak when trying to rerun the simulation
+
+09/20/2020
+-Added the keyword "STRUCT" with a file name parameter to read the cell parameters data
+-Udpated the algorithm to calculate cell parameters form user file
+-Added file with tabulated DLS parameters, simulated in CST
+-Added file with cell data for Ku-band split DLS (t/lmb=0.04, gap=1mm, full rounding)
+
+09/01/2020
+-All particles with z<0 are now considered lost
+
+12/28/2017
+-Fixed and tested Elliptical space charge algorithm. Corrected longitudinal form-factor tabulation
+-Added the exterior fields for Lapostolle algorithm
+-Particle coordinate is now calculated as z=phi*beta*lambda/2pi 
+
+05/13/2017
+-Fixed the "Br/r" axis visibility issue in Beam View mode
+-Fixed the wrong "excessive parameters" message when a solenoid file is specified
+-Fixed the bug with non-zero azimuthal component of 1D solenoid
+-Fixed the improper Lapostolle space charge model label in Main Form
+
+04/06/2017
+-Fixed the bug with SPCHARGE line processing.
+-The particle is now lost if beta_z<0 at any point.'
+
+03/11/2017
+- Added magnetic quadrupole element (QUAD), defined by the x-y field map from the external file.
+- Fixed the problem of program crash when soolenoid field is not defined.
+
+03/05/2017 
+- Added the capability to import multi-dimensional field maps from external files, including
+2D (r,z,Br,Bz), 2D (r,z,Bx,By,Bz) and 3D (x,y,z,Bx,By,Bz)
+- Added the parameter defining the staring position of the imported field 
+- Added the possibility to shift imported solenoid field along z-axis
+- Fixed the critical error when the solver process is terminated
+- Fixed the error when the input data dispayed incorrectly after the slover finished
+- When the solver is successfully finished and the new solver is started, the code will updtae the input data from the file 
+
+03/04/2017
+- Fixed the Form to pre-veiw structure parameters (View Geometry)
+- Added the plot for Br/r [Gs/cm] at r=rmax
+- When the wrong keyword is defined in the input file, the code will show a warning
+- Removed interpolation of the input parameters. Now such parameters of the wave as amplitude and phase velocity 
+are constant inside the cell
+
+03/02/2017
+- Added Fringe Field Length parameter for solenoid
+- It is possible to define constant unoform solenoidal field with a signle Bz[Gs] parameter 
+
+02/28/2017
+- Fixed the elliptical space charge model
+- Added train of bunches space charge mode to Elliptical algorithm.
+
+02/23/2017
+- Added new Elliptic space charge algorithm
+- Lapostolle space charge algorithm converted to 3D
+- Garnett-Wangler algorithm is temporarly disabled until debugging
+- Fixed minor bugs
+
+02/09/2017
+-Added beam export to ASTRA
+-Fixed beam export to CST PIT
+-Added the capability to export beam multiple times at the same point
+
+02/03/2017
+-Fixed the radial dynamics equations
+
+02/01/2017
+-Fixed the bug caused by comment sign followed by space
+
+12/23/2016
+-User guide updated
+-Minor bugs fixed
+
+12/21/2016
+-Code converted to 3D. 
+-Added azimuthal equation. 
+-Initial distribution with Twiss parameters now can have non-zero azimuthal speed. 
+-Added azimuthal and 4D emittances.
+-Added radial component to solenoidal field.
+-Added all 6 RF field components to the equations and all 3 components for external magnetic field.
+-Fixed the ambiguity between full beta and beta_z.
+
+12/11/2016
+-Beam view form was updated: added r,theta,x,y phase spaces, and radial spectra. 
+-Added the possibility to compare beam distribtutions from 2 files. 
+-Added normalized emittance.
+-Main form: output data was updated, view geometry, load results and optimizer are blocked for future revision.
+-Results form: fixed the previouslfou bugs (no plots, plot error), 
+-added the trackbar to control the precentage of the particles in the beam core (for beam envelope), 
+-added the "depth view" for particle traces (W, phi,r) to see the beam intensity, 
+-added the trackbar to sparce the output data (#of particles and # of points) to increase the speed. 
+-Added the radial spectrum plot, and the emittances vs length plot. 
+-Added the trackbar to increase the number of spectrum bins. 
+-Added the radio buttons to choose between r,x, and y for radial component. 
+-Added the output parameters (emittance etc)
+-GUI bugs fixed
+
+12/06/2016
+-Major revision. Now the beam can be defined in 3D space. 
+-Main form is revised to display all new relevant parameters.
+-Twiss parameters are now 3D. Twiss parameters are calculated by using statistics method. 
+-The input file is now loaded once. 
+-The displayed parameters are now caclulated rather than loaded from the input file.
+-Major code reorganization.
+
+12/05/2016
+-Main Form revised
+
+12/04/2016
+-Major Revision for 3D Twiss Parameters
+
+11/29/2016
+-Main Form revised
+
+11/28/2016
+-Fixed bugs for the new BEAM line. 
+-The user guide is updated for the new syntax.
+
+11/27/2016
+- Major Update of the beam input.  The beam initialization was revised completely. 
+Now allows input from CST, text files, Twiss parameters, Gauss and Rayleigh distributions etc. 
+The code now allows asymmetric beam input and is ready for 3D cylindrical coordinates. 
+Check with User Guide for the details
+09/11/2016
+- Revised input file intitalization;
+- Comments are available with '!' in the beginning of the line;
+- Empty lines treated correctly;
+- Incorrect lines are ingored.
+
+09/30/2016
+- Fixed the interpolation on the upper boundary
+
+09/29/2016
+- Fixed the GUI minor bugs
+
+09/20/2016
+- Now power balance is calculated for each section
+
+09/19/2016
+- Minor bug fixes
+- Added the enrgy gain line to the output file
+
+09/16/2016
+- Added the possibility tp define the number of mesh points in a drift tube
+- Warnings and errors are now duplicated in PARSED.TXT and OUTPUT.TXT
+
+09/15/2016
+- Added the possibility to dump the limited number of particles. If a number N is defined after the file name, 
+the coed will dump the first N particles. If two numbers N1 N2 are defined, the particles from N1 to N2 willbe dumped. 
+- Added flags for data output in SAVE line: LOST, ENERGY, PHASE, RADIUS, AZIMUTH, and 
+
+09/14/2016
+- Added the possibility to dump 5 parameters (phi, W, x, theta, vx) for all particles at the defined point with the SAVE command
+VX.
+
+09/13/2016
+- Added custom imoprt file name. Now istead of BFILE and CST_X, it is possible to define the actual file
+name. 
+- Protection for non-existing file is added
+- Added protection from incorrect file format. Now the code will not crash if the format of the input file is wrong
+- If some critical parameters such as BEAM, CURRENT are not defined, or there are no elements (DRIFT, CELL) defined, or the POWER is not defined
+for RF structure, the program will show a message and doesn't let the user to run the solver. 
+- Updated the guide
+
+09/12/2016
+- Comments are now put in PARSED.TXT

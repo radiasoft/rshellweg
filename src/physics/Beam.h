@@ -72,7 +72,7 @@ public:
 
 
 	// BEAM CREATION
-	bool BeamFromCST(TBeamInput *BeamPar);
+	bool BeamFromImport(TBeamInput *BeamPar);
 	bool BeamFromTwiss(TBeamInput *BeamPar);
 	bool BeamFromFile(TBeamInput *BeamPar);
 	bool BeamFromSphere(TBeamInput *BeamPar);
@@ -81,6 +81,7 @@ public:
 	void GeneratePhase(TGauss G);
 	void GenerateAzimuth(TGauss G);
 	bool ImportEnergy(TBeamInput *BeamPar);
+    void ShiftPhase (double phi0);
 
 	void SetCurrent(double I);
 	void SetInputCurrent(double I);
