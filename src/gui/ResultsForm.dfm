@@ -277,7 +277,7 @@ object ResForm: TResForm
         BarPen.Visible = False
         Marks.Visible = False
         SeriesColor = 4259584
-        Title = 'Betta Loss'
+        Title = 'Beta Loss'
         BarWidthPercent = 100
         MultiBar = mbStacked
         XValues.Name = 'X'
@@ -289,7 +289,7 @@ object ResForm: TResForm
         BarPen.Visible = False
         Marks.Visible = False
         SeriesColor = clYellow
-        Title = 'Bz Loss'
+        Title = 'Beta_z Loss'
         BarWidthPercent = 100
         MultiBar = mbStacked
         XValues.Name = 'X'
@@ -301,7 +301,7 @@ object ResForm: TResForm
         BarPen.Visible = False
         Marks.Visible = False
         SeriesColor = 16744703
-        Title = 'Bx Loss'
+        Title = 'Beta_x Loss'
         BarWidthPercent = 100
         MultiBar = mbStacked
         XValues.Name = 'X'
@@ -313,7 +313,7 @@ object ResForm: TResForm
         BarPen.Visible = False
         Marks.Visible = False
         SeriesColor = 33023
-        Title = 'Bth Loss'
+        Title = 'Beta_th Loss'
         BarWidthPercent = 100
         MultiBar = mbStacked
         XValues.Name = 'X'
@@ -445,6 +445,107 @@ object ResForm: TResForm
         XValues.Order = loNone
         YValues.Name = 'Y'
         YValues.Order = loAscending
+      end
+    end
+    object MultLineChart: TChart
+      Left = 1
+      Top = 1
+      Width = 764
+      Height = 637
+      Title.Text.Strings = (
+        'TChart')
+      View3D = False
+      Align = alClient
+      TabOrder = 5
+      DefaultCanvas = 'TGDIPlusCanvas'
+      ColorPaletteIndex = 13
+      object MultSeries1: TLineSeries
+        SeriesColor = clRed
+        Title = 'Radius'
+        Brush.BackColor = clDefault
+        Pointer.InflateMargins = True
+        Pointer.Style = psRectangle
+        XValues.Name = 'X'
+        XValues.Order = loAscending
+        YValues.Name = 'Y'
+        YValues.Order = loNone
+      end
+      object MultSeries2: TLineSeries
+        SeriesColor = clBlue
+        Title = 'Phase'
+        Brush.BackColor = clDefault
+        Pointer.InflateMargins = True
+        Pointer.Style = psRectangle
+        XValues.Name = 'X'
+        XValues.Order = loAscending
+        YValues.Name = 'Y'
+        YValues.Order = loNone
+      end
+      object MultSeries3: TLineSeries
+        SeriesColor = clLime
+        Title = 'Beta'
+        Brush.BackColor = clDefault
+        Pointer.InflateMargins = True
+        Pointer.Style = psRectangle
+        XValues.Name = 'X'
+        XValues.Order = loAscending
+        YValues.Name = 'Y'
+        YValues.Order = loNone
+      end
+      object MultSeries4: TLineSeries
+        SeriesColor = clYellow
+        Title = 'Beta_z'
+        Brush.BackColor = clDefault
+        Pointer.InflateMargins = True
+        Pointer.Style = psRectangle
+        XValues.Name = 'X'
+        XValues.Order = loAscending
+        YValues.Name = 'Y'
+        YValues.Order = loNone
+      end
+      object MultSeries5: TLineSeries
+        SeriesColor = 16711808
+        Title = 'Beta_x'
+        Brush.BackColor = clDefault
+        Pointer.InflateMargins = True
+        Pointer.Style = psRectangle
+        XValues.Name = 'X'
+        XValues.Order = loAscending
+        YValues.Name = 'Y'
+        YValues.Order = loNone
+      end
+      object MultSeries6: TLineSeries
+        SeriesColor = 33023
+        Title = 'Beta_th'
+        Brush.BackColor = clDefault
+        Pointer.InflateMargins = True
+        Pointer.Style = psRectangle
+        XValues.Name = 'X'
+        XValues.Order = loAscending
+        YValues.Name = 'Y'
+        YValues.Order = loNone
+      end
+      object MultSeries7: TLineSeries
+        SeriesColor = clGray
+        Title = 'Step'
+        Brush.BackColor = clDefault
+        Pointer.InflateMargins = True
+        Pointer.Style = psRectangle
+        XValues.Name = 'X'
+        XValues.Order = loAscending
+        YValues.Name = 'Y'
+        YValues.Order = loNone
+      end
+      object MultSeries8: TLineSeries
+        SeriesColor = clBlack
+        Title = 'Total'
+        Brush.BackColor = clDefault
+        Pointer.InflateMargins = True
+        Pointer.Style = psRectangle
+        XValues.Name = 'X'
+        XValues.Order = loAscending
+        YValues.Name = 'Y'
+        YValues.Order = loNone
       end
     end
   end
@@ -761,21 +862,30 @@ object ResForm: TResForm
       TabOrder = 6
       object LossButton: TSpeedButton
         Left = 6
-        Top = 18
+        Top = 46
         Width = 66
         Height = 22
         GroupIndex = 1
-        Caption = 'Losses'
+        Caption = 'Loss Stack'
         OnClick = LossButtonClick
       end
       object LossPieButton: TSpeedButton
         Left = 6
-        Top = 46
+        Top = 75
         Width = 66
         Height = 22
         GroupIndex = 1
         Caption = 'Loss Pie'
         OnClick = LossPieButtonClick
+      end
+      object LossPlotButton: TSpeedButton
+        Left = 6
+        Top = 18
+        Width = 66
+        Height = 22
+        GroupIndex = 1
+        Caption = 'Loss Plot'
+        OnClick = LossPlotButtonClick
       end
     end
   end
@@ -841,7 +951,7 @@ object ResForm: TResForm
       object TransparentCheck: TCheckBox
         Left = 5
         Top = 62
-        Width = 97
+        Width = 57
         Height = 17
         Caption = 'Depth'
         TabOrder = 4
@@ -852,7 +962,7 @@ object ResForm: TResForm
       Left = 1
       Top = 1
       Width = 216
-      Height = 415
+      Height = 293
       Align = alClient
       Caption = 'Parameters'
       TabOrder = 1
@@ -860,7 +970,7 @@ object ResForm: TResForm
         Left = 2
         Top = 15
         Width = 212
-        Height = 337
+        Height = 276
         Align = alClient
         ColCount = 2
         FixedCols = 0
@@ -891,50 +1001,10 @@ object ResForm: TResForm
           24
           24)
       end
-      object BinsGroup: TGroupBox
-        Left = 2
-        Top = 352
-        Width = 212
-        Height = 61
-        Align = alBottom
-        Caption = 'Number of spectrum bins'
-        TabOrder = 1
-        object BinsMinLable: TLabel
-          Left = 5
-          Top = 45
-          Width = 12
-          Height = 13
-          Caption = '10'
-        end
-        object BinsMaxLabel: TLabel
-          Left = 185
-          Top = 45
-          Width = 18
-          Height = 13
-          Caption = '500'
-        end
-        object BinsLabel: TLabel
-          Left = 93
-          Top = 45
-          Width = 15
-          Height = 13
-          Caption = '???'
-        end
-        object BinsTrack: TTrackBar
-          Left = 2
-          Top = 15
-          Width = 208
-          Height = 28
-          Align = alTop
-          Position = 8
-          TabOrder = 0
-          OnChange = BinsTrackChange
-        end
-      end
     end
     object KernelBox: TGroupBox
       Left = 1
-      Top = 487
+      Top = 426
       Width = 216
       Height = 61
       Align = alBottom
@@ -975,7 +1045,7 @@ object ResForm: TResForm
     end
     object AccuracyGroup: TGroupBox
       Left = 1
-      Top = 416
+      Top = 355
       Width = 216
       Height = 71
       Align = alBottom
@@ -1012,6 +1082,88 @@ object ResForm: TResForm
         Position = 2
         TabOrder = 0
         OnChange = AccuracyTrackChange
+      end
+    end
+    object BinsGroup: TGroupBox
+      Left = 1
+      Top = 294
+      Width = 216
+      Height = 61
+      Align = alBottom
+      Caption = 'Number of spectrum bins'
+      TabOrder = 4
+      object BinsMinLable: TLabel
+        Left = 5
+        Top = 45
+        Width = 12
+        Height = 13
+        Caption = '10'
+      end
+      object BinsMaxLabel: TLabel
+        Left = 185
+        Top = 45
+        Width = 18
+        Height = 13
+        Caption = '500'
+      end
+      object BinsLabel: TLabel
+        Left = 93
+        Top = 45
+        Width = 15
+        Height = 13
+        Caption = '???'
+      end
+      object BinsTrack: TTrackBar
+        Left = 2
+        Top = 15
+        Width = 212
+        Height = 28
+        Align = alTop
+        Position = 8
+        TabOrder = 0
+        OnChange = BinsTrackChange
+      end
+    end
+    object SynchBox: TGroupBox
+      Left = 1
+      Top = 487
+      Width = 216
+      Height = 61
+      Align = alBottom
+      Caption = 'Synchronous Phase'
+      TabOrder = 5
+      Visible = False
+      object SynchMinLabel: TLabel
+        Left = 5
+        Top = 45
+        Width = 27
+        Height = 13
+        Caption = '0 deg'
+      end
+      object SynchMaxLabel: TLabel
+        Left = 180
+        Top = 45
+        Width = 33
+        Height = 13
+        Caption = '90 deg'
+      end
+      object SynchLabel: TLabel
+        Left = 93
+        Top = 45
+        Width = 36
+        Height = 13
+        Caption = '??? deg'
+      end
+      object SynchTrack: TTrackBar
+        Left = 2
+        Top = 15
+        Width = 212
+        Height = 28
+        Align = alTop
+        Max = 18
+        Position = 18
+        TabOrder = 0
+        OnChange = SynchTrackChange
       end
     end
   end

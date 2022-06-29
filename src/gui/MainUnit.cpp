@@ -43,6 +43,7 @@ void TMainForm::DisplayError()
 		case ERR_IMPORT : ShowMessage("ERROR:  Particles import failed!");  break;
 		case ERR_FORMAT : ShowMessage("ERROR: incorrect format of data");  break;
 		case ERR_SPCHARGE : ShowMessage("Undefined option for card SPCHARGE"); break;
+		case ERR_STRUCT : ShowMessage("ERROR: Input File: Problems with STRUCT line"); break;
         default:ShowMessage("ERROR: Input File has a wrong format!");   break;
     }
 }
@@ -362,7 +363,12 @@ void __fastcall TMainForm::OptButtonClick(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-
-
-
+void __fastcall TMainForm::cBuncherButtonClick(TObject *Sender)
+{
+    if (LoadInputData(true)){
+	   // OptimizerForm->Solver=Solver;
+        BuncherForm->Show();
+	}
+}
+//---------------------------------------------------------------------------
 

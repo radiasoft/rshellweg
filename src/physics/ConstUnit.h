@@ -12,6 +12,7 @@ const int DigitConst=1e6;
 const int MAX_CHAR=256;
 const int PIT_LENGTH=10;
 const int PID_LENGTH=9;
+const int DEFAULT_MESH=20;
 const double MESH_TOLERANCE=10;
 
 //PHYSICAL
@@ -38,8 +39,8 @@ const double Eerr=0.5;
 const double Estep=10;
 
 //NUMERICAL
-const double MaxPhase=2*360;
-const double MinPhase=-MaxPhase;
+const double MaxPhase=90;
+const double MinPhase=-180;
 const int PointsNumber=1000;
 const int SeparatrixNumber=20;
 const double SpecLevel=0.5;

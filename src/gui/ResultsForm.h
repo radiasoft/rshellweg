@@ -146,6 +146,21 @@ __published:    // IDE-managed Components
 	TTrackBar *BinsTrack;
 	TButton *EmittanceButton;
 	TBarSeries *BarSeries7;
+	TGroupBox *SynchBox;
+	TLabel *SynchMinLabel;
+	TLabel *SynchMaxLabel;
+	TLabel *SynchLabel;
+	TTrackBar *SynchTrack;
+	TSpeedButton *LossPlotButton;
+	TChart *MultLineChart;
+	TLineSeries *MultSeries2;
+	TLineSeries *MultSeries3;
+	TLineSeries *MultSeries4;
+	TLineSeries *MultSeries5;
+	TLineSeries *MultSeries6;
+	TLineSeries *MultSeries7;
+	TLineSeries *MultSeries1;
+	TLineSeries *MultSeries8;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormShow(TObject *Sender);
     void __fastcall EnergyButtonClick(TObject *Sender);
@@ -189,11 +204,13 @@ __published:    // IDE-managed Components
 	void __fastcall BinsTrackChange(TObject *Sender);
 	void __fastcall RSpectrumButtonClick(TObject *Sender);
 	void __fastcall EmittanceButtonClick(TObject *Sender);
+	void __fastcall SynchTrackChange(TObject *Sender);
+	void __fastcall LossPlotButtonClick(TObject *Sender);
 private:    // User declarations
 	TGraphType gType;
     int Np,Npts;//,Nb;
 	double Rmax,Xmax,Wmax;
-	double Kernel,Hcore;
+	double Kernel,Hcore,SynchPhase;
 	int SparceFactor;
 	int NumBins;
 
@@ -233,9 +250,10 @@ private:    // User declarations
 
     void AllPassive();
     void ChartActive();
-    void PackActive();
-    void LineActive();
-    void BarsActive();
+	void PackActive();
+	void LineActive();
+	void MultLineActive();
+	void BarsActive();
     void PieActive();
     void BeamActive();
     void ParticlesActive();
@@ -249,13 +267,14 @@ private:    // User declarations
 	void KernelChanged();
 	void AccuracyChanged();
 	void PositionChanged();
+	void SynchChanged();
     void IncrementPosition();
     int NextEnd();
     int PrevEnd();
 public:     // User declarations
     __fastcall TResForm(TComponent* Owner);
     TBeamSolver *Solver;
-    void LoadData(); 
+	void LoadData();
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TResForm *ResForm;
