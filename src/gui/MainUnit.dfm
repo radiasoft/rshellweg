@@ -1,8 +1,8 @@
 object MainForm: TMainForm
   Left = 0
   Top = 0
-  Caption = 'Hellweg 2D'
-  ClientHeight = 611
+  Caption = 'Hellweg (RsLinac) v. 07/01/22'
+  ClientHeight = 651
   ClientWidth = 577
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -12,6 +12,8 @@ object MainForm: TMainForm
   Font.Style = []
   OldCreateOrder = False
   Position = poDesigned
+  Visible = True
+  OnActivate = FormActivate
   OnCanResize = FormCanResize
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -302,9 +304,9 @@ object MainForm: TMainForm
   end
   object ResultsGroup: TGroupBox
     Left = 0
-    Top = 385
+    Top = 449
     Width = 577
-    Height = 226
+    Height = 202
     Align = alClient
     Caption = 'Results'
     TabOrder = 3
@@ -312,17 +314,18 @@ object MainForm: TMainForm
       Left = 2
       Top = 15
       Width = 466
-      Height = 209
+      Height = 185
       Align = alClient
       TabOrder = 0
       object ResultsMemo: TMemo
         Left = 1
         Top = 1
         Width = 464
-        Height = 207
+        Height = 183
         Align = alClient
         Lines.Strings = (
           'ResultsMemo')
+        ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
         Visible = False
@@ -332,7 +335,7 @@ object MainForm: TMainForm
       Left = 468
       Top = 15
       Width = 107
-      Height = 209
+      Height = 185
       Align = alRight
       TabOrder = 1
       object OptButton: TButton
@@ -380,22 +383,13 @@ object MainForm: TMainForm
     Left = 0
     Top = 337
     Width = 577
-    Height = 48
+    Height = 56
     Align = alTop
     Caption = 'Controls'
     TabOrder = 0
     DesignSize = (
       577
-      48)
-    object SelectFileButton: TButton
-      Left = 3
-      Top = 17
-      Width = 75
-      Height = 25
-      Caption = 'Select File'
-      TabOrder = 1
-      OnClick = SelectFileButtonClick
-    end
+      56)
     object ExitButton: TButton
       Left = 486
       Top = 20
@@ -403,7 +397,7 @@ object MainForm: TMainForm
       Height = 25
       Anchors = [akTop, akRight]
       Caption = 'Exit'
-      TabOrder = 2
+      TabOrder = 1
       OnClick = ExitButtonClick
     end
     object AbortButton: TButton
@@ -412,7 +406,7 @@ object MainForm: TMainForm
       Width = 75
       Height = 25
       Caption = 'Abort'
-      TabOrder = 3
+      TabOrder = 2
       OnClick = AbortButtonClick
     end
     object SolveButton: TButton
@@ -423,6 +417,83 @@ object MainForm: TMainForm
       Caption = 'Solve'
       TabOrder = 0
       OnClick = SolveButtonClick
+    end
+  end
+  object InterfaceGroup: TGroupBox
+    Left = 0
+    Top = 393
+    Width = 577
+    Height = 56
+    Align = alTop
+    Caption = 'Data Interface '
+    TabOrder = 4
+    object Label_Input: TLabel
+      Left = 21
+      Top = 27
+      Width = 45
+      Height = 13
+      Caption = 'Input File'
+    end
+    object Label_Output: TLabel
+      Left = 215
+      Top = 27
+      Width = 53
+      Height = 13
+      Caption = 'Output File'
+    end
+    object SelectFileButton: TButton
+      Left = 72
+      Top = 20
+      Width = 32
+      Height = 25
+      Caption = '...'
+      TabOrder = 0
+      OnClick = SelectFileButtonClick
+    end
+    object InputFileEdit: TEdit
+      Left = 110
+      Top = 24
+      Width = 83
+      Height = 21
+      ReadOnly = True
+      TabOrder = 1
+      Text = 'INPUT.TXT'
+    end
+    object OutputFileEdit: TEdit
+      Left = 297
+      Top = 24
+      Width = 109
+      Height = 21
+      TabOrder = 2
+      Text = 'OUTPUT'
+    end
+    object BinaryCheck: TCheckBox
+      Left = 428
+      Top = 16
+      Width = 97
+      Height = 17
+      Caption = 'Binary Format'
+      Enabled = False
+      TabOrder = 3
+    end
+    object TrajectoryCheck: TCheckBox
+      Left = 428
+      Top = 33
+      Width = 109
+      Height = 17
+      Caption = 'Save Trajectories'
+      Enabled = False
+      TabOrder = 4
+    end
+    object OutputCheck: TCheckBox
+      Left = 274
+      Top = 24
+      Width = 17
+      Height = 17
+      Checked = True
+      State = cbChecked
+      TabOrder = 5
+      OnClick = OutputCheckClick
     end
   end
   object InputDialog: TOpenDialog

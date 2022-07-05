@@ -1717,7 +1717,7 @@ void __fastcall TResForm::FormClose(TObject *Sender, TCloseAction &Action)
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::TableDrawCell(TObject *Sender, int ACol, int ARow,
-      TRect &Rect, TGridDrawState State)
+	  TRect &Rect, TGridDrawState State)
 {
     if (ACol==colName){
         Table->Canvas->Brush->Color = cl3DLight;
