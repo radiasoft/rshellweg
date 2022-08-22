@@ -4027,7 +4027,7 @@ double TBeamSolver::GetEigenFactor(double x, double y, double z,double a, double
 			else if (cph<=-1)
 				phi=pi;
 			else
-				ShowMessage("Big boom badaboom!");
+				assert(false);
 
 
 			r=2*rho;
