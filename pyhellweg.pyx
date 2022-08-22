@@ -1,3 +1,4 @@
+# cython: language_level=3
 import subprocess as sp
 
 def unmangle_cpp_class(mangled_str):
@@ -48,7 +49,7 @@ def run_beam_solver(ini_path, input_path, output_path):
         else:
             raise PyHellwegInputError(err_info.msg)
 
-cdef class PyHellwegBeamSolver(object):
+cdef class PyHellwegBeamSolver:
     cdef HellwegBeamSolver *_solver
 
     def __init__(self, ini_path, input_path):
