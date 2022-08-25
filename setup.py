@@ -25,7 +25,7 @@ def _get_compile_args():
     compiler = os.environ.get('CC', sysconfig.get_config_var('CC'))
     # libHellweg2D uses c++11 features
     if 'gcc' in compiler:
-        return ['-std=c++11']
+        return ['-std=c++11', '-I/home/vagrant/.local/include']
     return None
 
 
@@ -55,7 +55,7 @@ pksetup.setup(
             language='c++',
             sources=_get_src_files(_PHYS_DIR, 'cpp') +
                 _get_src_files(_LIB_DIR, 'cpp') +
-                ['pyhellweg.cpp'],
+                ['lib/pyhellweg.cpp'],
             extra_compile_args=_get_compile_args(),
         ),
     ],

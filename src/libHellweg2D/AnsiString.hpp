@@ -23,8 +23,10 @@ class AnsiString {
         
         bool operator==(const AnsiString &other) const;
         bool operator==(const char *other) const;
+        bool operator==(const std::string &other) const;
         bool operator!=(const AnsiString &other) const;
         bool operator!=(const char *other) const;
+        bool operator!=(const std::string &other) const;
 
         AnsiString operator+(const char *other) const;
         AnsiString operator+(const AnsiString &other) const;
@@ -36,6 +38,7 @@ class AnsiString {
         AnsiString& operator+=(const char &other); 
 
         int Length() const;
+        bool IsEmpty() const;
 };
 
 std::ostream& operator<<(std::ostream &strm, const AnsiString &a);
