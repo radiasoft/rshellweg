@@ -118,7 +118,7 @@ inline double PulseToAngle(double beta_x,double beta_z)
 	return mod(beta_z) > 0? arctg(beta_x/beta_z) : sign(beta_x)*pi/2;
 }
 //---------------------------------------------------------------------------
-inline CompressPhase(double &phi)
+inline void CompressPhase(double &phi)
 {
 	int phase_dig=-DigitConst*phi;
 	int max_dig=DigitConst*2*pi;
@@ -431,7 +431,7 @@ static AnsiString GetLine(ifstream &f)   //Reads the next line from fstream
 	do {
 		f.getline(s, sizeof(s)) ;
 		S=AnsiString(s);
-	} while(S.IsEmpty() || S==' ');
+	} while(S.IsEmpty() || S==" ");
 
 	return S;
 }

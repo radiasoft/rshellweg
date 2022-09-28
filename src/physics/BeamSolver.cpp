@@ -4033,9 +4033,8 @@ double TBeamSolver::GetEigenFactor(double x, double y, double z,double a, double
 				phi=0;
 			else if (cph<=-1)
 				phi=pi;
-		   /*	else
-				ShowMessage("Something very wrong!");   */
-
+			else
+				assert(false);
 
 			r=2*rho;
 			s1=r*cos(phi/3);

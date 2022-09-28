@@ -35,29 +35,31 @@ def test_beam_solver():
 def test_run_beam_solver():
     """Ensure pyhellweg.run_beam_solver produces output and does not crash"""
     from pykern import pkio
-    from pykern.pkunit import pkeq
-    from rslinac.pkcli import beam_solver
+    from pykern.pkunit import file_eq
+    import os
     f = _files()
     with pkunit.save_chdir_work():
         pkio.write_text('Solenoid.txt', pkio.read_text(pkunit.data_dir().join('Solenoid.txt')))
-        beam_solver.run(f['ini'], f['input'], f['output'])
+        # for now beam_solver modifies some global state so it needs a new process
+        os.system(f"rslinac beam_solver run {f['ini']} {f['input']} {f['output']}")
         assert f['output'].exists()
         for outfile in ('PARSED.TXT', 'test1.pid'):
-            expect = pkio.read_text(pkunit.data_dir().join(outfile))
-            actual = pkio.read_text(pkunit.work_dir().join(outfile))
-            pkeq(expect, actual)
+            expect = pkunit.data_dir().join(outfile)
+            actual = pkunit.work_dir().join(outfile)
+            file_eq(expect_path=expect, actual_path=actual)
 
 def test_run_deviance():
     """Incorrect arguments should raise exceptions"""
     from rslinac.pkcli import beam_solver
+    from pykern import pkcli
     f = _files()
-    with pytest.raises(argh.CommandError) as exc:
+    with pytest.raises(pkcli.CommandError) as exc:
         beam_solver.run(f['not found'], f['input'], f['output'])
     assert not f['output'].exists(), \
         'If arguments are invalid, {} is not written'.format(f['ouput'])
     assert f['existing'].exists(), \
         'Could not find file {}, which is supposed to exist'.format(f['existing'])
-    with pytest.raises(argh.CommandError) as exc:
+    with pytest.raises(pkcli.CommandError) as exc:
         beam_solver.run(f['ini'], f['input'], f['existing'])
 
 

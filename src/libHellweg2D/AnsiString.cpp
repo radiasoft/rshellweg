@@ -7,6 +7,10 @@ int AnsiString::Length() const {
     return s.length();
 }
 
+bool AnsiString::IsEmpty() const {
+    return s.length() == 0;
+}
+
 const char& AnsiString::operator[](size_t i) const {
     assert(i > 0);
     // http://docs.embarcadero.com/products/rad_studio/radstudio2007/RS2007_helpupdates/HUpdate4/EN/html/delphivclwin32/System__AnsiString__[]@int.html
@@ -36,6 +40,10 @@ bool AnsiString::operator==(const AnsiString &other) const {
     return s == other.s;
 }
 
+bool AnsiString::operator==(const std::string &other) const {
+    return s == other;
+}
+
 bool AnsiString::operator==(const char *other) const {
     return s == std::string(other);
 }
@@ -46,6 +54,10 @@ bool operator!=(const char* c, const AnsiString &as) {
 
 bool AnsiString::operator!=(const AnsiString &other) const {
     return s != other.s;
+}
+
+bool AnsiString::operator!=(const std::string &other) const {
+    return s != other;
 }
 
 bool AnsiString::operator!=(const char *other) const {
