@@ -86,7 +86,6 @@ object ResForm: TResForm
         Dark3D = False
         LinePen.Color = clBlue
         LinePen.EndStyle = esFlat
-        LinePen.Visible = False
         Pointer.InflateMargins = True
         Pointer.Style = psRectangle
         XValues.Name = 'X'

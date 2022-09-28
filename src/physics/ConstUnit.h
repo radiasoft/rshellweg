@@ -15,6 +15,8 @@ const int PID_LENGTH=9;
 const int T2_LENGTH=7;
 const int DEFAULT_MESH=20;
 const double MESH_TOLERANCE=10;
+const int DEFAULT_MAX_CELLS=1000;
+const double DEFAULT_SMOOTH=0.91;
 
 //PHYSICAL
 const double c=2.99792458e8;
@@ -67,6 +69,10 @@ const char CST_FileY[]="cst_y.txt";
 const char CST_FileR[]="cst_r.txt";
 const char Solenoid_File[]="BFIELD.txt";
 const char Energy_File[]="ENERGY_FILE.txt";
+const char INI_File[]="Hellweg.ini";
+const char DefaultInput[]="INPUT.TXT";
+const char DefaultOutput[]="OUTPUT";
+const char DefaultTemp[]="PARSED.TXT";
 
 //TABLES
 const int Nb12=5;
