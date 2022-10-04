@@ -23,10 +23,10 @@ install: all
 clean:
 	rm -rf $(TGT_DIR)
 
-$(TGT_DIR)/pyhellweg.cpp: pyhellweg.pyx
+$(TGT_DIR)/pyhellweg.cpp: pyhellweg.pyx | $(TGT_DIR)
 	cython --cplus $^ -o $@
 
-$(OBJ): $(INCLUDES) $(TGT_DIR)
+$(OBJ): $(INCLUDES) | $(TGT_DIR)
 
 $(TGT_DIR):
 	mkdir $@
