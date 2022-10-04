@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-u"""Python to C++ Proxy interface for Solvers
+"""Python to C++ Proxy interface for Solvers
 
 :copyright: Copyright (c) 2016 RadiaSoft LLC.  All Rights Reserved.
 :license: http://www.apache.org/licenses/LICENSE-2.0.html
 """
 import rslinac.pyhellweg
+import pykern.pkcompat
 
-def _b(o):
-    return str(o).encode('utf-8')
 
 class BeamSolver(object):
     def __init__(self, ini_path, input_path):
@@ -30,3 +29,7 @@ class BeamSolver(object):
 
     def save_output(self, output_path):
         self._solver.save_output(_b(output_path))
+
+
+def _b(o):
+    return pykern.pkcompat(o).encode("utf-8")
