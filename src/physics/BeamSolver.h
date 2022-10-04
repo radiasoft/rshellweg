@@ -27,20 +27,19 @@ class TBeamSolver
 {
 private:
     //FLAGS
-	bool DataReady;
-	AnsiString UserIniPath ;
+    bool DataReady;
+	AnsiString UserIniPath;
 
 	//BEAM
 	TBeamInput BeamPar;
 	TBeam **Beam;
 
 	//These should be removed sometimes
-	double Smooth;
-	//double Kernel,AngErr;
+	double Kernel,Smooth;
+	double AngErr;
 	double dh;
-	//int Ngraph,Nav;
 
-	int Np_beam,Nstat,Nliv,Ndump;  //Move to TMeshParameters
+	int Np_beam,Nstat,Ngraph,Nav,Nliv,Ndump;  //Move to TMeshParameters
 
 	TSplineType SplineType;
 	//STRUCTURE
@@ -140,13 +139,11 @@ private:
 	double GetEigenFactor(double x, double y, double z,double a, double b, double c);
 
 	//INTEGRATION
-	void DumpHeader(ofstream &fo,TDump *ExportParameters,int jmin,int jmax);
-	void DumpFile(ofstream &fo,TDump *ExportParameters,int j);
-	void DumpASTRA(ofstream &fo,TDump *ExportParameters,int j,int jref);
-	void DumpCST(ofstream &fo,TDump *ExportParameters,int j);
-	void DumpT2(ofstream &fo,TDump *ExportParameters,int j);
+	void DumpHeader(ofstream &fo,int Sn,int jmin,int jmax);
+	void DumpFile(ofstream &fo,int Sn,int j);
+	void DumpASTRA(ofstream &fo,int Sn,int j,int jref);
+	void DumpCST(ofstream &fo,int Sn,int j);
 	void DumpBeam(int Sn);
-	void DumpBeam(TDump *ExportParameters);
 	void Step(int Si);
     void Integrate(int Si, int Sj);
 	void CountLiving(int Si);
@@ -170,7 +167,7 @@ protected:
 
 public:
     //INITIALIZATION
-	__fastcall TBeamSolver(AnsiString _Path);
+    __fastcall TBeamSolver(AnsiString _Path);
     __fastcall TBeamSolver();
     __fastcall ~TBeamSolver();
 
@@ -183,9 +180,7 @@ public:
 
     AnsiString InputFile;
 
-	TError LoadData(int Nlim=-1);
-	TError LoadData(AnsiString LogFileName, int Nlim=-1);
-
+    TError LoadData(int Nlim=-1);
     TError MakeBuncher(TCell& iCell);
 
     void AppendCells(TCell& iCell,int N=1);
@@ -194,9 +189,7 @@ public:
     TCell LastCell();
     TCell GetCell(int j);
 
-	void SaveToFile(AnsiString& Fname);
-	void SaveOutput(AnsiString& Fname, bool binary=false);
-	void SaveTrajectories(AnsiString& Fname);
+    void SaveToFile(AnsiString& Fname);
     bool LoadFromFile(AnsiString& Fname);
    // bool LoadEnergyFromFile(AnsiString& Fname, int NpEnergy);     move to beam.h
 
@@ -205,11 +198,11 @@ public:
     void SetBarsNumber(double Nbin);
     void ChangeInputCurrent(double Ib);
 
-	//GET INITIAL PARAMETERS
+    //GET INITIAL PARAMETERS
     int GetNumberOfPoints();
     int GetMeshPoints();
 	int GetNumberOfParticles();
-	//int GetNumberOfChartPoints();
+    int GetNumberOfChartPoints();
     //int GetNumberOfBars();
 	int GetNumberOfCells();
 	int GetNumberOfSections();

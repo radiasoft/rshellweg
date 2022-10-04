@@ -9,8 +9,8 @@
 //---------------------------------------------------------------------------
 __fastcall TBeamSolver::TBeamSolver(AnsiString UserIniPath)
 {
-	this->UserIniPath = UserIniPath;
-	Initialize();
+    this->UserIniPath = UserIniPath;
+    Initialize();
 }
 //---------------------------------------------------------------------------
 __fastcall TBeamSolver::TBeamSolver()
@@ -46,15 +46,15 @@ __fastcall TBeamSolver::~TBeamSolver()
 //---------------------------------------------------------------------------
 void TBeamSolver::Initialize()
 {
-	MaxCells=DEFAULT_MAX_CELLS;
+    MaxCells=500;
     Nmesh=DEFAULT_MESH;
-	//Kernel=0;
+   	Kernel=0;
     SplineType=LSPLINE;
     Nstat=100;
-    //Ngraph=500;
+    Ngraph=500;
 	//Nbars=100; //default
-	//Nav=10;
-	Smooth=DEFAULT_SMOOTH;
+    Nav=10;
+    Smooth=0.95;
 	Npoints=0;
 	Ndump=0;
 
@@ -250,9 +250,9 @@ void TBeamSolver::ResetDump(int Ns)
 //---------------------------------------------------------------------------
 void TBeamSolver::ShowError(AnsiString &S)
 {
-	 /*   #ifndef RSLINAC
+        #ifndef RSLINAC
 	ShowMessage(S);
-        #endif           */
+        #endif
 	ParsedStrings->Add(S);
 }
 //---------------------------------------------------------------------------
@@ -341,45 +341,45 @@ void TBeamSolver::LoadIniConstants()
 {
     TIniFile *UserIni;
     int t;
-	//double stat;
+    double stat;
 
-	UserIni=new TIniFile(UserIniPath);
-
-	MaxCells=UserIni->ReadInteger("NUMERIC","Maximum Cells",DEFAULT_MAX_CELLS);
-	Nmesh=UserIni->ReadInteger("NUMERIC","Number of Mesh Points",DEFAULT_MESH);
-  /*	Kernel=UserIni->ReadFloat("NUMERIC","Percent Of Particles in Kernel",Kernel);
+    UserIni=new TIniFile(UserIniPath);
+	MaxCells=UserIni->ReadInteger("OTHER","Maximum Cells",MaxCells);
+	Nmesh=UserIni->ReadInteger("NUMERIC","Number of Mesh Points",Nmesh);
+	Kernel=UserIni->ReadFloat("Beam","Percent Of Particles in Kernel",Kernel);
     if (Kernel>0)
     	Kernel/=100;
     	else
-		Kernel=0.9;      */
-	Smooth=UserIni->ReadFloat("NUMERIC","Smoothing Factor",Smooth);
+    	Kernel=0.9;
+
 
     t=UserIni->ReadInteger("NUMERIC","Spline Interpolation",t);
     switch (t) {
         case (0):{
-			SplineType=LSPLINE;
+            SplineType=LSPLINE;
             break;
         }
         case (1):{
-			SplineType=CSPLINE;
+            SplineType=CSPLINE;
             break;
         }
         case (2):{
             SplineType=SSPLINE;
             break;
         }
-	}
+    }
 
- /*	stat=UserIni->ReadFloat("RESULTS","Statistics Error",stat);
+    stat=UserIni->ReadFloat("NUMERIC","Statistics Error",stat);
     if (stat<1e-6)
         stat=1e-6;
     if (stat>25)
         stat=25;
 	int Nstat=round(100.0/stat);
-	AngErr=UserIni->ReadFloat("RESULTS","Angle Error",AngErr);  */
-	//Ngraph=UserIni->ReadInteger("RESULTS","Chart Points",Ngraph);
+	AngErr=UserIni->ReadFloat("NUMERIC","Angle Error",AngErr);
+    Smooth=UserIni->ReadFloat("NUMERIC","Smoothing",Smooth);
+	Ngraph=UserIni->ReadInteger("OTHER","Chart Points",Ngraph);
 	//Nbars=UserIni->ReadInteger("NUMERIC","Hystogram Bars",Ngraph);
-	//Nav=UserIni->ReadInteger("RESULTS","Averaging Points",Nav);
+	Nav=UserIni->ReadInteger("NUMERIC","Averaging Points",Nav);
 }
 //---------------------------------------------------------------------------
 int TBeamSolver::GetNumberOfPoints()
@@ -402,10 +402,10 @@ int TBeamSolver::GetNumberOfParticles()
 	return BeamPar.NParticles;
 }
 //---------------------------------------------------------------------------
-/*int TBeamSolver::GetNumberOfChartPoints()
+int TBeamSolver::GetNumberOfChartPoints()
 {
-	return Ngraph;
-}    */
+    return Ngraph;
+}
 //---------------------------------------------------------------------------
 /*int TBeamSolver::GetNumberOfBars()
 {
@@ -2002,7 +2002,6 @@ TError TBeamSolver::ParseDump(TInputLine *Line, int Ns, int Ni)
 		BeamExport[Ns].Radius=false;
 		BeamExport[Ns].Azimuth=false;
 		BeamExport[Ns].Divergence=false;
-        BeamExport[Ns].Binary=false;
 
 		F+=Line->S[0];
 		F0=F;
@@ -2259,13 +2258,8 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 //---------------------------------------------------------------------------
 TError TBeamSolver::LoadData(int Nlim)
 {
-	return LoadData("",Nlim);
-}
-//---------------------------------------------------------------------------
-TError TBeamSolver::LoadData(AnsiString LogFileName, int Nlim)
-{
     const char *FileName=InputFile.c_str();
-	LoadIniConstants();
+    LoadIniConstants();
     InputStrings->Clear();
 	StructPar.ElementsLimit=Nlim; //# of cells limit. Needed for optimizer. Don't remove
 
@@ -2339,8 +2333,7 @@ TError TBeamSolver::LoadData(AnsiString LogFileName, int Nlim)
     ParsedStrings->Add("END");
     InputStrings->AddStrings(ParsedStrings);
 
-	if (LogFileName!="")
-		ParsedStrings->SaveToFile(LogFileName);
+    ParsedStrings->SaveToFile("PARSED.TXT");
 
     delete[] Lines;
     DataReady=true;
@@ -4036,6 +4029,7 @@ double TBeamSolver::GetEigenFactor(double x, double y, double z,double a, double
 			else
 				assert(false);
 
+
 			r=2*rho;
 			s1=r*cos(phi/3);
 			s2=r*cos(phi/3+2*pi/3);
@@ -4134,7 +4128,7 @@ double TBeamSolver::FormFactor(double ryrx, double rxrz, TBeamParameter P, doubl
 			//	if (M[4*k+2*j+i]>0)
 					M[4*k+2*j+i]=log(M[4*k+2*j+i]);
 			 //	else
-				 //	ShowMessage("Error!");
+				 //	ShowMessage("Pidor!");
 			}
 		}
 	}
@@ -4693,16 +4687,16 @@ void TBeamSolver::CountLiving(int Si)
     }
 }
 //---------------------------------------------------------------------------
-void TBeamSolver::DumpHeader(ofstream &fo,TDump *ExportParameters,int jmin,int jmax)
+void TBeamSolver::DumpHeader(ofstream &fo,int Sn,int jmin,int jmax)
 {
 	AnsiString s;
 	fo<<"List of ";
 
-	int Si=ExportParameters->Nmesh;
+	int Si=BeamExport[Sn].Nmesh;
 
 	if (jmin==0 && jmax==BeamPar.NParticles)
 		fo<<"ALL ";
-	if (ExportParameters->LiveOnly)
+	if (BeamExport[Sn].LiveOnly)
 		fo<<"LIVE ";
 
 	fo<<"particles ";
@@ -4720,54 +4714,54 @@ void TBeamSolver::DumpHeader(ofstream &fo,TDump *ExportParameters,int jmin,int j
 	fo<<" cm\n";
 
 	fo<<"Particle #\t";
-	if (!ExportParameters->LiveOnly)
+	if (!BeamExport[Sn].LiveOnly)
 		fo<<"Lost\t";
-	if (ExportParameters->Phase)
+	if (BeamExport[Sn].Phase)
 		fo<<"Phase [deg]\t";
-	if (ExportParameters->Energy)
+	if (BeamExport[Sn].Energy)
 		fo<<"Energy [MeV]\t";
-	if (ExportParameters->Radius)
+	if (BeamExport[Sn].Radius)
 		fo<<"Radius [mm]\t";
-	if (ExportParameters->Azimuth)
+	if (BeamExport[Sn].Azimuth)
 		fo<<"Azimuth [deg]\t";
-	if (ExportParameters->Divergence)
+	if (BeamExport[Sn].Divergence)
 		fo<<"Divergence	[mrad]\t";
 				//fo<<"Vth [m/s]\t";
 	fo<<"\n";
 }
 //---------------------------------------------------------------------------
-void TBeamSolver::DumpFile(ofstream &fo,TDump *ExportParameters,int j)
+void TBeamSolver::DumpFile(ofstream &fo,int Sn,int j)
 {
 	AnsiString s;
-	int Si=ExportParameters->Nmesh;
+	int Si=BeamExport[Sn].Nmesh;
 
-	if(!ExportParameters->LiveOnly || (ExportParameters->LiveOnly && !Beam[Si]->Particle[j].lost)){
+	if(!BeamExport[Sn].LiveOnly || (BeamExport[Sn].LiveOnly && !Beam[Si]->Particle[j].lost)){
 		s=s.FormatFloat("#0000\t\t",j+1);
 		fo<<s.c_str();
 
-		if (!ExportParameters->LiveOnly) {
+		if (!BeamExport[Sn].LiveOnly) {
 			if (Beam[Si]->Particle[j].lost)
 				fo<<"LOST\t";
 			else
 				fo<<"LIVE\t";
 		}
-		if (ExportParameters->Phase){
+		if (BeamExport[Sn].Phase){
 			s=s.FormatFloat("#0.00\t\t",RadToDegree(Beam[Si]->GetParameter(j,PHI_PAR)));
 			fo<<s.c_str();
 		}
-		if (ExportParameters->Energy){
+		if (BeamExport[Sn].Energy){
 			s=s.FormatFloat("#0.00\t\t\t",Beam[Si]->GetParameter(j,W_PAR));
 			fo<<s.c_str();
 		}
-		if (ExportParameters->Radius){
+		if (BeamExport[Sn].Radius){
 			s=s.FormatFloat("#0.00\t\t\t",1000*Beam[Si]->GetParameter(j,R_PAR));
 			fo<<s.c_str();
 		}
-		if (ExportParameters->Azimuth){
+		if (BeamExport[Sn].Azimuth){
 			s=s.FormatFloat("#0.00\t\t",RadToDegree(Beam[Si]->GetParameter(j,TH_PAR)));
 			fo<<s.c_str();
 		}
-		if (ExportParameters->Divergence){
+		if (BeamExport[Sn].Divergence){
 			s=s.FormatFloat("#0.00\t\t",1000*Beam[Si]->GetParameter(j,AR_PAR));
 			fo<<s.c_str();
 		}
@@ -4775,7 +4769,7 @@ void TBeamSolver::DumpFile(ofstream &fo,TDump *ExportParameters,int j)
 	}
 }
 //---------------------------------------------------------------------------
-void TBeamSolver::DumpASTRA(ofstream &fo,TDump *ExportParameters,int j,int jref)
+void TBeamSolver::DumpASTRA(ofstream &fo,int Sn,int j,int jref)
 {
 	AnsiString s;
 	double x=0, y=0, z=0;
@@ -4783,7 +4777,7 @@ void TBeamSolver::DumpASTRA(ofstream &fo,TDump *ExportParameters,int j,int jref)
 	double q=0, I=0, clock=0;
 	int  status=0, index=1;   //1 - electrons, 2 - positrons, 3 - protons, 4 - heavy ions;
 
-	int Si=ExportParameters->Nmesh;
+	int Si=BeamExport[Sn].Nmesh;
 
 	x=Beam[Si]->GetParameter(j,X_PAR);
 	y=Beam[Si]->GetParameter(j,Y_PAR);
@@ -4839,61 +4833,16 @@ void TBeamSolver::DumpASTRA(ofstream &fo,TDump *ExportParameters,int j,int jref)
 	fo<<"\n";
 }
 //---------------------------------------------------------------------------
-void TBeamSolver::DumpT2(ofstream &fo,TDump *ExportParameters,int j)
-{
-	AnsiString s;
-	double x=0, y=0;
-	double px=0, py=0;
-	double phi=0, W=0;
-
-	int Si=ExportParameters->Nmesh;
-
-	if (Beam[Si]->Particle[j].lost!=LIVE)
-		return;
-
-	x=100*Beam[Si]->GetParameter(j,X_PAR);
-	y=100*Beam[Si]->GetParameter(j,Y_PAR);
-	phi=RadToDegree(Beam[Si]->GetParameter(j,PHI_PAR));
-	W=Beam[Si]->GetParameter(j,W_PAR);
-
-	px=1000*Beam[Si]->GetParameter(j,BX_PAR);
-	py=1000*Beam[Si]->GetParameter(j,BY_PAR);
-
-	if (ExportParameters->Binary){
-		fo.write(reinterpret_cast<char*>(&x), sizeof(double));
-		fo.write(reinterpret_cast<char*>(&px), sizeof(double));
-		fo.write(reinterpret_cast<char*>(&y), sizeof(double));
-		fo.write(reinterpret_cast<char*>(&py), sizeof(double));
-		fo.write(reinterpret_cast<char*>(&phi), sizeof(double));
-		fo.write(reinterpret_cast<char*>(&W), sizeof(double));
-	} else {
-		s=s.FormatFloat("#0.0000\t",x);
-		fo<<s.c_str();
-		s=s.FormatFloat("#0.000\t",px);
-		fo<<s.c_str();
-		s=s.FormatFloat("#0.0000\t",y);
-		fo<<s.c_str();
-		s=s.FormatFloat("#0.000\t",py);
-		fo<<s.c_str();
-		s=s.FormatFloat("#0.000\t",phi);
-		fo<<s.c_str();
-		s=s.FormatFloat("#0.000\t",W);
-		fo<<s.c_str();
-
-		fo<<"\n";
-	}
-}
-//---------------------------------------------------------------------------
-void TBeamSolver::DumpCST(ofstream &fo,TDump *ExportParameters,int j)
+void TBeamSolver::DumpCST(ofstream &fo,int Sn,int j)
 {
 	AnsiString s;
 	double x=0, y=0, z=0;
 	double px=0, py=0, pz=0;
 	double m=0, q=0, I=0,t=0;
 
-	int Si=ExportParameters->Nmesh;
+	int Si=BeamExport[Sn].Nmesh;
 	if (!Beam[Si]->GetParameter(j,LIVE_PAR)) {
-		return;
+    	return;
 	}
 //	double l=Structure[Si].lmb;
 	double beta=Beam[Si]->GetParameter(j,BETA_PAR);
@@ -4931,10 +4880,10 @@ void TBeamSolver::DumpCST(ofstream &fo,TDump *ExportParameters,int j)
 	fo<<s.c_str();
 	s=s.FormatFloat("#.##############e+0 ",q);
 	fo<<s.c_str();
-	if (ExportParameters->SpecialFormat==CST_PID) {
+	if (BeamExport[Sn].SpecialFormat==CST_PID) {
 		s=s.FormatFloat("#.##############e+0",I);
 		fo<<s.c_str();
-	} else if (ExportParameters->SpecialFormat==CST_PIT) {
+	} else if (BeamExport[Sn].SpecialFormat==CST_PIT) {
 		s=s.FormatFloat("#.##############e+0 ",I*Structure[Si].lmb/c);
 		fo<<s.c_str();
 		s=s.FormatFloat("#.##############e+0",t);
@@ -4946,158 +4895,56 @@ void TBeamSolver::DumpCST(ofstream &fo,TDump *ExportParameters,int j)
 //---------------------------------------------------------------------------
 void TBeamSolver::DumpBeam(int Sn)
 {
-	TDump *ExportParameters=NULL;
-	ExportParameters=&BeamExport[Sn];
-	DumpBeam(ExportParameters);
-}
-//---------------------------------------------------------------------------
-void TBeamSolver::DumpBeam(TDump *ExportParameters)
-{
-	int Si=ExportParameters->Nmesh;
-	int Nlive=0;
-	AnsiString F=ExportParameters->File.c_str();
+	int Si=BeamExport[Sn].Nmesh;
+	AnsiString F=BeamExport[Sn].File.c_str();
 	AnsiString s;
 
-	switch (ExportParameters->SpecialFormat) {
+	switch (BeamExport[Sn].SpecialFormat) {
 		case CST_PID:{F+=".pid";break;}
 		case CST_PIT:{F+=".pit";break;}
 		case ASTRA:{F+=".ini";break;}
-		case PARMELA_T2:{
-			if (ExportParameters->Binary)
-				F+=".bin";
-			else
-				F+=".out";
-			break;
-		}
 		case NOBEAM:{}
 		default: {F+=".dat";break;}
 	}
 
-	std::ofstream fo;
-	if (ExportParameters->Binary)
-		fo.open(F.c_str(),std::ios::out | std::ios::binary);
-	else
-		fo.open(F.c_str());
-
+	std::ofstream fo(F.c_str());
 
 	int jmin=0;
 	int jmax=BeamPar.NParticles;
 
-	if (ExportParameters->N1>0 && ExportParameters->N2==0) {
+	if (BeamExport[Sn].N1>0 && BeamExport[Sn].N2==0) {
 		jmin=0;
-		jmax=ExportParameters->N1;
-	} else if (ExportParameters->N1>0 && ExportParameters->N2>0) {
-		jmin=ExportParameters->N1-1;
-		jmax=ExportParameters->N2;
+		jmax=BeamExport[Sn].N1;
+	} else if (BeamExport[Sn].N1>0 && BeamExport[Sn].N2>0) {
+		jmin=BeamExport[Sn].N1-1;
+		jmax=BeamExport[Sn].N2;
 	}
 
 	if (jmin>BeamPar.NParticles || jmax>BeamPar.NParticles) {
-		if (ExportParameters->SpecialFormat==NOBEAM)
+		if (BeamExport[Sn].SpecialFormat==NOBEAM)
 			fo<<"WARNING: The defined range of particle numbers exceeds the number of available particles. The region was set to default.\n";
 		jmin=0;
 		jmax=BeamPar.NParticles;
 	}
-	switch (ExportParameters->SpecialFormat) {
+	switch (BeamExport[Sn].SpecialFormat) {
 		case CST_PIT: {}
 		case CST_PID: {
 			for (int j=jmin;j<jmax;j++)
-				DumpCST(fo,ExportParameters,j);
+				DumpCST(fo,Sn,j);
 			break;
 		}
 		case ASTRA: {
 			for (int j=jmin;j<jmax;j++)
-				DumpASTRA(fo,ExportParameters,j,jmin);
-			break;
-		}
-		case PARMELA_T2: {
-			Nlive=GetLivingNumber(Si);
-			std::time_t timestamp = std::time(0);
-			fo << std::ctime(&timestamp);
-			if (ExportParameters->Binary){
-				//fo.write(reinterpret_cast<char*>(&timestamp), sizeof(std::time_t ));
-				fo.write(reinterpret_cast<char*>(&Nlive), sizeof(int));
-			}else {
-				//fo << std::ctime(&timestamp);
-				s=s.FormatFloat("0",Nlive);
-				fo<<s.c_str();
-				fo<<"\n";
-			}
-			for (int j=jmin;j<jmax;j++)
-				DumpT2(fo,ExportParameters,j);
-
+				DumpASTRA(fo,Sn,j,jmin);
 			break;
 		}
 		case NOBEAM:{}
 		default:{
-			DumpHeader(fo,ExportParameters,jmin,jmax);
+			DumpHeader(fo,Sn,jmin,jmax);
 			for (int j=jmin;j<jmax;j++)
-				DumpFile(fo,ExportParameters,j);
+				DumpFile(fo,Sn,j);
 		}
 	}
-	fo.close();
-}
-//---------------------------------------------------------------------------
-void TBeamSolver::SaveOutput(AnsiString& Fname, bool binary)
-{
-	TDump ExportParameters;
-
-	ExportParameters.File=Fname.c_str();
-	ExportParameters.SpecialFormat=PARMELA_T2;
-
-	ExportParameters.Nmesh=Npoints-1;
-	ExportParameters.N1=BeamPar.NParticles;;
-	ExportParameters.N2=0;
-
-    ExportParameters.Binary=binary;
-
-	DumpBeam(&ExportParameters);
-}
-//---------------------------------------------------------------------------
-void TBeamSolver::SaveTrajectories(AnsiString& Fname)
-{
-	std::time_t timestamp = std::time(0);
-	int Np=GetNumberOfParticles();
-	double z=0;
-	std::ofstream fo(Fname.c_str(),std::ios::out | std::ios::binary);
-
-    fo << std::ctime(&timestamp);
-	//fo.write(reinterpret_cast<char*>(&timestamp), sizeof(std::time_t ));
-	fo.write(reinterpret_cast<char*>(&Np), sizeof(int));
-	fo.write(reinterpret_cast<char*>(&Npoints), sizeof(int));
-
-	for (int k = 0; k < Npoints; k++) {
-		z=100*GetStructureParameter(k,Z_PAR);
-        fo.write(reinterpret_cast<char*>(&z), sizeof(double));
-    }
-
-	for (int j = 0; j < Np; j++) {
-		for (int k = 0; k < Npoints; k++) {
-			double x=0,px=0,y=0,py=0,phi=0,W=0,L=0;
-			bool live=false;
-			live=Beam[k]->Particle[j].lost==LIVE;
-
-			if (live){
-				x=100*Beam[k]->GetParameter(j,X_PAR);
-				y=100*Beam[k]->GetParameter(j,Y_PAR);
-				phi=RadToDegree(Beam[k]->GetParameter(j,PHI_PAR));
-				W=Beam[k]->GetParameter(j,W_PAR);
-				px=1000*Beam[k]->GetParameter(j,BX_PAR);
-				py=1000*Beam[k]->GetParameter(j,BY_PAR);
-			}
-
-			L=live?1:0;
-
-			//fo.write(reinterpret_cast<char*>(&live), sizeof(bool));
-			fo.write(reinterpret_cast<char*>(&L), sizeof(double));
-			fo.write(reinterpret_cast<char*>(&x), sizeof(double));
-			fo.write(reinterpret_cast<char*>(&px), sizeof(double));
-			fo.write(reinterpret_cast<char*>(&y), sizeof(double));
-			fo.write(reinterpret_cast<char*>(&py), sizeof(double));
-			fo.write(reinterpret_cast<char*>(&phi), sizeof(double));
-			fo.write(reinterpret_cast<char*>(&W), sizeof(double));
-		}
-	}
-
 	fo.close();
 }
 //---------------------------------------------------------------------------
@@ -5311,7 +5158,7 @@ TError TBeamSolver::Solve()
 {
 	#ifndef RSLINAC
 	if (SmartProgress==NULL){
-		//ShowMessage("System Message: ProgressBar not assigned! Code needs to be corrected");
+		ShowMessage("System Message: ProgressBar not assigned! Code needs to be corrected");
         return ERR_OTHER;
     }
     SmartProgress->Reset(Npoints-1/*Np*/);
@@ -5426,22 +5273,21 @@ TResult TBeamSolver::Output(AnsiString& FileName)
   /*    int Nliv=0;
     Nliv=Beam[Npoints-1]->GetLivingNumber();
                      */
-   // OutputStrings->Clear();
-   //	OutputStrings->Add("========================================");
-   // OutputStrings->Add("INPUT DATA from:");
-   //	OutputStrings->Add(InputFile);
+    OutputStrings->Clear();
+	OutputStrings->Add("========================================");
+    OutputStrings->Add("INPUT DATA from:");
+	OutputStrings->Add(InputFile);
 	OutputStrings->Add("========================================");
 
   /*    TStringList *InputStrings;
     InputStrings= new TStringList;
 	InputStrings->LoadFromFile(InputFile);    */
-	OutputStrings->AddStrings(InputStrings);
-	//OutputStrings->AddStrings(ParsedStrings);
+    OutputStrings->AddStrings(InputStrings);
+
 	OutputStrings->Add("========================================");
-	OutputStrings->Add("");
     OutputStrings->Add("RESULTS");
 	OutputStrings->Add("========================================");
-   //OutputStrings->Add("");
+    OutputStrings->Add("");
 
     double Ws=0;
    //   AnsiString s;
@@ -5595,12 +5441,11 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 
     #ifndef RSLINAC
 	if (Memo!=NULL){
-		Memo->Lines->AddStrings(OutputStrings);
+        Memo->Lines->AddStrings(OutputStrings);
     }
-	#endif
+    #endif
 
-	Memo->Lines->SaveToFile(FileName);
-  //	OutputStrings->SaveToFile(FileName);
+    OutputStrings->SaveToFile(FileName);
     delete OutputStrings;
    //   delete Strings;
 

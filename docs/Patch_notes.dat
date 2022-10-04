@@ -1,13 +1,3 @@
-06/30/2022
--Added INTERFACE section to hellweg.ini file, where the user can opt the following features
--Disable GUI: the code will run automatically and save macro results in ***.log file
--Define the input file
--Define the output file name (***) that will be used for log, beam and trajectory files. If NONE is defined, the name would be the same as input file
--Automatically save the beam file at the end (***.out). At the moment the format is similar to Parmela T2: x [cm], x'[mrad], y [cm], y'[mrad], phi [deg], W [MeV]
--Save file in binary formats
--Save beam trajectories along the linac (not yet implemented).
-NOTE: The phase of the RF source and multiple-section problems seem to be working incorrectly.
-
 06/14/2021
 -Added the capability to import the beam distribution from Parmela T2 files'
 -Fixed a bug with memory leak when trying to rerun the simulation

@@ -218,7 +218,6 @@ struct TDump
    int N1;  //limits
    int N2;
    TBeamType SpecialFormat;
-   bool Binary;
    bool LiveOnly;
    bool Phase;
    bool Energy;

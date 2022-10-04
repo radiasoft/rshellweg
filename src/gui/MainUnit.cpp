@@ -27,186 +27,78 @@ double Trim(double x,int N)
 //---------------------------------------------------------------------------
 void TMainForm::DisplayError()
 {
-	AnsiString Line;
     switch (ERR) {
 	    case ERR_NO : break;
-		case ERR_NOFILE: Line="ERROR: No Input File Selected";   break;
-		case ERR_OPENFILE: Line="ERROR: File Read Error";   break;
-		case ERR_COUPLER : Line="ERROR: Input File: COUPLER should have format Power,Frequency";    break;
-		case ERR_SOLENOID : Line="ERROR: Input File: SOLENOID should have format Bz,L,Z0";  break;
-		case ERR_BEAM : Line="ERROR: Input File: Check BEAM line format!";    break;
-		case ERR_CURRENT : Line="ERROR: Input File: CURRENT should have format I0,Np";    break;
-		case ERR_DRIFT : Line="ERROR: Input File: DRIFT should have format Length,Radius";  break;
-		case ERR_CELL : Line="ERROR: Input File: CELL should have format Mode,betta,Field and optional: Attenuation,Aperture";  break;
-		case ERR_CELLS : Line="ERROR: Input File: CELLS should have format N,Mode,betta,Field and optional: Attenuation,Aperture";  break;
-		case ERR_OPTIONS : Line="ERROR: Input File: OPTIONS format is incorrect!";  break;
-		case ERR_DUMP : Line="ERROR:  Input File: SAVE formal is incorrect!";  break;
-		case ERR_IMPORT : Line="ERROR:  Particles import failed!";  break;
-		case ERR_FORMAT : Line="ERROR: incorrect format of data";  break;
-		case ERR_SPCHARGE : Line="Undefined option for card SPCHARGE"; break;
-		case ERR_STRUCT : Line="ERROR: Input File: Problems with STRUCT line"; break;
-		default: Line="ERROR: Input File has a wrong format!";   break;
-	}
-	ResultsMemo->Lines->Add(Line);
-}
-//---------------------------------------------------------------------------
-void TMainForm::Initialize()
-{
-	AnsiString Line;
-	bool IniFileLoaded=false;
-
-	Path=Application->ExeName;
-	Path=ExtractFileDir(Path);
-
-	UserIniPath=Path+'\\'+INI_File;
-
-	Solver=new TBeamSolver(UserIniPath);
-	Solver->AssignSolverPanel(SolverGroup);
-
-	/*ActiveGUI=true;
-	SaveOutput=false;
-	OutputBinary=false;
-	OutputTraj=false;
-
-	InputFileName=DefaultInput;
-	OutputName=DefaultOutput;     */
-
-	IniFileLoaded=LoadIniFile();
-
-  	ResultsMemo->Clear();
-	ResultsMemo->Visible=true;
-
-  /*	Line="Hellweg.ini file initialized ";
-	if (!IniFileLoaded)
-		Line=Line+"incorrectly!";
-
-	Line=Line+"successfully";
-	ResultsMemo->Lines->Add(Line);   */
-
-	OutputCheck->Checked=SaveOutput;
-	OutputFileEdit->Text=OutputName;
-	BinaryCheck->Checked=OutputBinary;
-	TrajectoryCheck->Checked=SaveTraj;
-	InterfaceVisibility();
-
-	//Solver->LoadIni
-	//ActiveGUI
-	//InputFileName
-	//OutputFileName
-
-	ReloadData=false;
-    DataReady=false;
-	InputReady=false;
-   //	DataReady=LoadInputData(false);
-  //	if (DataReady) {
-		InputReady=CreateInputData(false);
-  //	}
-
-}
-//---------------------------------------------------------------------------
-bool TMainForm::LoadIniFile()
-{
-	bool FileExists=false;
-
-	TIniFile *UserIni;
-	FileExists=CheckFile(UserIniPath);
-	UserIni=new TIniFile(UserIniPath);
-
-	FileExists=FileExists && UserIni->ValueExists("INTERFACE","GUI Disabled");
-	GUIDisabled=UserIni->ReadBool("INTERFACE","GUI Disabled",false);
-
-	FileExists=FileExists && UserIni->ValueExists("INTERFACE","Save Output");
-	SaveOutput=UserIni->ReadBool("INTERFACE","Save Output",false);
-
-	FileExists=FileExists && UserIni->ValueExists("INTERFACE","Save Temporary Log");
-	SaveTemp=UserIni->ReadBool("INTERFACE","Save Temporary Log",false);
-
-	FileExists=FileExists && UserIni->ValueExists("INTERFACE","Output Binary");
-	OutputBinary=UserIni->ReadBool("INTERFACE","Output Binary",false);
-
-	FileExists=FileExists && UserIni->ValueExists("INTERFACE","Save Full Trajectories");
-	SaveTraj=UserIni->ReadBool("INTERFACE","Save Full Trajectories",false);
-	//SaveTraj=false;
-
-	FileExists=FileExists && UserIni->ValueExists("INTERFACE","Default Input File");
-	InputFileName=UserIni->ReadString("INTERFACE","Default Input File",DefaultInput);
-
-	FileExists=FileExists && UserIni->ValueExists("INTERFACE","Default Temp File");
-	TempFileName=UserIni->ReadString("INTERFACE","Default Input File",DefaultTemp);
-
-	FileExists=FileExists && UserIni->ValueExists("INTERFACE","Default Output File");
-	OutputName=UserIni->ReadString("INTERFACE","Default Output File",DefaultOutput);
-
-	if (OutputName=="NONE")
-		 OutputName=GetFileCaption(InputFileName);
-
-	return FileExists;
+		case ERR_NOFILE:ShowMessage("ERROR: No Input File Selected");   break;
+		case ERR_OPENFILE: ShowMessage("ERROR: File Read Error");   break;
+		case ERR_COUPLER : ShowMessage("ERROR: Input File: COUPLER should have format Power,Frequency");    break;
+		case ERR_SOLENOID : ShowMessage("ERROR: Input File: SOLENOID should have format Bz,L,Z0");  break;
+		case ERR_BEAM : ShowMessage("ERROR: Input File: Check BEAM line format!");    break;
+		case ERR_CURRENT : ShowMessage("ERROR: Input File: CURRENT should have format I0,Np");    break;
+		case ERR_DRIFT : ShowMessage("ERROR: Input File: DRIFT should have format Length,Radius");  break;
+		case ERR_CELL : ShowMessage("ERROR: Input File: CELL should have format Mode,betta,Field and optional: Attenuation,Aperture");  break;
+		case ERR_CELLS : ShowMessage("ERROR: Input File: CELLS should have format N,Mode,betta,Field and optional: Attenuation,Aperture");  break;
+		case ERR_OPTIONS : ShowMessage("ERROR: Input File: OPTIONS format is incorrect!");  break;
+		case ERR_DUMP : ShowMessage("ERROR:  Input File: SAVE formal is incorrect!");  break;
+		case ERR_IMPORT : ShowMessage("ERROR:  Particles import failed!");  break;
+		case ERR_FORMAT : ShowMessage("ERROR: incorrect format of data");  break;
+		case ERR_SPCHARGE : ShowMessage("Undefined option for card SPCHARGE"); break;
+		case ERR_STRUCT : ShowMessage("ERROR: Input File: Problems with STRUCT line"); break;
+        default:ShowMessage("ERROR: Input File has a wrong format!");   break;
+    }
 }
 //---------------------------------------------------------------------------
 bool TMainForm::LoadInputData(bool display_err)
 {
-	Solver->InputFile=InputFileName;
-	TError Error;
-
-	if (SaveTemp)
-		Error=Solver->LoadData(TempFileName);
-	else
-		Error=Solver->LoadData();
-
+    Solver->InputFile=InputFileName;
+	TError Error=Solver->LoadData();
 	if (Error!=ERR_NO){
-		if (display_err)
+        if (display_err)
 			DisplayError();
-	}
+	}/* else{
 
+		DisplayInputData();
+	}    */
 	return Error==ERR_NO;
 }
 //---------------------------------------------------------------------------
 bool TMainForm::CreateInputData(bool display_err)
 {
 	TError Error=ERR_NO;
-	AnsiString Line;
 
 	if (!DataReady)
 		DataReady=LoadInputData(true);
 
-	//ResultsMemo->Visible=false;
+	ResultsMemo->Visible=false;
 	ResultsMemo->Clear();
 	ViewButton->Enabled=false;
 
-	Line="Data Loaded from File: "+InputFileName;
-	ResultsMemo->Lines->Add(Line);
-	InputFileEdit->Text=InputFileName;
-
 	if (!DataReady){
-	  //	if (display_err){
-		ResultsMemo->Lines->Add("Error occurred while reading input file. Check the file format!");
-			//ShowMessage("Error occurred while reading input file! Impossible to start solver.");
-	   //	}
+		if (display_err)
+			ShowMessage("Error occurred while reading input file! Impossible to start solver.");
 		return false;
 	}
 
 	try{
 		Solver->CreateGeometry();
 	} catch(...){
-	   //	if (display_err)
-			ResultsMemo->Lines->Add("Error occurred while initializing the geometry. Check the values in input file!");
-	   //		ShowMessage("Error occurred while creating geometry. Check the values in input file!");
+		if (display_err)
+			ShowMessage("Error occurred while creating geometry. Check the values in input file!");
 		return false;
 	}
 
 	try{
 		Error=Solver->CreateBeam();
 		if (Error!=ERR_NO) {
-			//if (display_err)
+			if (display_err)
 				DisplayError();
 		   /*	Solver->Abort();
 			Application->Terminate();    */
 			return false;
 		}
 	}  catch(...){
-		ResultsMemo->Lines->Add("Error occurred while initializing the beam. Check the values in input file!");
-	   //	if (display_err)
-		   //	ShowMessage("Error occurred while creating beam. Check the values in input file!");
+		if (display_err)
+			ShowMessage("Error occurred while creating beam. Check the values in input file!");
 		return false;
 	}
 	DisplayInputData();
@@ -347,7 +239,20 @@ void __fastcall TMainForm::ExitButtonClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormCreate(TObject *Sender)
 {
-	Initialize();
+    AnsiString Path;
+    Path=Application->ExeName;
+    Path=ExtractFileDir(Path);
+    Solver=new TBeamSolver(Path);
+    Solver->AssignSolverPanel(SolverGroup);
+
+	InputFileName="INPUT.txt";
+
+	ReloadData=false;
+	InputReady=false;
+	DataReady=LoadInputData(false);
+	if (DataReady) {
+		InputReady=CreateInputData(false);
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormDestroy(TObject *Sender)
@@ -357,16 +262,12 @@ void __fastcall TMainForm::FormDestroy(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::SelectFileButtonClick(TObject *Sender)
 {
-	AnsiString FilePath;
-
-	InputDialog->Execute();
-	Path=InputDialog->FileName.c_str();
-	InputFileName=GetFileName(Path);
-
-   //	DataReady=LoadInputData(true);
-   //	if (DataReady) {
+    InputDialog->Execute();
+    InputFileName=InputDialog->FileName.c_str();
+	DataReady=LoadInputData(true);
+	if (DataReady) {
 		InputReady=CreateInputData(true);
-  //	}
+	}
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormCanResize(TObject *Sender, int &NewWidth,
@@ -379,9 +280,6 @@ void __fastcall TMainForm::SolveButtonClick(TObject *Sender)
 {
 	AnsiString s,str;
 	TError Err;
-	AnsiString LogName=OutputName+".log";
-	AnsiString OutName=OutputName;//+".out";
-	AnsiString TrajName=OutputName+".traj";
 
 	if (ReloadData){
 		DataReady=false;
@@ -392,28 +290,17 @@ void __fastcall TMainForm::SolveButtonClick(TObject *Sender)
 	if (!InputReady)
 		InputReady=CreateInputData(true);
 
-	std::time_t timestamp = std::time(0);
-	s="Simulation started: ";
-	s+=std::ctime(&timestamp);
-	ResultsMemo->Lines->Add(s);
-
 	try{
 		Err=Solver->Solve();
 		if (Err==ERR_NO){
-		Solver->Output(LogName,ResultsMemo);
-		if (SaveOutput)
-			Solver->SaveOutput(OutName,OutputBinary);
-		if (SaveTraj)
-			Solver->SaveTrajectories(TrajName);
-			//ResultsMemo->Visible=true;
+			AnsiString Fname="OUTPUT.TXT";
+			Solver->Output(Fname,ResultsMemo);
+			ResultsMemo->Visible=true;
 			ViewButton->Enabled=true;
 		}
 		ReloadData=true; //reload data when repeat simulations
 	} catch(...){
-		//ShowMessage("Error occurred while solving the task. Check the values in input file!");
-		ResultsMemo->Lines->Add("Solver terminated incorrectly. Check the values in input file!");
-		if (GUIDisabled)
-			ResultsMemo->Lines->SaveToFile(LogName);
+		ShowMessage("Error occurred while solving the task. Check the values in input file!");
 		return;
 	}
 }
@@ -451,11 +338,7 @@ void __fastcall TMainForm::ViewGeometryButtonClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::AbortButtonClick(TObject *Sender)
 {
-	Solver->Abort();
-	if (GUIDisabled){
-		ExitButton->Click();
-	}
-	ResultsMemo->Lines->Add("SOLVER TERMINATED BY USER!");
+    Solver->Abort();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ViewButtonClick(TObject *Sender)
@@ -485,47 +368,6 @@ void __fastcall TMainForm::cBuncherButtonClick(TObject *Sender)
     if (LoadInputData(true)){
 	   // OptimizerForm->Solver=Solver;
         BuncherForm->Show();
-	}
-}
-//---------------------------------------------------------------------------
-
-void TMainForm::GUIVisibility()
-{
-
-}
-//---------------------------------------------------------------------------
-void TMainForm::InterfaceVisibility()
-{
-	OutputFileEdit->Enabled=OutputCheck->Checked;
-	BinaryCheck->Enabled=OutputCheck->Checked;
-	TrajectoryCheck->Enabled=OutputCheck->Checked;
-	//TrajectoryCheck->Enabled=false;
-}
-//---------------------------------------------------------------------------
-void __fastcall TMainForm::OutputCheckClick(TObject *Sender)
-{
-	InterfaceVisibility();
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TMainForm::FormActivate(TObject *Sender)
-{
-	if (GUIDisabled){
-		ViewGeometryButton->Enabled=false;
-		ViewBeamButton->Enabled=false;
-		SelectFileButton->Enabled=false;
-		ViewButton->Enabled=false;
-		LoadResultsButton->Enabled=false;
-		OptButton->Enabled=false;
-		cBuncherButton->Enabled=false;
-		OutputCheck->Enabled=false;
-		OutputFileEdit->ReadOnly=true;
-		BinaryCheck->Enabled=false;
-		TrajectoryCheck->Enabled=false;
-        ExitButton->Enabled=false;
-		SolveButton->Enabled=false;
-		SolveButton->Click();
-		ExitButton->Click();
 	}
 }
 //---------------------------------------------------------------------------

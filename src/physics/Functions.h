@@ -390,16 +390,6 @@ static bool IsNumber(AnsiString &S)   //Checks if the string is a number
 	return Success;
 }
 //---------------------------------------------------------------------------
-static AnsiString GetFileName(AnsiString &F)   //Gets the file name from path
-{
-	return F.SubString(F.LastDelimiter("/\\")+1,F.Length());
-}
-//---------------------------------------------------------------------------
-static AnsiString GetFileCaption(AnsiString &F)   //Gets the file name without extension
-{
-	return F.SubString(0,F.LastDelimiter("/.")-1);
-}
-//---------------------------------------------------------------------------
 static bool CheckFile(AnsiString &F)   //Checks if the file exists
 {
 	bool Exists=false;
