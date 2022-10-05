@@ -9,6 +9,7 @@ from setuptools import Extension
 import os
 import sysconfig
 from pykern import pksetup
+from Cython.Build import cythonize
 
 _LIB_DIR = os.path.join('src', 'libHellweg2D')
 
@@ -47,16 +48,14 @@ pksetup.setup(
         'Programming Language :: Python',
         'Topic :: Utilities',
     ],
-    ext_modules=[
+    ext_modules=cythonize([
         Extension(
             name='rslinac.pyhellweg',
-            define_macros=[('RSLINAC', 1)],
-            include_dirs=[_LIB_DIR, _PHYS_DIR],
-            language='c++',
-            sources=_get_src_files(_PHYS_DIR, 'cpp') +
-                _get_src_files(_LIB_DIR, 'cpp') +
-                ['lib/pyhellweg.cpp'],
-            extra_compile_args=_get_compile_args(),
-        ),
-    ],
+            sources=['pyhellweg.pyx'],
+            include_dirs=[
+                _LIB_DIR, _PHYS_DIR
+            ],
+            extra_compile_args=_get_compile_args()
+        )
+    ])
 )

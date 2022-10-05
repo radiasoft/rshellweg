@@ -24,7 +24,7 @@ clean:
 	rm -rf $(TGT_DIR)
 
 $(TGT_DIR)/pyhellweg.cpp: pyhellweg.pyx
-	cython --cplus $^ -o $@
+	cythonize $^
 
 $(OBJ): $(INCLUDES) $(TGT_DIR)
 
