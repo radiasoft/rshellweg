@@ -5597,9 +5597,9 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	if (Memo!=NULL){
 		Memo->Lines->AddStrings(OutputStrings);
     }
-	#endif
 
-	Memo->Lines->SaveToFile(FileName);
+    Memo->Lines->SaveToFile(FileName);
+	#endif
   //	OutputStrings->SaveToFile(FileName);
     delete OutputStrings;
    //   delete Strings;
