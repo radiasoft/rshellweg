@@ -51,11 +51,12 @@ pksetup.setup(
     ext_modules=cythonize([
         Extension(
             name='rslinac.pyhellweg',
-            sources=['pyhellweg.pyx'],
-            include_dirs=[
-                _LIB_DIR, _PHYS_DIR
-            ],
-            extra_compile_args=_get_compile_args()
-        )
-    ])
+            define_macros=[('RSLINAC', 1)],
+            include_dirs=[_LIB_DIR, _PHYS_DIR],
+            sources=_get_src_files(_PHYS_DIR, 'cpp') +
+                _get_src_files(_LIB_DIR, 'cpp') +
+                ['pyhellweg.pyx'],
+            extra_compile_args=_get_compile_args(),
+        ),
+    ]),
 )
