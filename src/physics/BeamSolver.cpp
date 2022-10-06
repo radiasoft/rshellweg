@@ -5596,9 +5596,8 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     #ifndef RSLINAC
 	if (Memo!=NULL){
 		Memo->Lines->AddStrings(OutputStrings);
+        Memo->Lines->SaveToFile(FileName);
     }
-
-    Memo->Lines->SaveToFile(FileName);
 	#endif
   //	OutputStrings->SaveToFile(FileName);
     delete OutputStrings;
