@@ -4,6 +4,7 @@
 #define FunctionsH
 
 #include "Types.h"
+#include <cstring>
 
 //#endif
 
@@ -392,12 +393,14 @@ static bool IsNumber(AnsiString &S)   //Checks if the string is a number
 //---------------------------------------------------------------------------
 static AnsiString GetFileName(AnsiString &F)   //Gets the file name from path
 {
-	return F.SubString(F.LastDelimiter("/\\")+1,F.Length());
+    std::string s = std::string(F.c_str());
+    return s.substr(s.find_last_of("/\\") + 1);
 }
 //---------------------------------------------------------------------------
 static AnsiString GetFileCaption(AnsiString &F)   //Gets the file name without extension
 {
-	return F.SubString(0,F.LastDelimiter("/.")-1);
+    std::string s = std::string(F.c_str());
+	return s.substr(0,s.find_last_of("/.")-1);
 }
 //---------------------------------------------------------------------------
 static bool CheckFile(AnsiString &F)   //Checks if the file exists
