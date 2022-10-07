@@ -1762,7 +1762,17 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 			k_rr=r==0?0:sqr(beta.th)/(r*beta.z);
 			k_beta.r=((1-sqr(beta.r))*E.r+beta.th*(H.z+Hx.z-beta.r*E.th)-beta.z*(H.th+Hx.th+beta.r*E.z))/(gamma*beta.z)+k_rr;//sqr(beta.th)/(r*beta.z);
 			k_rth=r==0?0:beta.th*beta.r/(r*beta.z);
-			k_beta.th=((1-sqr(beta.th))*E.th+beta.z*(H.r+Hx.r-beta.th*E.z)-beta.r*(H.z+Hx.z+beta.th*E.r))/(gamma*beta.z)-k_rth;//beta.th*beta.r/(r*beta.z);
+			k_beta.th=((1-sqr(beta.th))*E.th+beta.z*(H.r+Hx.r-beta.th*E.z)-beta.r*(H.z+Hx.z+beta.th*E.r))/(gamma*beta.z)-k_rth;//beta.th*beta.r/(r*beta.z
+			
+			/*
+			k_gb.z = (sqr(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.z +gb.r*(H.th +Hx.th) -gb.th*(H.r +Hx.r))/gb.z; 
+			k_rr_gb =  r==0?0:sqr(gb.th)/(r*gb.z); // check if r is needed here 
+			k_gb.r = (sqr(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.r +gb.th*(H.z +Hx.z) -gb.z*(H.th +Hx.th))/gb.z +k_rr_gb; 
+			k_rth_gb =  r==0?0:gb.th*gb.r/(r*gb.z); // check if r is needed here 
+			k_gb.r = (sqr(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.th +gb.z*(H.r +Hx.r) -gb.r*(H.z +Hx.z))/gb.z -k_rth_gb;
+			*/
+			
+			);
 			//k_beta.th=0;
 		   /*
 			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th-beta.z*E.r)-beta.th*r*Par.Hext.r)/(gamma*beta.z); //k_bz = dbz/dz  ; Br=-Bz'/2!;
