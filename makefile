@@ -4,7 +4,7 @@ H_DIR := src/physics
 SRC_PATH := $(H_DIR):$(HPP_DIR)
 vpath %.cpp $(SRC_PATH)
 INCLUDES := $(wildcard $(HPP_DIR)/*.hpp) $(wildcard $(H_DIR)/*.h)
-SRC := $(foreach d, $(subst :, ,$(SRC_PATH)), $(wildcard $(d)/*.cpp)) $(TGT_DIR)/pyhellweg.cpp
+SRC := $(foreach d, $(subst :, ,$(SRC_PATH)), $(wildcard $(d)/*.cpp)) pyhellweg.cpp
 OBJ :=$(addprefix $(TGT_DIR)/,$(notdir $(SRC:%.cpp=%.o)))
 TGT := $(TGT_DIR)/pyhellweg.cpython-37m-x86_64-linux-gnu.so
 INSTALL_DIR :=  $(shell python -c 'import sysconfig; print(sysconfig.get_path("purelib"))')/rslinac
@@ -23,7 +23,7 @@ install: all
 clean:
 	rm -rf $(TGT_DIR)
 
-$(TGT_DIR)/pyhellweg.cpp: pyhellweg.pyx
+pyhellweg.cpp: pyhellweg.pyx
 	cythonize $^
 
 $(OBJ): $(INCLUDES) $(TGT_DIR)
