@@ -432,6 +432,9 @@ static AnsiString GetLine(ifstream &f)   //Reads the next line from fstream
 	char s[MAX_CHAR];
 
 	do {
+		if (f.eof()) {
+			return AnsiString("");
+		}
 		f.getline(s, sizeof(s)) ;
 		S=AnsiString(s);
 	} while(S.IsEmpty() || S==" ");

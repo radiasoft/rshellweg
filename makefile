@@ -7,7 +7,7 @@ INCLUDES := $(wildcard $(HPP_DIR)/*.hpp) $(wildcard $(H_DIR)/*.h)
 SRC := $(foreach d, $(subst :, ,$(SRC_PATH)), $(wildcard $(d)/*.cpp)) $(TGT_DIR)/pyhellweg.cpp
 OBJ :=$(addprefix $(TGT_DIR)/,$(notdir $(SRC:%.cpp=%.o)))
 TGT := $(TGT_DIR)/pyhellweg.cpython-37m-x86_64-linux-gnu.so
-INSTALL_DIR :=  $(shell python -c 'import sysconfig; print(sysconfig.get_path("purelib"))')/rslinac
+INSTALL_DIR :=  rslinac
 PY_PLATINCLUDE := $(shell python -c 'import sysconfig; print(sysconfig.get_path("platinclude"))')
 PY_INCLUDE := $(shell python -c 'import sysconfig; print(sysconfig.get_path("data"))')/include
 LOCAL_INCLUDE := $(HOME)/.local/include
