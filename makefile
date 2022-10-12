@@ -21,12 +21,12 @@ install: all
 	install -m 555 $(TGT) $(INSTALL_DIR)/$(notdir $(TGT))
 
 clean:
-	rm -rf $(TGT_DIR)
+	rm -rf $(TGT_DIR) build rslinac/pyhellweg*so
 
-$(TGT_DIR)/pyhellweg.cpp: pyhellweg.pyx
+$(TGT_DIR)/pyhellweg.cpp: pyhellweg.pyx | $(TGT_DIR)
 	cython --cplus $^ -o $@
 
-$(OBJ): $(INCLUDES) $(TGT_DIR)
+$(OBJ): $(INCLUDES) | $(TGT_DIR)
 
 $(TGT_DIR):
 	mkdir $@
