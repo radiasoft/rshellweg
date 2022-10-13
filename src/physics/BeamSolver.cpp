@@ -4,6 +4,7 @@
 #pragma hdrstop
 
 #include "BeamSolver.h"
+#include <mcheck.h>
 // #include "Types.h"
 
 //---------------------------------------------------------------------------
@@ -46,6 +47,8 @@ __fastcall TBeamSolver::~TBeamSolver()
 //---------------------------------------------------------------------------
 void TBeamSolver::Initialize()
 {
+    mcheck(NULL);
+
 	MaxCells=DEFAULT_MAX_CELLS;
     Nmesh=DEFAULT_MESH;
 	//Kernel=0;
@@ -182,9 +185,9 @@ void TBeamSolver::ResetMaps()
 {
 	if (QuadMaps!=NULL) {
 		for (int i = 0; i < StructPar.NMaps; i++) {
-			for (int j = 0; j < QuadMaps[i].Dim.Nx; i++) {
+			for (int j = 0; j < QuadMaps[i].Dim.Nx; j++) {
 				delete[] QuadMaps[i].Field[j];
-
+                
 			}
 
 			delete[] QuadMaps[i].Field;
@@ -2695,6 +2698,10 @@ void TBeamSolver::CreateMaps()
 	double kc=0;
 	int q=0;
 
+    if(StructPar.NMaps <= 0) {
+        return;
+    }
+
 	QuadMaps=new TFieldMap2D [StructPar.NMaps];
 	for(int i=0;i<StructPar.NElements;i++){
 		if (StructPar.Cells[i].Magnet.MagnetType==MAG_QUAD){
@@ -4956,6 +4963,7 @@ void TBeamSolver::DumpBeam(TDump *ExportParameters)
 	int Si=ExportParameters->Nmesh;
 	int Nlive=0;
 	AnsiString F=ExportParameters->File.c_str();
+    printf("output file 2 %s\n", F.c_str());
 	AnsiString s;
 
 	switch (ExportParameters->SpecialFormat) {
@@ -5042,6 +5050,7 @@ void TBeamSolver::SaveOutput(AnsiString& Fname, bool binary)
 	TDump ExportParameters;
 
 	ExportParameters.File=Fname.c_str();
+    printf("output file %s\n", ExportParameters.File);
 	ExportParameters.SpecialFormat=PARMELA_T2;
 
 	ExportParameters.Nmesh=Npoints-1;

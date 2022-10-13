@@ -9,6 +9,11 @@ from pykern import pkunit
 import argh
 import pytest
 
+if __name__ == '__main__':
+    from rslinac.solver import BeamSolver
+    solver = BeamSolver('rslinac.ini', 'input.txt')
+    solver.solve()
+
 def test_beam_solver():
     """Ensure BeamSolver interface solves and produces output"""
     from pykern import pkio
