@@ -4963,7 +4963,6 @@ void TBeamSolver::DumpBeam(TDump *ExportParameters)
 	int Si=ExportParameters->Nmesh;
 	int Nlive=0;
 	AnsiString F=ExportParameters->File.c_str();
-    printf("output file 2 %s\n", F.c_str());
 	AnsiString s;
 
 	switch (ExportParameters->SpecialFormat) {
@@ -5050,7 +5049,6 @@ void TBeamSolver::SaveOutput(AnsiString& Fname, bool binary)
 	TDump ExportParameters;
 
 	ExportParameters.File=Fname.c_str();
-    printf("output file %s\n", ExportParameters.File);
 	ExportParameters.SpecialFormat=PARMELA_T2;
 
 	ExportParameters.Nmesh=Npoints-1;
