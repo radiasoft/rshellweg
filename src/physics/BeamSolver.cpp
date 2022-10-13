@@ -187,7 +187,7 @@ void TBeamSolver::ResetMaps()
 		for (int i = 0; i < StructPar.NMaps; i++) {
 			for (int j = 0; j < QuadMaps[i].Dim.Nx; j++) {
 				delete[] QuadMaps[i].Field[j];
-                
+
 			}
 
 			delete[] QuadMaps[i].Field;
@@ -5605,11 +5605,11 @@ TResult TBeamSolver::Output(AnsiString& FileName)
     #ifndef RSLINAC
 	if (Memo!=NULL){
 		Memo->Lines->AddStrings(OutputStrings);
-        Memo->Lines->SaveToFile(FileName);
-    }
-	#endif
-  //	OutputStrings->SaveToFile(FileName);
-    delete OutputStrings;
+                Memo->Lines->SaveToFile(FileName);
+        }
+    #endif
+  	OutputStrings->SaveToFile(FileName);
+        delete OutputStrings;
    //   delete Strings;
 
 
