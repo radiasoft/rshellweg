@@ -1887,7 +1887,7 @@ TError TBeamSolver::ParseDrift(TInputLine *Line,int Ni, int Nsec)
 				ShowError(S);
 				StructPar.Cells[Ni].Mesh=Nmesh;
 			}
-			F+=" "+Line->S[2];
+			F+=" \t"+Line->S[2];
 		} else
 			StructPar.Cells[Ni].Mesh=Nmesh;
 
