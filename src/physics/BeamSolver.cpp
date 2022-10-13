@@ -2262,7 +2262,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 //---------------------------------------------------------------------------
 TError TBeamSolver::LoadData(int Nlim)
 {
-	return LoadData("",Nlim);
+	return LoadData("PARSED.TXT",Nlim);
 }
 //---------------------------------------------------------------------------
 TError TBeamSolver::LoadData(AnsiString LogFileName, int Nlim)
