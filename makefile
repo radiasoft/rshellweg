@@ -1,19 +1,22 @@
+PY_PLATINCLUDE := $(shell python -c 'import sysconfig; print(sysconfig.get_path("platinclude"))')
+PY_INCLUDE := $(shell python -c 'import sysconfig; print(sysconfig.get_path("data"))')/include
+PY_LIBDIR := $(shell python -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR"))')
+PY_EXT_SUFFIX := $(shell python -c 'import sysconfig; print(sysconfig.get_config_var("EXT_SUFFIX"))')
+
 TGT_DIR := lib
 HPP_DIR := src/libHellweg2D
 H_DIR := src/physics
 SRC_PATH := $(H_DIR):$(HPP_DIR)
 vpath %.cpp $(SRC_PATH)
 INCLUDES := $(wildcard $(HPP_DIR)/*.hpp) $(wildcard $(H_DIR)/*.h)
-SRC := $(foreach d, $(subst :, ,$(SRC_PATH)), $(wildcard $(d)/*.cpp)) $(TGT_DIR)/pyhellweg.cpp
+SRC := $(foreach d, $(subst :, ,$(SRC_PATH)), $(wildcard $(d)/*.cpp)) pyhellweg.cpp
 OBJ :=$(addprefix $(TGT_DIR)/,$(notdir $(SRC:%.cpp=%.o)))
-TGT := $(TGT_DIR)/pyhellweg.cpython-37m-x86_64-linux-gnu.so
+TGT := $(TGT_DIR)/pyhellweg.$(PY_EXT_SUFFIX)
 INSTALL_DIR :=  rslinac
-PY_PLATINCLUDE := $(shell python -c 'import sysconfig; print(sysconfig.get_path("platinclude"))')
-PY_INCLUDE := $(shell python -c 'import sysconfig; print(sysconfig.get_path("data"))')/include
 LOCAL_INCLUDE := $(HOME)/.local/include
 CPPFLAGS := -pthread -Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -fPIC -DRSLINAC=1 -I$(HPP_DIR) -I$(H_DIR) -I$(PY_PLATINCLUDE) -I$(PY_INCLUDE) -I$(LOCAL_INCLUDE) -std=c++11
 
-LDFLAGS := -shared -L/home/vagrant/.pyenv/versions/3.7.2/lib #TODO(robnagler) needs to be pulled from setup.py; do not include $CPPFLAGS
+LDFLAGS := -shared -L$(PY_LIBDIR)
 
 all: $(TGT)
 
@@ -23,8 +26,8 @@ install: all
 clean:
 	rm -rf $(TGT_DIR) build rslinac/pyhellweg*so
 
-$(TGT_DIR)/pyhellweg.cpp: pyhellweg.pyx | $(TGT_DIR)
-	cython --cplus $^ -o $@
+pyhellweg.cpp: pyhellweg.pyx
+	cythonize $^
 
 $(OBJ): $(INCLUDES) | $(TGT_DIR)
 
