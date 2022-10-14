@@ -1,8 +1,7 @@
-PY_PLATINCLUDE := $(shell python -c 'import sysconfig; print(sysconfig.get_path("platinclude"))')
+PY_EXT_SUFFIX := $(shell python -c 'import sysconfig; print(sysconfig.get_config_var("EXT_SUFFIX"))')
 PY_INCLUDE := $(shell python -c 'import sysconfig; print(sysconfig.get_path("data"))')/include
 PY_LIBDIR := $(shell python -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR"))')
-PY_EXT_SUFFIX := $(shell python -c 'import sysconfig; print(sysconfig.get_config_var("EXT_SUFFIX"))')
-
+PY_PLATINCLUDE := $(shell python -c 'import sysconfig; print(sysconfig.get_path("platinclude"))')
 BUILD_DIR := build
 HPP_DIR := src/libHellweg2D
 H_DIR := src/physics
