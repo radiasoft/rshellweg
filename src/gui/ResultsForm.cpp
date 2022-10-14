@@ -20,7 +20,7 @@ __fastcall TResForm::TResForm(TComponent* Owner)
 void __fastcall TResForm::FormCreate(TObject *Sender)
 {
 	SolverLoaded=false;
-	CreateTable();
+   //	CreateTable();
 
  /* for (int i=0;i<100;i++)
         Series1->AddXY(i,i*i);
@@ -60,29 +60,31 @@ void __fastcall TResForm::FormShow(TObject *Sender)
         for (int j=0;j<Npoints;j++){
             if (Solver->Beam[j]->Particle[i].lost)
                 break;
-            Series1->AddXY(j,VelocityToMeV(Solver->Beam[j]->Particle[i].betta));
+			Series1->AddXY(j,VelocityToMeV(Solver->Beam[j]->Particle[i].betta));
         }
     }     */
 }
 //---------------------------------------------------------------------------
 void TResForm::CreateTable()
 {
-    Table->RowCount=Npar+1;
+	AnsiString EU=GetEnergyUnit(Solver->GetParticleType());
+
+	Table->RowCount=Npar+1;
     Table->ColWidths[colName]=150;
-    Table->ColWidths[colValue]=50;
+	Table->ColWidths[colValue]=50;
 
     Table->Cells[colName][pZ]="Position, cm";
-	Table->Cells[colName][pWav]="Average Energy, MeV";
-    Table->Cells[colName][pWm]="Maximum Energy, MeV";
+	Table->Cells[colName][pWav]="Average Energy, "+EU;
+	Table->Cells[colName][pWm]="Maximum Energy, "+EU;
     Table->Cells[colName][pI]="Beam Current, mA";
-    Table->Cells[colName][pkc]="Transmitted, %";
+	Table->Cells[colName][pkc]="Transmitted, %";
 	Table->Cells[colName][pFav]="Average Phase, deg";
 	Table->Cells[colName][pdF]="Phase Length (rms), deg";
 	Table->Cells[colName][pF]="Frequency, MHz";
 	Table->Cells[colName][pRa]="Aperture, mm";
 	Table->Cells[colName][pPb]="Beam Power, MW";
 	Table->Cells[colName][pvph]="Phase Velocity (beta)";
-	Table->Cells[colName][pdW]="Energy Spread (FWHM), MeV";
+	Table->Cells[colName][pdW]="Energy Spread (FWHM), "+EU;
 	Table->Cells[colName][pdWp]="Energy Spectrum (FWHM), %";
 	Table->Cells[colName][pE]="Field Strength, MV/m";
 	Table->Cells[colName][pcoord]="Coordinate:";
@@ -538,11 +540,13 @@ void TResForm::DrawSpectrum(int Nknot,TBeamParameter P1)
 void TResForm::DrawEnergy()
 {
 	gType=W_TRACE;
-    PackActive();
+	PackActive();
+
+	AnsiString EU=GetEnergyUnit(Solver->GetParticleType());
 
     PackChart->Title->Caption="Particles Energy";
     PackChart->BottomAxis->Title->Caption="z,cm";
-	PackChart->LeftAxis->Title->Caption="W,MeV";
+	PackChart->LeftAxis->Title->Caption="W, "+EU;
 
 	DrawTrace(W_PAR);
 	//DrawTrace(BZ_PAR);
@@ -649,11 +653,13 @@ void TResForm::DrawBetta()
 void TResForm::DrawAvEnergy()
 {
 	gType=W_PLOT;
-    LineActive();
+	LineActive();
+
+	AnsiString EU=GetEnergyUnit(Solver->GetParticleType());
 
     PackChart->Title->Caption="Energy";
     PackChart->BottomAxis->Title->Caption="z,cm";
-    PackChart->LeftAxis->Title->Caption="W,Mev";
+	PackChart->LeftAxis->Title->Caption="W, "+EU;
 
     LineSeries->Title="Average Energy";
     AddSeries->Title="Maximum Energy";
@@ -766,9 +772,11 @@ void TResForm::DrawLongtSpace()
 	EnvelopeActive();
 	int j=PositionTrackBar->Position;
 
+	AnsiString EU=GetEnergyUnit(Solver->GetParticleType());
+
 	BeamChart->Title->Caption="Longitudinal Phase Space";// at position z="+s.FormatFloat("#0.000",z)+" cm";
     BeamChart->BottomAxis->Title->Caption="phi,deg";
-    BeamChart->LeftAxis->Title->Caption="W,MeV";
+	BeamChart->LeftAxis->Title->Caption="W, "+EU;
 
 	if (VertFitCheck->Checked)
 		Wmax=Solver->GetMaxEnergy(j);
@@ -777,6 +785,8 @@ void TResForm::DrawLongtSpace()
 
 	double Phi_min=0;
 	double Phi_max=0;
+
+	double W0=Solver->GetParticleRestEnergy();
 
 	if (HorFitCheck->Checked){
 		Phi_min=RadToDegree(Solver->GetMinPhase(j));
@@ -803,13 +813,13 @@ void TResForm::DrawLongtSpace()
 		double beta_w=Solver->GetStructureParameter(j,SBETA_PAR);
 		double A=Solver->GetStructureParameter(j,A_PAR);
         bool sep=true;
-        int Nroots=0;
+		int Nroots=0;
 
         double Hmin=1e6, Hmax=0;
 
         for (int k=0; k < SeparatrixNumber; k++) {
 			W=k*Wmax/(SeparatrixNumber-1);
-			gamma=MeVToGamma(W);
+			gamma=MeVToGamma(W,W0);
 		 // for (int i=0;i<PointsNumber;i++){
 			   //   phi=MinPhase+i*(MaxPhase-MinPhase)/(PointsNumber-1);
 			   //phi=90;
@@ -827,7 +837,7 @@ void TResForm::DrawLongtSpace()
 
 				if (Solver->CheckDrift(j)) {
 					W=k*Wmax/(SeparatrixNumber-1);
-					gamma=MeVToGamma(W);
+					gamma=MeVToGamma(W,W0);
 					H=GetH(gamma,90,beta_w,A);
 				} else
 					H=Hmin+k*(Hmax-Hmin)/(SeparatrixNumber-1);
@@ -839,7 +849,7 @@ void TResForm::DrawLongtSpace()
 					phi=Phi_min+i*(Phi_max-Phi_min)/(PointsNumber-1);
 					Nroots=n==0?GetPositiveSeparatrix(gamma,phi,beta_w,A,H):GetNegativeSeparatrix(gamma,phi,beta_w,A,H);
 					if (((n==0 && Nroots>0) || (n==1 & Nroots==2)) && gamma>1){
-						W=GammaToMeV(gamma);
+						W=GammaToMeV(gamma,W0);
 						if (W>2*Wmax)
 							continue;
 					 // if (W>0 && W<Wmax) {
@@ -1169,11 +1179,13 @@ void TResForm::DrawEnergySpectrum()
     SpectrumActive();
 
 	AnsiString s;
-    int j=PositionTrackBar->Position;
+	int j=PositionTrackBar->Position;
    //	double z=100*Solver->GetStructureParameter(j,Z0_PAR);
 
+	AnsiString EU=GetEnergyUnit(Solver->GetParticleType());
+
 	SpectrumChart->Title->Caption="Energy Spectrum";// at position z="+s.FormatFloat("#0.000",z)+" cm";
-    SpectrumChart->BottomAxis->Title->Caption="W,MeV";
+	SpectrumChart->BottomAxis->Title->Caption="W, "+EU;
 	SpectrumChart->LeftAxis->Title->Caption="N";
 
 	//ResetAxis(BeamChart->LeftAxis,0,1,VertFitCheck->Checked);
@@ -1442,6 +1454,8 @@ void TResForm::ShowParameters()
 	double Wm=Solver->GetMaxEnergy(j);
 	double I=Solver->GetCurrent(j);
 
+	double W0=Solver->GetParticleRestEnergy();
+
 	double kc=100*Np/N0;
 
 	//FSpectrum=Solver->GetPhaseSpectrum(j,true,F,dF);
@@ -1486,7 +1500,7 @@ void TResForm::ShowParameters()
 	T=Solver->GetTwiss(j,Par);
 	//double r=Solver->GetBeamRadius(j,Par);
     double r=k*sqrt(T.epsilon*T.beta);
-	double beta_gamma=MeVToVelocity(Gw.mean)*MeVToGamma(Gw.mean);
+	double beta_gamma=MeVToVelocity(Gw.mean,W0)*MeVToGamma(Gw.mean,W0);
 
 	Table->Cells[colValue][pZ]=s.FormatFloat("#0.000",100*z);
 	Table->Cells[colValue][pWav]=s.FormatFloat("#0.000",Gw.mean);
@@ -1717,7 +1731,7 @@ void __fastcall TResForm::FormClose(TObject *Sender, TCloseAction &Action)
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::TableDrawCell(TObject *Sender, int ACol, int ARow,
-      TRect &Rect, TGridDrawState State)
+	  TRect &Rect, TGridDrawState State)
 {
     if (ACol==colName){
         Table->Canvas->Brush->Color = cl3DLight;

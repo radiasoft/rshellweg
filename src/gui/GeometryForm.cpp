@@ -87,6 +87,7 @@ void TGeomForm::SetParameters()
 {
 	AnsiString s,A;
 	TBeamParameter P;
+	TParticleType pT;
 
     aParLabel->Visible=true;
     bParLabel->Visible=true;
@@ -115,14 +116,16 @@ void TGeomForm::SetParameters()
 		}
 	}
 
+	pT=MainSolver->GetParticleType();
+
 	TTwiss T=MainSolver->GetInputTwiss(P);
 	TGauss Gw=MainSolver->GetEnergyStats(0);
 	TGauss Gphi=MainSolver->GetPhaseStats(0);
-	double beta_gamma=MeVToVelocity(Gw.mean)*MeVToGamma(Gw.mean);
+	double beta_gamma=MeVToVelocity(Gw.mean,pT)*MeVToGamma(Gw.mean,pT);
 	double Rb=MainSolver->GetBeamRadius(0);
 
 	aParLabel->Caption="alpha"+A+" = "+s.FormatFloat("#0.000##",T.alpha);
-	bParLabel->Caption="betta"+A+" = "+s.FormatFloat("#0.000##",100*T.beta)+" cm/rad";
+	bParLabel->Caption="beta"+A+" = "+s.FormatFloat("#0.000##",100*T.beta)+" cm/rad";
 	eParLabel->Caption="epsilon"+A+" = "+s.FormatFloat("#0.000##",1e6*T.epsilon)+" um";
 	enParLabel->Caption="e_norm"+A+" = "+s.FormatFloat("#0.000##",1e6*T.epsilon*beta_gamma)+" um";
 	WavParLabel->Caption="Wav = "+s.FormatFloat("#0.000##",Gw.mean)+" MeV";

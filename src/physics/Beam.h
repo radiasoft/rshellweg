@@ -17,10 +17,11 @@ private:
     int Nliv,Nbars;
 	double Kernel;
 	double Ib,I0; //beam current
+	double W0;//rest energy
 
 	void CountLiving();
-    //void TwoRandomGauss(double& x1,double& x2); //Moved to types.h
-    void SetParameters(double *X,TBeamParameter Par);
+	//void TwoRandomGauss(double& x1,double& x2); //Moved to types.h
+	void SetParameters(double *X,TBeamParameter Par);
 
 	//DISTRIBUTIONS
 	double *MakeRayleighDistribution(TGauss G);
@@ -86,6 +87,7 @@ public:
 	void SetCurrent(double I);
 	void SetInputCurrent(double I);
 	void SetBarsNumber(int N);
+	void SetRestEnergy(double W);
 
 		//GET OUTPUT PARAMETERS
 	TTwiss GetTwiss(TBeamParameter P=R_PAR,bool Norm=false);

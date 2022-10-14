@@ -4,6 +4,7 @@
 #define FunctionsH
 
 #include "Types.h"
+#include <cstring>
 
 //#endif
 
@@ -43,7 +44,7 @@ inline double ln(double x){
 }
 //---------------------------------------------------------------------------
 inline double log2(double x){
-    return log(x)/log(2.);
+	return log(x)/log(2.);
 }
 //---------------------------------------------------------------------------
 inline double asinh(double x){
@@ -58,12 +59,32 @@ inline double atanh(double x){
 	return 0.5*ln((1+x)/(1-x));
 }
 //---------------------------------------------------------------------------
-inline double GammaToMeV(double g){
-    return We0*(g-1)*1e-6;;
+inline double GetRestEnergy(TParticlesSpecies R){
+	double W0=0;
+	switch (R.Type){
+		case PROTON :{W0=Wp0;break;}
+		case ION :{W0=Wu0;break;}
+		case ELECTRON:{}
+		default:{W0=We0;break;}
+	}
+	return W0;
 }
 //---------------------------------------------------------------------------
-inline double MeVToGamma(double W){
-    return 1+W*1e6/We0;
+static AnsiString GetEnergyUnit(TParticleType P){
+	AnsiString S;
+	if (P==ION)
+		S="MeV/u";
+	else
+		S="MeV";
+	return S;
+}
+//---------------------------------------------------------------------------
+inline double GammaToMeV(double g, double W0){
+	return W0*(g-1)*1e-6;
+}
+//---------------------------------------------------------------------------
+inline double MeVToGamma(double W, double W0){
+	return 1+W*1e6/W0;
 }
 //---------------------------------------------------------------------------
 inline double EnergyToVelocity(double g){
@@ -74,16 +95,16 @@ inline double VelocityToEnergy(double b){
     return 1/sqrt(1-sqr(b));
 }
 //---------------------------------------------------------------------------
-inline double VelocityToMeV(double b){
-    return GammaToMeV(VelocityToEnergy(b));
+inline double VelocityToMeV(double b, double W0){
+	return GammaToMeV(VelocityToEnergy(b),W0);
 }
 //---------------------------------------------------------------------------
-inline double MeVToVelocity(double W){
-	return EnergyToVelocity(MeVToGamma(W));
+inline double MeVToVelocity(double W, double W0){
+	return EnergyToVelocity(MeVToGamma(W,W0));
 }
 //---------------------------------------------------------------------------
-inline double MeVToBetaGamma(double W){
-	return MeVToVelocity(W)*MeVToGamma(W);
+inline double MeVToBetaGamma(double W, double W0){
+	return MeVToVelocity(W,W0)*MeVToGamma(W,W0);
 }
 //---------------------------------------------------------------------------
 inline double BzFromOther(double beta,double beta_x,double beta_y){
@@ -390,6 +411,18 @@ static bool IsNumber(AnsiString &S)   //Checks if the string is a number
 	return Success;
 }
 //---------------------------------------------------------------------------
+static AnsiString GetFileName(AnsiString &F)   //Gets the file name from path
+{
+    std::string s = std::string(F.c_str());
+    return s.substr(s.find_last_of("/\\") + 1);
+}
+//---------------------------------------------------------------------------
+static AnsiString GetFileCaption(AnsiString &F)   //Gets the file name without extension
+{
+    std::string s = std::string(F.c_str());
+	return s.substr(0,s.find_last_of("/.")-1);
+}
+//---------------------------------------------------------------------------
 static bool CheckFile(AnsiString &F)   //Checks if the file exists
 {
 	bool Exists=false;
@@ -419,6 +452,9 @@ static AnsiString GetLine(ifstream &f)   //Reads the next line from fstream
 	char s[MAX_CHAR];
 
 	do {
+		if (f.eof()) {
+			return AnsiString("");
+		}
 		f.getline(s, sizeof(s)) ;
 		S=AnsiString(s);
 	} while(S.IsEmpty() || S==" ");

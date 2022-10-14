@@ -109,7 +109,8 @@ bool TOptimizerForm::PrepareCell(TCell& Cell)
 //---------------------------------------------------------------------------
 bool TOptimizerForm::BuncherInput(TCell& Cell)
 {
-    bool R=false;
+	bool R=false;
+	double W0=Solver->GetParticleRestEnergy();
 
     if (!PrepareCell(Cell))
         return false;
@@ -123,8 +124,8 @@ bool TOptimizerForm::BuncherInput(TCell& Cell)
             E1=E;
         }
         if (FieldCombo->ItemIndex==fA){
-            E1=E1*We0/sqrt(Cell.P0);
-            E2=E2*We0/sqrt(Cell.P0);
+			E1=E1*W0/sqrt(Cell.P0);
+            E2=E2*W0/sqrt(Cell.P0);
         }else if (FieldCombo->ItemIndex==fE){
             double lmb=c/Cell.F0;
             E1=1e6*E1*lmb/sqrt(Cell.P0);

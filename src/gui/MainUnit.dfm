@@ -1,9 +1,9 @@
 object MainForm: TMainForm
   Left = 0
   Top = 0
-  Caption = 'Hellweg 2D'
-  ClientHeight = 611
-  ClientWidth = 577
+  Caption = 'Hellweg (RsLinac) v. 10/09/22'
+  ClientHeight = 741
+  ClientWidth = 593
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -12,6 +12,8 @@ object MainForm: TMainForm
   Font.Style = []
   OldCreateOrder = False
   Position = poDesigned
+  Visible = True
+  OnActivate = FormActivate
   OnCanResize = FormCanResize
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -20,24 +22,24 @@ object MainForm: TMainForm
   object InputGroup: TGroupBox
     Left = 0
     Top = 0
-    Width = 577
-    Height = 273
+    Width = 593
+    Height = 319
     Align = alTop
     Caption = 'Input Data'
     TabOrder = 1
     object ViewGeometryButton: TButton
-      Left = 21
+      Left = 58
       Top = 242
       Width = 83
       Height = 25
-      Caption = 'View Geometry'
+      Caption = 'View Structure'
       TabOrder = 0
       OnClick = ViewGeometryButtonClick
     end
     object ViewBeamButton: TButton
-      Left = 110
-      Top = 242
-      Width = 75
+      Left = 58
+      Top = 273
+      Width = 82
       Height = 25
       Caption = 'View Beam'
       TabOrder = 1
@@ -46,7 +48,7 @@ object MainForm: TMainForm
     object GroupPower: TGroupBox
       Left = 21
       Top = 19
-      Width = 185
+      Width = 172
       Height = 54
       Caption = 'Power Source (First)'
       TabOrder = 2
@@ -68,7 +70,7 @@ object MainForm: TMainForm
     object GroupSolenoid: TGroupBox
       Left = 21
       Top = 73
-      Width = 185
+      Width = 172
       Height = 91
       Caption = 'Solenoid'
       TabOrder = 3
@@ -102,31 +104,38 @@ object MainForm: TMainForm
       end
     end
     object GroupBeamGeneral: TGroupBox
-      Left = 215
+      Left = 205
       Top = 19
-      Width = 175
-      Height = 54
+      Width = 201
+      Height = 74
       Caption = 'Beam General'
       TabOrder = 4
       object Label_Np: TLabel
         Left = 16
-        Top = 16
+        Top = 33
         Width = 122
         Height = 13
         Caption = 'Number of Particles = ???'
       end
       object Label_I0: TLabel
         Left = 16
-        Top = 35
+        Top = 52
         Width = 105
         Height = 13
         Caption = 'Input Current = ??? A'
       end
+      object Label_Particles: TLabel
+        Left = 15
+        Top = 14
+        Width = 69
+        Height = 13
+        Caption = 'Particles = ???'
+      end
     end
     object GroupSpaceCharge: TGroupBox
-      Left = 215
-      Top = 190
-      Width = 175
+      Left = 205
+      Top = 246
+      Width = 201
       Height = 63
       Caption = 'Space Charge and Features'
       TabOrder = 5
@@ -146,36 +155,22 @@ object MainForm: TMainForm
       end
     end
     object GroupZpar: TGroupBox
-      Left = 215
-      Top = 79
-      Width = 175
-      Height = 105
-      Caption = 'Longitudinal Phase Space'
+      Left = 205
+      Top = 172
+      Width = 201
+      Height = 68
+      Caption = 'Phase'
       TabOrder = 6
-      object Label_W0: TLabel
-        Left = 16
-        Top = 16
-        Width = 130
-        Height = 13
-        Caption = 'Average Energy = ??? MeV'
-      end
-      object Label_dW: TLabel
-        Left = 16
-        Top = 35
-        Width = 110
-        Height = 13
-        Caption = 'Energy RMS = ??? MeV'
-      end
       object Label_Phi0: TLabel
         Left = 16
-        Top = 54
+        Top = 22
         Width = 123
         Height = 13
         Caption = 'Average Phase = ??? deg'
       end
       object Label_dPhi: TLabel
         Left = 16
-        Top = 73
+        Top = 41
         Width = 103
         Height = 13
         Caption = 'Phase RMS = ??? deg'
@@ -184,7 +179,7 @@ object MainForm: TMainForm
     object GroupStructure: TGroupBox
       Left = 21
       Top = 170
-      Width = 185
+      Width = 172
       Height = 66
       Caption = 'Structure'
       TabOrder = 7
@@ -204,7 +199,7 @@ object MainForm: TMainForm
       end
     end
     object GroupTwissR: TGroupBox
-      Left = 396
+      Left = 412
       Top = 19
       Width = 175
       Height = 74
@@ -233,7 +228,7 @@ object MainForm: TMainForm
       end
     end
     object GroupTwissX: TGroupBox
-      Left = 396
+      Left = 412
       Top = 99
       Width = 175
       Height = 74
@@ -262,7 +257,7 @@ object MainForm: TMainForm
       end
     end
     object GroupTwissY: TGroupBox
-      Left = 396
+      Left = 412
       Top = 179
       Width = 175
       Height = 74
@@ -290,51 +285,98 @@ object MainForm: TMainForm
         Caption = 'Emittance = ??? cm*rad'
       end
     end
+    object GroupEnergy: TGroupBox
+      Left = 205
+      Top = 92
+      Width = 201
+      Height = 74
+      Caption = 'Energy'
+      TabOrder = 11
+      object Label_dW: TLabel
+        Left = 16
+        Top = 54
+        Width = 110
+        Height = 13
+        Caption = 'Energy RMS = ??? MeV'
+      end
+      object Label_W0: TLabel
+        Left = 16
+        Top = 16
+        Width = 130
+        Height = 13
+        Caption = 'Average Energy = ??? MeV'
+      end
+      object Label_beta: TLabel
+        Left = 16
+        Top = 35
+        Width = 51
+        Height = 13
+        Caption = 'Beta = ???'
+      end
+      object Label_W0_full: TLabel
+        Left = 108
+        Top = 35
+        Width = 38
+        Height = 13
+        Caption = '??? MeV'
+      end
+    end
   end
   object SolverGroup: TGroupBox
     Left = 0
-    Top = 273
-    Width = 577
-    Height = 64
+    Top = 431
+    Width = 593
+    Height = 63
     Align = alTop
     Caption = 'Solver Progress'
     TabOrder = 2
+    ExplicitTop = 395
   end
   object ResultsGroup: TGroupBox
     Left = 0
-    Top = 385
-    Width = 577
-    Height = 226
+    Top = 494
+    Width = 593
+    Height = 247
     Align = alClient
     Caption = 'Results'
     TabOrder = 3
+    ExplicitTop = 459
+    ExplicitWidth = 577
+    ExplicitHeight = 245
     object MemoPanel: TPanel
       Left = 2
       Top = 15
-      Width = 466
-      Height = 209
+      Width = 482
+      Height = 230
       Align = alClient
       TabOrder = 0
+      ExplicitWidth = 466
+      ExplicitHeight = 228
       object ResultsMemo: TMemo
         Left = 1
         Top = 1
-        Width = 464
-        Height = 207
+        Width = 480
+        Height = 228
         Align = alClient
         Lines.Strings = (
           'ResultsMemo')
+        ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
         Visible = False
+        ExplicitWidth = 464
+        ExplicitHeight = 226
       end
     end
     object ActPanel: TPanel
-      Left = 468
+      Left = 484
       Top = 15
       Width = 107
-      Height = 209
+      Height = 230
       Align = alRight
       TabOrder = 1
+      ExplicitLeft = 468
+      ExplicitHeight = 228
       object OptButton: TButton
         Left = 16
         Top = 70
@@ -378,33 +420,27 @@ object MainForm: TMainForm
   end
   object ControlGroup: TGroupBox
     Left = 0
-    Top = 337
-    Width = 577
-    Height = 48
+    Top = 319
+    Width = 593
+    Height = 56
     Align = alTop
     Caption = 'Controls'
     TabOrder = 0
+    ExplicitTop = 347
+    ExplicitWidth = 577
     DesignSize = (
-      577
-      48)
-    object SelectFileButton: TButton
-      Left = 3
-      Top = 17
-      Width = 75
-      Height = 25
-      Caption = 'Select File'
-      TabOrder = 1
-      OnClick = SelectFileButtonClick
-    end
+      593
+      56)
     object ExitButton: TButton
-      Left = 486
+      Left = 502
       Top = 20
       Width = 73
       Height = 25
       Anchors = [akTop, akRight]
       Caption = 'Exit'
-      TabOrder = 2
+      TabOrder = 1
       OnClick = ExitButtonClick
+      ExplicitLeft = 486
     end
     object AbortButton: TButton
       Left = 286
@@ -412,7 +448,7 @@ object MainForm: TMainForm
       Width = 75
       Height = 25
       Caption = 'Abort'
-      TabOrder = 3
+      TabOrder = 2
       OnClick = AbortButtonClick
     end
     object SolveButton: TButton
@@ -425,12 +461,91 @@ object MainForm: TMainForm
       OnClick = SolveButtonClick
     end
   end
+  object InterfaceGroup: TGroupBox
+    Left = 0
+    Top = 375
+    Width = 593
+    Height = 56
+    Align = alTop
+    Caption = 'Data Interface '
+    TabOrder = 4
+    ExplicitTop = 403
+    ExplicitWidth = 577
+    object Label_Input: TLabel
+      Left = 21
+      Top = 27
+      Width = 45
+      Height = 13
+      Caption = 'Input File'
+    end
+    object Label_Output: TLabel
+      Left = 215
+      Top = 27
+      Width = 53
+      Height = 13
+      Caption = 'Output File'
+    end
+    object SelectFileButton: TButton
+      Left = 72
+      Top = 20
+      Width = 32
+      Height = 25
+      Caption = '...'
+      TabOrder = 0
+      OnClick = SelectFileButtonClick
+    end
+    object InputFileEdit: TEdit
+      Left = 110
+      Top = 24
+      Width = 83
+      Height = 21
+      ReadOnly = True
+      TabOrder = 1
+      Text = 'INPUT.TXT'
+    end
+    object OutputFileEdit: TEdit
+      Left = 297
+      Top = 24
+      Width = 109
+      Height = 21
+      TabOrder = 2
+      Text = 'OUTPUT'
+    end
+    object BinaryCheck: TCheckBox
+      Left = 428
+      Top = 16
+      Width = 97
+      Height = 17
+      Caption = 'Binary Format'
+      Enabled = False
+      TabOrder = 3
+    end
+    object TrajectoryCheck: TCheckBox
+      Left = 428
+      Top = 33
+      Width = 109
+      Height = 17
+      Caption = 'Save Trajectories'
+      Enabled = False
+      TabOrder = 4
+    end
+    object OutputCheck: TCheckBox
+      Left = 274
+      Top = 24
+      Width = 17
+      Height = 17
+      Checked = True
+      State = cbChecked
+      TabOrder = 5
+      OnClick = OutputCheckClick
+    end
+  end
   object InputDialog: TOpenDialog
     FileName = 
       'D:\Storage\Laptop Backup\My Work\00 - PRG\Hellweg 2.5\Debug\INPU' +
       'T.txt'
     Filter = 'Text Files|*.txt|All Files|*.*'
-    Left = 176
-    Top = 24
+    Left = 464
+    Top = 264
   end
 end
