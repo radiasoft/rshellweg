@@ -1766,10 +1766,10 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 			
 			/*
 			k_gb.z = (sqr(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.z +gb.r*(H.th +Hx.th) -gb.th*(H.r +Hx.r))/gb.z; 
-			k_rr_gb =  r==0?0:sqr(gb.th)/(r*gb.z); // check if r is needed here 
+			k_rr_gb =  r==0?0:sqr(gb.th)/(r*gb.z); 
 			k_gb.r = (sqr(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.r +gb.th*(H.z +Hx.z) -gb.z*(H.th +Hx.th))/gb.z +k_rr_gb; 
-			k_rth_gb =  r==0?0:gb.th*gb.r/(r*gb.z); // check if r is needed here 
-			k_gb.r = (sqr(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.th +gb.z*(H.r +Hx.r) -gb.r*(H.z +Hx.z))/gb.z -k_rth_gb;
+			k_rth_gb =  r==0?0:gb.th*gb.r/(r*gb.z); 
+			k_gb.th = (sqr(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.th +gb.z*(H.r +Hx.r) -gb.r*(H.z +Hx.z))/gb.z -k_rth_gb;
 			*/
 			
 			);
@@ -1799,6 +1799,14 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 			I[Sj][i].beta.th=k_beta.th;
 			I[Sj][i].th=k_th;
 			I[Sj][i].r=k_r;
+			/*
+			// Depending on how tracking of gb is handled, possibly use separate r and th, as well 
+			I[Sj][i].gb.r = k_gb.r 
+			I[Sj][i].gb.th = k_gb.th 
+			I[Sj][i].gb.z = k_gb.z 
+			//I[Sj][i].rgb = gb.r /gb.z 
+			//I[Sj][i].thgb = r==0?0:gb.th /(r *gb.z)
+			*/ 
 		}
     }
 
