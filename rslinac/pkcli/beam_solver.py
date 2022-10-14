@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-u"""Run the beam solver library
+"""Run the beam solver library
 
 :copyright: Copyright (c) 2016 RadiaSoft LLC.  All Rights Reserved.
 :license: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -13,9 +13,10 @@ import six
 import sys
 import rslinac.pyhellweg
 
+
 def _normalize_path_arg(path, **kw):
     """Normalizes the path, to bytes or str depending on the Python version
-    
+
     Args:
         path (object): path to normalize
         **kwargs: Supports `py.path.local.check_`
@@ -28,8 +29,8 @@ def _normalize_path_arg(path, **kw):
     a = py.path.local(path)
     if not a.check(**kw):
         msg = {
-            idx({'file': True, 'exists': True}): 'Error, file "{}" does not exist',
-            idx({'exists': False}): 'Error, file "{}" exists',
+            idx({"file": True, "exists": True}): 'Error, file "{}" does not exist',
+            idx({"exists": False}): 'Error, file "{}" exists',
         }.get(idx(kw), 'Error with file "{}"')
 
         pkcli.command_error(msg, path)
@@ -38,6 +39,7 @@ def _normalize_path_arg(path, **kw):
     if isinstance(a, six.text_type):
         a = a.encode()
     return a
+
 
 def run(ini_file, input_file, output_file):
     # TODO(elventear) Provide links that document the input formats
@@ -55,6 +57,8 @@ def run(ini_file, input_file, output_file):
     Raises:
         PyHellwegCppException: if an error occurrs within the Beam Solver
     """
-    rslinac.pyhellweg.run_beam_solver(_normalize_path_arg(ini_file, file=True, exists=True), 
-                                      _normalize_path_arg(input_file, file=True, exists=True), 
-                                      _normalize_path_arg(output_file, exists=False))
+    rslinac.pyhellweg.run_beam_solver(
+        _normalize_path_arg(ini_file, file=True, exists=True),
+        _normalize_path_arg(input_file, file=True, exists=True),
+        _normalize_path_arg(output_file, exists=False),
+    )

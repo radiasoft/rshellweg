@@ -4,13 +4,14 @@
 #pragma hdrstop
 
 #include "BeamSolver.h"
+#include <mcheck.h>
 // #include "Types.h"
 
 //---------------------------------------------------------------------------
 __fastcall TBeamSolver::TBeamSolver(AnsiString UserIniPath)
 {
-    this->UserIniPath = UserIniPath;
-    Initialize();
+	this->UserIniPath = UserIniPath;
+	Initialize();
 }
 //---------------------------------------------------------------------------
 __fastcall TBeamSolver::TBeamSolver()
@@ -22,7 +23,7 @@ __fastcall TBeamSolver::~TBeamSolver()
 {
 	ResetStructure();
 
-    delete[] Structure;
+	delete[] Structure;
 
     for (int i=0;i<Npoints;i++)
         delete Beam[i];
@@ -34,7 +35,7 @@ __fastcall TBeamSolver::~TBeamSolver()
     delete[] K;
 
     #ifndef RSLINAC
-    if (SmartProgress!=NULL)
+	if (SmartProgress!=NULL)
         delete SmartProgress;
     #endif
 
@@ -46,15 +47,17 @@ __fastcall TBeamSolver::~TBeamSolver()
 //---------------------------------------------------------------------------
 void TBeamSolver::Initialize()
 {
-    MaxCells=500;
+    mcheck(NULL);
+
+	MaxCells=DEFAULT_MAX_CELLS;
     Nmesh=DEFAULT_MESH;
-   	Kernel=0;
+	//Kernel=0;
     SplineType=LSPLINE;
     Nstat=100;
-    Ngraph=500;
+    //Ngraph=500;
 	//Nbars=100; //default
-    Nav=10;
-    Smooth=0.95;
+	//Nav=10;
+	Smooth=DEFAULT_SMOOTH;
 	Npoints=0;
 	Ndump=0;
 
@@ -68,13 +71,18 @@ void TBeamSolver::Initialize()
 	BeamPar.ZBeamType=NOBEAM;
 	BeamPar.NParticles=1;
 	BeamPar.Demagnetize=false;
+	BeamPar.Species.Type=ELECTRON;
+	BeamPar.Species.A=1;
+	BeamPar.Species.Q=1;
+	BeamPar.W0=GetRestEnergy(BeamPar.Species);
+	BeamPar.Wnorm=(BeamPar.Species.A/BeamPar.Species.Q)*BeamPar.W0;
 
 	StructPar.NSections=0;
 	StructPar.Sections=NULL;
 	StructPar.NElements=0;
 	StructPar.ElementsLimit=-1;
 	StructPar.NStructData=0;
-    StructPar.NMaps=0;
+	StructPar.NMaps=0;
 	StructPar.StructData=NULL;
 	StructPar.Reverse=false;
 
@@ -91,7 +99,7 @@ void TBeamSolver::Initialize()
 	LoadIniConstants();
 
 	DataReady=false;
-	Stop=false;
+	SolverStop=ERR_NO;
 
 	K=new TIntegration*[Ncoef];
 	for (int i=0;i<Ncoef;i++)
@@ -182,7 +190,7 @@ void TBeamSolver::ResetMaps()
 {
 	if (QuadMaps!=NULL) {
 		for (int i = 0; i < StructPar.NMaps; i++) {
-			for (int j = 0; j < QuadMaps[i].Dim.Nx; i++) {
+			for (int j = 0; j < QuadMaps[i].Dim.Nx; j++) {
 				delete[] QuadMaps[i].Field[j];
 
 			}
@@ -250,9 +258,9 @@ void TBeamSolver::ResetDump(int Ns)
 //---------------------------------------------------------------------------
 void TBeamSolver::ShowError(AnsiString &S)
 {
-        #ifndef RSLINAC
+	 /*   #ifndef RSLINAC
 	ShowMessage(S);
-        #endif
+        #endif           */
 	ParsedStrings->Add(S);
 }
 //---------------------------------------------------------------------------
@@ -341,45 +349,45 @@ void TBeamSolver::LoadIniConstants()
 {
     TIniFile *UserIni;
     int t;
-    double stat;
+	//double stat;
 
-    UserIni=new TIniFile(UserIniPath);
-	MaxCells=UserIni->ReadInteger("OTHER","Maximum Cells",MaxCells);
-	Nmesh=UserIni->ReadInteger("NUMERIC","Number of Mesh Points",Nmesh);
-	Kernel=UserIni->ReadFloat("Beam","Percent Of Particles in Kernel",Kernel);
+	UserIni=new TIniFile(UserIniPath);
+
+	MaxCells=UserIni->ReadInteger("NUMERIC","Maximum Cells",DEFAULT_MAX_CELLS);
+	Nmesh=UserIni->ReadInteger("NUMERIC","Number of Mesh Points",DEFAULT_MESH);
+  /*	Kernel=UserIni->ReadFloat("NUMERIC","Percent Of Particles in Kernel",Kernel);
     if (Kernel>0)
     	Kernel/=100;
     	else
-    	Kernel=0.9;
-
+		Kernel=0.9;      */
+	Smooth=UserIni->ReadFloat("NUMERIC","Smoothing Factor",Smooth);
 
     t=UserIni->ReadInteger("NUMERIC","Spline Interpolation",t);
     switch (t) {
         case (0):{
-            SplineType=LSPLINE;
+			SplineType=LSPLINE;
             break;
         }
         case (1):{
-            SplineType=CSPLINE;
+			SplineType=CSPLINE;
             break;
         }
         case (2):{
             SplineType=SSPLINE;
             break;
         }
-    }
+	}
 
-    stat=UserIni->ReadFloat("NUMERIC","Statistics Error",stat);
+ /*	stat=UserIni->ReadFloat("RESULTS","Statistics Error",stat);
     if (stat<1e-6)
         stat=1e-6;
     if (stat>25)
         stat=25;
 	int Nstat=round(100.0/stat);
-	AngErr=UserIni->ReadFloat("NUMERIC","Angle Error",AngErr);
-    Smooth=UserIni->ReadFloat("NUMERIC","Smoothing",Smooth);
-	Ngraph=UserIni->ReadInteger("OTHER","Chart Points",Ngraph);
+	AngErr=UserIni->ReadFloat("RESULTS","Angle Error",AngErr);  */
+	//Ngraph=UserIni->ReadInteger("RESULTS","Chart Points",Ngraph);
 	//Nbars=UserIni->ReadInteger("NUMERIC","Hystogram Bars",Ngraph);
-	Nav=UserIni->ReadInteger("NUMERIC","Averaging Points",Nav);
+	//Nav=UserIni->ReadInteger("RESULTS","Averaging Points",Nav);
 }
 //---------------------------------------------------------------------------
 int TBeamSolver::GetNumberOfPoints()
@@ -402,15 +410,35 @@ int TBeamSolver::GetNumberOfParticles()
 	return BeamPar.NParticles;
 }
 //---------------------------------------------------------------------------
-int TBeamSolver::GetNumberOfChartPoints()
+/*int TBeamSolver::GetNumberOfChartPoints()
 {
-    return Ngraph;
-}
+	return Ngraph;
+}    */
 //---------------------------------------------------------------------------
 /*int TBeamSolver::GetNumberOfBars()
 {
 	return Nbars;
 }   */
+//---------------------------------------------------------------------------
+TParticleType TBeamSolver::GetParticleType()
+{
+	return BeamPar.Species.Type;
+}
+//---------------------------------------------------------------------------
+double TBeamSolver::GetParticleMass()
+{
+	return BeamPar.Species.A;
+}
+//---------------------------------------------------------------------------
+int TBeamSolver::GetParticleCharge()
+{
+	return BeamPar.Species.Q;
+}
+//---------------------------------------------------------------------------
+double TBeamSolver::GetParticleRestEnergy()
+{
+	return BeamPar.W0;
+}
 //---------------------------------------------------------------------------
 int TBeamSolver::GetNumberOfCells()
 {
@@ -485,7 +513,8 @@ bool TBeamSolver::IsKeyWord(AnsiString &S)
 		S=="SAVE" ||
 		S=="OPTIONS" ||
 		S=="STRUCT" ||
-		S=="SPCHARGE";
+		S=="SPCHARGE" ||
+		S=="PARTICLES";
 	  //	S=="COMMENT";
 }
 //---------------------------------------------------------------------------
@@ -626,6 +655,8 @@ TInputParameter TBeamSolver::Parse(AnsiString &S)
 		P=SPCHARGE;
 	else if (S=="STRUCT")
 		P=STRUCT;
+	else if (S=="PARTICLES")
+		P=PARTICLES;
 	else if (S[1]=='!')
 		P=COMMENT;
 	return  P;
@@ -1274,6 +1305,69 @@ TError TBeamSolver::ParseOptions(TInputLine *Line)
 	return ERR_NO;
 }
 //---------------------------------------------------------------------------
+TError TBeamSolver::ParseParticleType(TInputLine *Line)
+{
+	TError Error=ERR_NO;
+	AnsiString S="", F="PARTICLES ";
+
+
+	if (Line->S[0]=="ELECTRON" || Line->S[0]=="ELECTRONS"){
+		BeamPar.Species.Type=ELECTRON;
+		BeamPar.Species.A=1;
+		BeamPar.Species.Q=1;
+		F+="ELECTRONS ";
+		if (Line->N > 1)
+			S="!WARNING: Excessive parameters for electrons will be ignored\n";
+	} else if (Line->S[0]=="PROTON" || Line->S[0]=="PROTONS"){
+		BeamPar.Species.Type=PROTON;
+		BeamPar.Species.A=1;
+		BeamPar.Species.Q=1;
+		F+="PROTONS ";
+		if (Line->N > 1)
+			S="!WARNING: Excessive parameters for protons will be ignored\n";
+	} else if (Line->S[0]=="ION" || Line->S[0]=="IONS"){
+		F+="IONS ";
+		BeamPar.Species.Type=ION;
+		if (Line->N == 1) {
+			S="!WARNING:Ion mass and charge are not specified. Assuming protons\n";
+			BeamPar.Species.Type=PROTON;
+			BeamPar.Species.A=1;
+			BeamPar.Species.Q=1;
+		} else {
+			BeamPar.Species.A=Line->S[1].ToDouble();
+			BeamPar.Species.Q=1;
+			F+=Line->S[1];
+			if (Line->N >= 3) {
+				BeamPar.Species.Q=abs(Line->S[2].ToInt());
+				F=F+" "+Line->S[2];
+				if (Line->N > 3)
+					S+="!WARNING:Excessive parameters for ions will be ignored\n";
+
+				if (BeamPar.Species.A==1 && BeamPar.Species.Q==1){
+					S="!WARNING: Ion mass and charge are equal to 1. Assuming protons\n";
+					BeamPar.Species.Type=PROTON;
+				}
+			}
+		}
+	} else {
+		S="ERROR: Unrecognized keyword in PARTCILES line!\n";
+		Error=ERR_PARTICLE;
+	}
+
+	if (BeamPar.Species.A/BeamPar.Species.Q<1)
+		S+="!WARNING:A/Q ratio is less than 1! Check input parameters!\n";
+
+	BeamPar.W0=GetRestEnergy(BeamPar.Species);
+	BeamPar.Wnorm=(BeamPar.Species.A/BeamPar.Species.Q)*BeamPar.W0;
+
+	ParsedStrings->Add(F);
+
+	if (S!="")
+		ShowError(S);
+
+	return Error;
+}
+//---------------------------------------------------------------------------
 TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 {
 	AnsiString F="SPCHARGE ",S;
@@ -1884,7 +1978,7 @@ TError TBeamSolver::ParseDrift(TInputLine *Line,int Ni, int Nsec)
 				ShowError(S);
 				StructPar.Cells[Ni].Mesh=Nmesh;
 			}
-			F+=" "+Line->S[2];
+			F+=" \t"+Line->S[2];
 		} else
 			StructPar.Cells[Ni].Mesh=Nmesh;
 
@@ -2002,6 +2096,7 @@ TError TBeamSolver::ParseDump(TInputLine *Line, int Ns, int Ni)
 		BeamExport[Ns].Radius=false;
 		BeamExport[Ns].Azimuth=false;
 		BeamExport[Ns].Divergence=false;
+        BeamExport[Ns].Binary=false;
 
 		F+=Line->S[0];
 		F0=F;
@@ -2158,6 +2253,10 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 				CurrentDefined=Error==ERR_NO;
 				break;
 			}
+			case PARTICLES:{
+				Error=ParseParticleType(&Lines[k]);
+				break;
+			}
 			case STRUCT:{
 				Error=ParseStruct(&Lines[k],Ndat);
 				Ndat++;
@@ -2218,6 +2317,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 					return ERR_COUPLER;
 				break;
 			}
+
 			case DUMP:{
 				Error=ParseDump(&Lines[k],Ns,Ni);
 				Ns++;
@@ -2258,8 +2358,13 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 //---------------------------------------------------------------------------
 TError TBeamSolver::LoadData(int Nlim)
 {
+	return LoadData("PARSED.TXT",Nlim);
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::LoadData(AnsiString LogFileName, int Nlim)
+{
     const char *FileName=InputFile.c_str();
-    LoadIniConstants();
+	LoadIniConstants();
     InputStrings->Clear();
 	StructPar.ElementsLimit=Nlim; //# of cells limit. Needed for optimizer. Don't remove
 
@@ -2278,7 +2383,7 @@ TError TBeamSolver::LoadData(int Nlim)
     TError Parsed;
 
     Lines=ParseFile(N);
-    //InputStrings->LoadFromFile(InputFile);
+	//InputStrings->LoadFromFile(InputFile);
 
 	ResetStructure();
 
@@ -2333,7 +2438,8 @@ TError TBeamSolver::LoadData(int Nlim)
     ParsedStrings->Add("END");
     InputStrings->AddStrings(ParsedStrings);
 
-    ParsedStrings->SaveToFile("PARSED.TXT");
+	if (LogFileName!="")
+		ParsedStrings->SaveToFile(LogFileName);
 
     delete[] Lines;
     DataReady=true;
@@ -2376,7 +2482,7 @@ TError TBeamSolver::MakeBuncher(TCell& iCell)
     ParsedStrings->Add("");
 
     double k1=0,k2=0,k3=0,k4=0,k5=0;
-	double Am=iCell.ELP*sqrt(StructPar.Sections[0].Power*1e6)/We0;
+	double Am=iCell.ELP*sqrt(StructPar.Sections[0].Power*1e6)/BeamPar.Wnorm;
     k1=3.8e-3*(Power(10.8,Am)-1);
     k2=1.25*Am+2.25;
     k3=0.5*Am+0.15*sqrt(Am);
@@ -2385,7 +2491,7 @@ TError TBeamSolver::MakeBuncher(TCell& iCell)
 
 	double b=0,A=0,ksi=0,lmb=0,th=0;
 	double W0=Beam[0]->GetAverageEnergy();
-	double b0=MeVToVelocity(W0);
+	double b0=MeVToVelocity(W0,BeamPar.W0);
 
 	lmb=1e-6*c/StructPar.Sections[0].Frequency;
     if (iCell.Mode==90)
@@ -2437,7 +2543,7 @@ TError TBeamSolver::MakeBuncher(TCell& iCell)
 		StructPar.Cells[i].beta=(2/pi)*(1-b0)*arctg(k1*Power(ksi,k2))+b0;
         //Cells[i].betta=(2/pi)*arctg(0.25*sqr(10*ksi*lmb)+0.713);
 
-		StructPar.Cells[i].ELP=A*We0/sqrt(1e6*StructPar.Sections[0].Power);
+		StructPar.Cells[i].ELP=A*BeamPar.Wnorm/sqrt(1e6*StructPar.Sections[0].Power);
        //   Cells[i].ELP=A*lmb/sqrt(1e6*P0);
 
 		GetDimensions(StructPar.Cells[i]);
@@ -2688,10 +2794,14 @@ void TBeamSolver::CreateMaps()
 	double kc=0;
 	int q=0;
 
+    if(StructPar.NMaps <= 0) {
+        return;
+    }
+
 	QuadMaps=new TFieldMap2D [StructPar.NMaps];
 	for(int i=0;i<StructPar.NElements;i++){
 		if (StructPar.Cells[i].Magnet.MagnetType==MAG_QUAD){
-			kc=sqr(c)/(We0*StructPar.Cells[i].F0);
+			kc=sqr(c)/(BeamPar.Wnorm*StructPar.Cells[i].F0);
 			QuadMaps[q]=ParseMapFile(StructPar.Cells[i].Magnet.File);
 			for (int j = 0; j < QuadMaps[q].Dim.Nx; j++) {
 				QuadMaps[q].Piv.X[j]*=StructPar.Cells[i].F0/c;
@@ -2777,8 +2887,8 @@ void TBeamSolver::CreateStrucutre()
 		double beta=StructPar.Cells[i].beta;
 		double E=StructPar.Cells[i].ELP;
 		double Rp=sqr(E)/2;
-		double A=P0>0?E*sqrt(P0)/We0:0;
-		double B=Rp/(2*We0);
+		double A=P0>0?E*sqrt(P0)/BeamPar.Wnorm:0;
+		double B=Rp/(2*BeamPar.Wnorm);
 		double alpha=StructPar.Cells[i].AL32/(lmb*sqrt(lmb));
 
 		for (int j=0;j<StructPar.Cells[i].Mesh+Extra;j++){
@@ -2791,7 +2901,7 @@ void TBeamSolver::CreateStrucutre()
 			if (StructPar.Cells[i].beta<1)
 				Structure[k].betta=beta;
 			else
-				Structure[k].betta=MeVToVelocity(EnergyLimit);
+				Structure[k].betta=MeVToVelocity(EnergyLimit,BeamPar.W0);
 
 			Structure[k].E=E;
 			Structure[k].A=A;
@@ -3341,7 +3451,7 @@ void TBeamSolver::CreateMagneticMap()
 	//NORMALIZE
 	D=ExternalMagnetic.Dim;
 	for (int i = 0; i < D.Nz; i++) {
-		double knorm=c*Structure[i].lmb/We0;
+		double knorm=c*Structure[i].lmb/BeamPar.Wnorm;
 		for (int j = 0; j < D.Ny; j++) {
 			for (int k = 0; k < D.Nx; k++) {
 				ExternalMagnetic.Field[i][j][k].z*=knorm;
@@ -3388,6 +3498,7 @@ TError TBeamSolver::CreateBeam()
 		//Beam[i]->SetKernel(Kernel);
 		Beam[i]->lmb=Structure[i].lmb;
 		Beam[i]->SetInputCurrent(BeamPar.Current);
+		Beam[i]->SetRestEnergy(BeamPar.W0);
 		Beam[i]->Reverse=StructPar.Reverse;
 		//Beam[i]->Cmag=c*Cmag/(Structure[i].lmb*We0); //Cmag = c*B*lmb/Wo * (1/lmb^2 from r normalization)
 		for (int j=0;j<BeamPar.NParticles;j++){
@@ -3829,7 +3940,7 @@ double TBeamSolver::GetStructureParameter(int Nknot, TStructureParameter P)
 			break;
 		}
 		case (E0_PAR):{
-			x=Structure[Nknot].A*We0/Structure[Nknot].lmb;
+			x=Structure[Nknot].A*BeamPar.Wnorm/Structure[Nknot].lmb;
 			break;
 		}
 		case (EREAL_PAR):{
@@ -3839,7 +3950,7 @@ double TBeamSolver::GetStructureParameter(int Nknot, TStructureParameter P)
 		}
 		case (PRF_PAR):{
 			double E=sqrt(2*Structure[Nknot].Rp);
-			x=E!=0?sqr(Structure[Nknot].A*We0/E):0;
+			x=E!=0?sqr(Structure[Nknot].A*BeamPar.Wnorm/E):0;
 			break;
 		}
 		case (PBEAM_PAR):{
@@ -3855,7 +3966,7 @@ double TBeamSolver::GetStructureParameter(int Nknot, TStructureParameter P)
 			break;
 		}
 		case (BBETA_PAR):{
-			x=MeVToVelocity(Beam[Nknot]->GetAverageEnergy());
+			x=MeVToVelocity(Beam[Nknot]->GetAverageEnergy(),BeamPar.W0);
 			break;
 		}
 		case (WAV_PAR):{
@@ -3877,7 +3988,7 @@ double TBeamSolver::GetStructureParameter(int Nknot, TStructureParameter P)
 		case (BZ_EXT_PAR):{
 			//x=Structure[Nknot].Hext[Nknot][0][0].Field.z;
 			if (ExternalMagnetic.Field!=NULL)
-				x=ExternalMagnetic.Field[Nknot][0][0].z*We0/(c*Structure[Nknot].lmb);
+				x=ExternalMagnetic.Field[Nknot][0][0].z*BeamPar.Wnorm/(c*Structure[Nknot].lmb);
 			else x=0;
 
 			break;
@@ -3887,7 +3998,7 @@ double TBeamSolver::GetStructureParameter(int Nknot, TStructureParameter P)
 			if (ExternalMagnetic.Field!=NULL){
 				int ri=ExternalMagnetic.Dim.Nx-1;
 				double r=ExternalMagnetic.Piv.X[ri];
-				x=ExternalMagnetic.Field[Nknot][0][ri].r*We0/(c*Structure[Nknot].lmb);
+				x=ExternalMagnetic.Field[Nknot][0][ri].r*BeamPar.Wnorm/(c*Structure[Nknot].lmb);
 				x/=r;
 			} else
 				x=0;
@@ -3973,7 +4084,10 @@ double *TBeamSolver::GetStructureParameters(TStructureParameter P)
 //---------------------------------------------------------------------------
 void TBeamSolver::Abort()
 {
-	Stop=true;
+	SolverStop=ERR_ABORT;
+	#ifndef RSLINAC
+	SmartProgress->ShowMessage("Aborted");
+	#endif
 }
 //---------------------------------------------------------------------------
 double TBeamSolver::GetEigenFactor(double x, double y, double z,double a, double b, double c)
@@ -4028,7 +4142,6 @@ double TBeamSolver::GetEigenFactor(double x, double y, double z,double a, double
 				phi=pi;
 			else
 				assert(false);
-
 
 			r=2*rho;
 			s1=r*cos(phi/3);
@@ -4128,7 +4241,7 @@ double TBeamSolver::FormFactor(double ryrx, double rxrz, TBeamParameter P, doubl
 			//	if (M[4*k+2*j+i]>0)
 					M[4*k+2*j+i]=log(M[4*k+2*j+i]);
 			 //	else
-				 //	ShowMessage("Pidor!");
+				 //	ShowMessage("Error!");
 			}
 		}
 	}
@@ -4161,52 +4274,20 @@ double TBeamSolver::FormFactor(double ryrx, double rxrz, TBeamParameter P, doubl
 	return exp(F);
 }
 //---------------------------------------------------------------------------
-void TBeamSolver::Integrate(int Si, int Sj)
+void TBeamSolver::SpaceCharge(int Si, int Sj)
 {
-	double gamma0=1,Mr=0,Nr=0,/*phic=0,*/Qbunch=0,Rho=0,lmb=0,Icur=0;
+	double gamma0=1, Mr=0,Nr=0,/*phic=0,*/Qbunch=0,Rho=0,lmb=0,Icur=0;
 	double Mx=0,My=0,Mz=0,Mxx=0,Myy=0,Mzz=0,ix=0,iy=0,p=0,M=0;
 	double Ltrain=0,s_head=1,s_tail=1,Mz_tail=0,Mz_head=0;
 	int component=0;
-	TParticle *Particle=Beam[Si]->Particle;
-
-	//phic=Beam[Si]->iGetAveragePhase(Par[Sj],K[Sj]);
-	Par[Sj].SumSin=0;
-	Par[Sj].SumCos=0;
-	Par[Sj].SumSin=Beam[Si]->SinSum(Par[Sj],K[Sj]);
-    Par[Sj].SumCos=Beam[Si]->CosSum(Par[Sj],K[Sj]);
-
-	gamma0=Beam[Si]->iGetAverageEnergy(Par[Sj],K[Sj]);
-	Par[Sj].gamma=gamma0;
 
 	double x0=0,y0=0,z0=0,rx=0,ry=0,rz=0/*,rb=0*/,V=0,Mcore=1,Ncore=0;
 	double Nrms=BeamPar.SpaceCharge.Nrms;
 
-	Par[Sj].Eq=new TField[BeamPar.NParticles];
-
-   /*	FILE *Fout=fopen("spch.log","w");
-	for (int i = 0; i < Nlmb; i++) {
-		x0=LMB[i];
-		for (int j = 0; j < Nrxrz; j++) {
-			y0=RXRZ[j];
-			rx=FormFactor(1,y0,X_PAR,x0);
-			ry=FormFactor(1,y0,Y_PAR,x0);
-			rz=FormFactor(1,y0,Z0_PAR,x0);
-			fprintf(Fout,"%f %f %f %f %f\n",x0,y0,rx,ry,rz);
-		}
-	}
-	//fprintf(Fout,"x y z lambda Mx My Mz\n");
-	//fprintf(Fout,"x Ex\n");
-	//fprintf(Fout,"%f %f %f %f %f %f %f %f %f\n",n,Ncore,Mcore,1e9*Qbunch,V,Rho,Mz,Rho*Mz,Rho*Mz*rz);
-
-	fclose(Fout);     */
-
-	for (int i=0;i<BeamPar.NParticles;i++){
-		Par[Sj].Eq[i].z=0;
-		Par[Sj].Eq[i].r=0;
-		Par[Sj].Eq[i].th=0;
-	}
-
+	TParticle *Particle=Beam[Si]->Particle;
 	Ncore=0;
+	gamma0=Par[Sj].gamma;
+
 	switch (BeamPar.SpaceCharge.Type) {   //SPACE CHARGE
 		case SPCH_LPST: {}
 		case SPCH_ELL: {
@@ -4239,23 +4320,6 @@ void TBeamSolver::Integrate(int Si, int Sj)
 			}
 
 			if (V!=0) {
-				//DEBUGGING
-
-			 /*	FILE *F,*F2;
-				F=fopen("beam.log","w");
-				F2=fopen("beam2.log","w");
-				for (int j = 1; j < 2; j++){
-				Nrms=4.5*j/9;
-				rx=Nrms*Gx.sigma;
-				ry=Nrms*Gy.sigma;
-				rz=Nrms*Gz.sigma;
-				V=mod(4*pi*rx*ry*rz/3);
-				Rho=Qbunch/V;
-			//Rho*=2*pi/eps0;
-				Rho/=eps0;
-				Ncore=0;            */
-				//END DEBUGGING
-
 				//ACTUAL CODE!!!
 				if (BeamPar.SpaceCharge.Type==SPCH_LPST) {  //Lapostolle
 					p=gamma0*rz/sqrt(rx*ry);
@@ -4268,126 +4332,6 @@ void TBeamSolver::Integrate(int Si, int Sj)
 					Mz=FormFactor(ix,iy,Z0_PAR);
 				}
 				//END ACTUAL CODE!!
-
-				//FORM FACTOR DEBUGGING
-		/*		FILE *F3;
-				F3=fopen("beam3.log","w");
-				rx=1.6e-3;
-				ry=rx;
-				rz=rx;
-				int Ns=11;
-
-				for (int ks = 0; ks < Ns; ks++) {
-					double x=0,y=0,z=0,s=0,p=0,f=0;
-					ix=1;//1-2.0*ks/(Ns-1);;
-					//ix=pow(10.0,ix);
-					iy=-1+2.0*ks/(Ns-1);;
-					iy=pow(10.0,iy);
-					ry=rx*ix;
-					rz=rx/iy;
-
-                    x=0;
-					y=0;
-					z=0;
-					//z=rz/2;
-
-					double r3=sqr(x/rx)+sqr(y/ry)+sqr(z/rz);
-					if (r3<1) {
-						Mxx=FormFactor(ix,iy,X_PAR);
-						Myy=FormFactor(ix,iy,Y_PAR);
-						Mzz=FormFactor(ix,iy,Z0_PAR);
-					} else {
-						s=GetEigenFactor(x,y,z,rx,ry,rz);
-						Mxx=FormFactor(ix,iy,X_PAR,s);
-						Myy=FormFactor(ix,iy,Y_PAR,s);
-						Mzz=FormFactor(ix,iy,Z0_PAR,s);
-					}
-
-					V=mod(4*pi*rx*ry*rz/3);
-					Rho=Qbunch/V;
-					Rho/=2*eps0;
-
-				   //	fprintf(F3,"%e %e %e %e\n",ix,Mxx,Myy,Mzz);
-
-
-					p=rz/sqrt(ry*rx);
-					f=FormFactorLpst(p);
-					fprintf(F3,"%f %f %f %f %f\n",iy,Mxx,Mzz,(1-f),2*f);
-					//fprintf(F3,"%f %f %f %f %f\n",1/ix,Mxx,Myy,(1-f)*2*ry/(rx+ry),(1-f)*2*rx/(rx+ry));
-
-					Mxx*=Rho;
-					Myy*=Rho;
-					Mzz*=Rho;
-				}   //kz
-
-				//fo.close();
-				fclose(F3);         */
-				//END DEBUGGING
-
-				//TRAIN DEBUGGING
-		  /*		FILE *F2;
-				F2=fopen("beam2.log","w");
-				int Nz=101, Nr=1;
-				double x=0,y=0,z=0,s=0,Q=0;
-				double Ez=0, Ehead=0, Etail=0, Etot=0;
-                rx=1.6e-3;
-				ry=rx;
-				rz=20*rx;
-				ix=ry/rx;
-				iy=rx/rz;
-				//std::ofstream fo("beam2.log");
-				AnsiString S;
-				Q=Qbunch;
-				for (int kz = 0; kz < Nz; kz++) {
-					x=0;
-					y=0;
-					z=-lmb+2*lmb*kz/(Nz-1);
-
-					//S=S.FormatFloat("#0.00\t",z/lmb);
-					//fo<<S.c_str();
-
-				   //	for (int kr = 0; kr < Nr; kr++) {
-						//rz=(2*kr+1)*Gz.sigma;
-						//s=GetEigenFactor(x,y,z,rx,ry,rz);
-						double r3=sqr(x/rx)+sqr(y/ry)+sqr(z/rz);
-						if (r3<1) {
-							Mxx=FormFactor(ix,iy,X_PAR);
-							Myy=FormFactor(ix,iy,Y_PAR);
-							Mzz=FormFactor(ix,iy,Z0_PAR);
-						} else {
-							s=GetEigenFactor(x,y,z,rx,ry,rz);
-							Mxx=FormFactor(ix,iy,X_PAR,s);
-							Myy=FormFactor(ix,iy,Y_PAR,s);
-							Mzz=FormFactor(ix,iy,Z0_PAR,s);
-						}
-						Ez=Mzz*z;
-						if (rz<lmb/2) {
-							s_tail=GetEigenFactor(x,y,z+Ltrain,rx,ry,rz);
-							s_head=GetEigenFactor(x,y,z-Ltrain,rx,ry,rz);
-
-							Mz_head=FormFactor(ix,iy,Z0_PAR,s_head);
-							Mz_tail=FormFactor(ix,iy,Z0_PAR,s_tail);
-							Ehead=Mz_head*(z-Ltrain);
-							Etail=Mz_tail*(z+Ltrain);
-						 //	Etot=Ez+Ehead+Etail;
-
-						}   else {
-							Ehead=0;
-							Etail=0;
-							//Q=3*Qbunch;
-						}
-						Etot=Ez+Ehead+Etail;
-						V=mod(4*pi*rx*ry*rz/3);
-						Rho=Q/(2*eps0*V);
-						//S=S.FormatFloat("#.#######\t",Etot*Rho/2);
-						//fo<<S.c_str();
-						fprintf(F2,"%e %e %e %e %e\n",z/lmb,Rho*Ez,Rho*Ehead,Rho*Etail,Rho*Etot);
-				   //	}
-					//fo<<"\n";
-				}
-				//fo.close();
-				fclose(F2);   */
-				//END OF DEBUGGING
 
 				for (int i=0;i<BeamPar.NParticles;i++){
 					if (Particle[i].lost==LIVE){
@@ -4470,11 +4414,11 @@ void TBeamSolver::Integrate(int Si, int Sj)
 						Ey*=Rho/2;
 						Ez*=Rho/2;
 
-						Ex*=(g2*lmb/We0);
-					   	Ey*=(g2*lmb/We0);
-					  /*	Ex*=lmb/We0;
-						Ey*=lmb/We0;  */
-						Ez*=lmb/We0;
+						Ex*=(g2*lmb/BeamPar.Wnorm);
+						Ey*=(g2*lmb/BeamPar.Wnorm);
+					  /*	Ex*=lmb/BeamPar.W0;
+						Ey*=lmb/BeamPar.W0;  */
+						Ez*=lmb/BeamPar.Wnorm;
 
 						Par[Sj].Eq[i].z=Ez;
 						Par[Sj].Eq[i].r=Ex*cos(th)+Ey*sin(th);
@@ -4490,126 +4434,6 @@ void TBeamSolver::Integrate(int Si, int Sj)
 						Par[Sj].Eq[i].th*=Mcore;
 					}
 				}      */
-
-				//FIELDS DEBUGGIGNG
-		 /*		FILE *F,*F2;
-				F=fopen("beam.log","w");
-
-				rx=1.6e-3;
-				ry=rx/3;
-				rz=10*rx;
-				ix=ry/rx;
-				iy=rx/rz;
-				V=mod(4*pi*rx*ry*rz/3);
-				Rho=Qbunch/V;
-				Rho/=2*eps0;
-
-				int Nx=1, Ny=1, Nz=51;
-
-				for (int kx = 0; kx < Nx; kx++) {
-				for (int ky = 0; ky < Ny; ky++) {
-				for (int kz = 0; kz < Nz; kz++) {
-					double x=0,y=0,z=0,r=0,th=0,phi=0,gamma=1,g2=1;
-					double Ex=0,Ey=0,Ez=0;
-					double Lx=0,Ly=0,Lz=0;
-					double Lxx=0,Lyy=0,Lzz=0;
-					double r3=0,r2=0,rv=0,s=0;
-
-				   //	x=-5*Gx.sigma+10*Gx.sigma*kx/(Nx-1);
-				   //	y=-5*Gy.sigma+10*Gy.sigma*ky/(Ny-1);
-				   //	z=-5*Gz.sigma+10*Gz.sigma*kz/(Nz-1);
-
-					x=0.9*rx;//-1.0*rx+2*rx*kx/(Nx-1);
-					y=0.9*ry;//-1.0*ry+2*ry*ky/(Ny-1);
-					//z=0.9*rz;
-					//x=-1.0*rx+2*rx*kx/(Nx-1);
-					//y=-1.0*ry+2*ry*ky/(Ny-1);
-					z=-1.0*rz+2.0*rz*kz/(Nz-1);
-					//z=-0.025+0.05*kz/(Nz-1);
-
-					r3=sqr(x/rx)+sqr(y/ry)+sqr(z/rz);
-					r2=sqrt(sqr(x)+sqr(y)+sqr(z));
-					rv=rx*ry*rz;
-					//rv=cub(sqrt(sqr(rx)+sqr(ry)+sqr(rz)));
-					gamma=1;//1.2;//VelocityToEnergy(Particle[i].beta.z+K[Sj][i].beta.z*Par[Sj].h); //change to beta
-					g2=1/sqr(gamma);
-
-				   //	if  (BeamPar.SpaceCharge.Type==SPCH_LPST) { //Lapostolle
-						p=rz/sqrt(rx*ry);
-						M=FormFactorLpst(p);
-						Lx=2*(1-M)*ry/(rx+ry);
-						Ly=2*(1-M)*rx/(rx+ry);
-						Lz=2*M;
-				  //	} else {
-						if (r3<1) {
-							Mxx=FormFactor(ix,iy,X_PAR);
-							Myy=FormFactor(ix,iy,Y_PAR);
-							Mzz=FormFactor(ix,iy,Z0_PAR);
-							Lxx=Lx*x;
-							Lyy=Ly*y;
-							Lzz=Lz;
-						} else {
-							s=GetEigenFactor(x,y,z,rx,ry,rz);
-							Mxx=FormFactor(ix,iy,X_PAR,s);
-							Myy=FormFactor(ix,iy,Y_PAR,s);
-							Mzz=FormFactor(ix,iy,Z0_PAR,s);
-							//Lzz=Lz*z;
-							Lxx=(2.0/3.0)*rv/pow(r2,3.0);
-							Lyy=Lxx;//(2.0/3.0)*rv/pow(r2,3.0);
-							Lzz=Lxx;//(2.0/3.0)*rv/pow(r2,3.0);
-							//Lz=(2.0*rv/3.0)*(1.0/pow(r2,3.0)-((rx*ry-sqr(rz))/(5*pow(r2,5.0)))*(1-5*(0.5*(sqr(x)+sqr(y)-2*sqr(z)))/sqr(r2)));
-							//Lz=(2.0*rv/3.0)*(1.0/pow(r2,3.0)+2.0*(rx*ry-sqr(rz))/(5*pow(r2,5.0)));
-							//Lzz=Lz*sign(z)*rv/r2;
-						}
-						Ex=Mxx*x;
-						Ey=Myy*y;
-						Ez=Mzz*z;
-					//}
-
-					Ex*=Rho;
-					Ey*=Rho;
-					Ez*=Rho;
-
-					Ex*=g2;
-					Ey*=g2;
-
-					double E0=sqrt(sqr(Ez)+sqr(Ex));
-					Mcore=1;
-
-					//fprintf(F2,"%f %f %f %f %f\n",1000*z,1000*x,Ex,Ez,E0);
-					fprintf(F,"%f %f %f %f\n",z/rz,Mcore*Ez,Rho*Mcore*Lzz*z,Rho*Mcore*Lz*z);
-					//fprintf(F,"%f %f %f %f\n",x/rx,Mcore*Ex,Rho*Mcore*Lxx*x,Rho*Mcore*Lx*x);
-					//fprintf(F,"%f %f %f %f\n",y/ry,Mcore*Ey,Rho*Mcore*Lyy*y,Rho*Mcore*Ly*y);
-					//fprintf(F,"%f %f %f %f\n",1000*x,Ex,Rho*Lx*x,Rho*Lxx);
-					//fprintf(F,"%f %f %f %f\n",1000*y,Ey,Rho*Ly*y,Rho*Lyy);
-					//fprintf(F,"%f %f %f %f\n",100*z,Mcore*Ez,Rho*Mcore*Lzz*z,Rho*Mcore*Lz*z);
-					//fprintf(F,"%f %f \n",1000*z,Ez,);
-					//fprintf(F2,"%f %f %f\n",1000*z,Mzz,s);
-				}
-				}
-				}
-				fclose(F);        */
-				//END OF DEBUGGING
-
-				//DBG
-			  /*	for (int i = 0; i < Nx*Ny*Nz; i++) {
-					double Ea=sqrt(sqr(Mcore*E[i].r)+sqr(Mcore*E[i].th)+sqr(Mcore*E[i].z));
-					//fprintf(F,"%f %f %f %f %f %f %f\n",1000*C[i].r,1000*C[i].th,1000*C[i].z,Mcore*E[i].r,Mcore*E[i].th,Mcore*E[i].z,Ea);
-					fprintf(F,"%f %f %f %f %f %f %f\n",C[i].r,C[i].th,C[i].z,Mcore*E[i].r,Mcore*E[i].th,Mcore*E[i].z,Ea);
-					//fprintf(F,"%f %f %f %f\n",1000*C[i].r,1000*C[i].th,1000*C[i].z,sqrt(sqr(Mcore*E[i].r)+sqr(Mcore*E[i].th)+sqr(Mcore*E[i].z)));
-				   //	Ix+=Mcore*E[i].r*C[i].r;
-				}
-			   //	fprintf(F2,"%f %f %e %f\n",Nrms,Mcore,V,Ix);
-				delete[] C;
-				delete[] E;
-
-			//}//nrms loop
-			fclose(F);
-			fclose(F2);           */
-		   //	fclose(F3);
-		   //DBG END
-
-
 			}  // V!=0 loop
 
 			break;
@@ -4627,9 +4451,33 @@ void TBeamSolver::Integrate(int Si, int Sj)
 		case SPCH_NO:{}
 		default: { };
 	}
-	//fclose(Fout);
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::Integrate(int Si, int Sj)
+{
+	double gamma0=1;
+
+	//phic=Beam[Si]->iGetAveragePhase(Par[Sj],K[Sj]);
+	Par[Sj].SumSin=0;
+	Par[Sj].SumCos=0;
+	Par[Sj].SumSin=Beam[Si]->SinSum(Par[Sj],K[Sj]);
+	Par[Sj].SumCos=Beam[Si]->CosSum(Par[Sj],K[Sj]);
+
+	gamma0=Beam[Si]->iGetAverageEnergy(Par[Sj],K[Sj]);
+	Par[Sj].gamma=gamma0;
+
+	Par[Sj].Eq=new TField[BeamPar.NParticles];
+
+	for (int i=0;i<BeamPar.NParticles;i++){
+		Par[Sj].Eq[i].z=0;
+		Par[Sj].Eq[i].r=0;
+		Par[Sj].Eq[i].th=0;
+	}
+
+	SpaceCharge(Si,Sj);
 
 	Beam[Si]->Integrate(Par[Sj],K,Sj);
+
 	delete[] Par[Sj].Eq;
 	//delete[] Par[Sj].Aqr;
 }
@@ -4647,15 +4495,15 @@ void TBeamSolver::Integrate(int Si, int Sj)
 	d2=sqr(d);
 	GInt=0;
 	for (int i=0;i<11;i++) {
-	    ksi=.5*(psi12[i]+1);
-	    s=d2*(1/ksi-1);
-	    t=sqr(r)/(Rb2+s)+sqr(z)/(Lb2+s);
+		ksi=.5*(psi12[i]+1);
+		s=d2*(1/ksi-1);
+		t=sqr(r)/(Rb2+s)+sqr(z)/(Lb2+s);
 		if (t <= 5) {
 //           func=sqrt(ksi/((Lb2/d2-1)*ksi+1))/abs(((Rb2/d2-1)*ksi+1));
            func=sqrt(ksi/((Lb2/d2-1)*ksi+1))/((Rb2/d2-1)*ksi+1);
 		   if (component < 3) {
 //		        GInt +=.5*r*w12[i]*func/abs(((Rb2/d2-1)*ksi+1));
-		        GInt +=.5*r*w12[i]*func/((Rb2/d2-1)*ksi+1);
+				GInt +=.5*r*w12[i]*func/((Rb2/d2-1)*ksi+1);
 		   }
 		   if (component == 3) {
 //		        GInt +=.5*z*w12[i]*func/abs(((Lb2/d2-1)*ksi+1));
@@ -4681,22 +4529,27 @@ void TBeamSolver::CountLiving(int Si)
 		#ifndef RSLINAC
 		AnsiString S="Beam Lost!";
 		ShowError(S);
+        SmartProgress->ShowMessage(S.c_str());
         #endif
-        Stop=true;
+		SolverStop=ERR_BEAM;
         return;
     }
 }
 //---------------------------------------------------------------------------
-void TBeamSolver::DumpHeader(ofstream &fo,int Sn,int jmin,int jmax)
+void TBeamSolver::DumpHeader(ofstream &fo,TDump *ExportParameters,int jmin,int jmax)
 {
-	AnsiString s;
+	AnsiString s, w;
+	AnsiString EU=GetEnergyUnit(BeamPar.Species.Type);
+
+	w="Energy ["+EU+"]\t";
+
 	fo<<"List of ";
 
-	int Si=BeamExport[Sn].Nmesh;
+	int Si=ExportParameters->Nmesh;
 
 	if (jmin==0 && jmax==BeamPar.NParticles)
 		fo<<"ALL ";
-	if (BeamExport[Sn].LiveOnly)
+	if (ExportParameters->LiveOnly)
 		fo<<"LIVE ";
 
 	fo<<"particles ";
@@ -4714,54 +4567,54 @@ void TBeamSolver::DumpHeader(ofstream &fo,int Sn,int jmin,int jmax)
 	fo<<" cm\n";
 
 	fo<<"Particle #\t";
-	if (!BeamExport[Sn].LiveOnly)
+	if (!ExportParameters->LiveOnly)
 		fo<<"Lost\t";
-	if (BeamExport[Sn].Phase)
+	if (ExportParameters->Phase)
 		fo<<"Phase [deg]\t";
-	if (BeamExport[Sn].Energy)
-		fo<<"Energy [MeV]\t";
-	if (BeamExport[Sn].Radius)
+	if (ExportParameters->Energy)
+		fo<<w;
+	if (ExportParameters->Radius)
 		fo<<"Radius [mm]\t";
-	if (BeamExport[Sn].Azimuth)
+	if (ExportParameters->Azimuth)
 		fo<<"Azimuth [deg]\t";
-	if (BeamExport[Sn].Divergence)
+	if (ExportParameters->Divergence)
 		fo<<"Divergence	[mrad]\t";
 				//fo<<"Vth [m/s]\t";
 	fo<<"\n";
 }
 //---------------------------------------------------------------------------
-void TBeamSolver::DumpFile(ofstream &fo,int Sn,int j)
+void TBeamSolver::DumpFile(ofstream &fo,TDump *ExportParameters,int j)
 {
 	AnsiString s;
-	int Si=BeamExport[Sn].Nmesh;
+	int Si=ExportParameters->Nmesh;
 
-	if(!BeamExport[Sn].LiveOnly || (BeamExport[Sn].LiveOnly && !Beam[Si]->Particle[j].lost)){
+	if(!ExportParameters->LiveOnly || (ExportParameters->LiveOnly && !Beam[Si]->Particle[j].lost)){
 		s=s.FormatFloat("#0000\t\t",j+1);
 		fo<<s.c_str();
 
-		if (!BeamExport[Sn].LiveOnly) {
+		if (!ExportParameters->LiveOnly) {
 			if (Beam[Si]->Particle[j].lost)
 				fo<<"LOST\t";
 			else
 				fo<<"LIVE\t";
 		}
-		if (BeamExport[Sn].Phase){
+		if (ExportParameters->Phase){
 			s=s.FormatFloat("#0.00\t\t",RadToDegree(Beam[Si]->GetParameter(j,PHI_PAR)));
 			fo<<s.c_str();
 		}
-		if (BeamExport[Sn].Energy){
+		if (ExportParameters->Energy){
 			s=s.FormatFloat("#0.00\t\t\t",Beam[Si]->GetParameter(j,W_PAR));
 			fo<<s.c_str();
 		}
-		if (BeamExport[Sn].Radius){
+		if (ExportParameters->Radius){
 			s=s.FormatFloat("#0.00\t\t\t",1000*Beam[Si]->GetParameter(j,R_PAR));
 			fo<<s.c_str();
 		}
-		if (BeamExport[Sn].Azimuth){
+		if (ExportParameters->Azimuth){
 			s=s.FormatFloat("#0.00\t\t",RadToDegree(Beam[Si]->GetParameter(j,TH_PAR)));
 			fo<<s.c_str();
 		}
-		if (BeamExport[Sn].Divergence){
+		if (ExportParameters->Divergence){
 			s=s.FormatFloat("#0.00\t\t",1000*Beam[Si]->GetParameter(j,AR_PAR));
 			fo<<s.c_str();
 		}
@@ -4769,7 +4622,7 @@ void TBeamSolver::DumpFile(ofstream &fo,int Sn,int j)
 	}
 }
 //---------------------------------------------------------------------------
-void TBeamSolver::DumpASTRA(ofstream &fo,int Sn,int j,int jref)
+void TBeamSolver::DumpASTRA(ofstream &fo,TDump *ExportParameters,int j,int jref)
 {
 	AnsiString s;
 	double x=0, y=0, z=0;
@@ -4777,7 +4630,16 @@ void TBeamSolver::DumpASTRA(ofstream &fo,int Sn,int j,int jref)
 	double q=0, I=0, clock=0;
 	int  status=0, index=1;   //1 - electrons, 2 - positrons, 3 - protons, 4 - heavy ions;
 
-	int Si=BeamExport[Sn].Nmesh;
+	switch (BeamPar.Species.Type){
+		case PROTON: {index=3; break;}
+		case ION: {index=4; break;}
+		case ELECTRON: {}
+		default: index=1;
+	}
+
+    //NEED TO CHECK ASTRA format for ions
+
+	int Si=ExportParameters->Nmesh;
 
 	x=Beam[Si]->GetParameter(j,X_PAR);
 	y=Beam[Si]->GetParameter(j,Y_PAR);
@@ -4785,11 +4647,11 @@ void TBeamSolver::DumpASTRA(ofstream &fo,int Sn,int j,int jref)
 	clock=Beam[Si]->GetParameter(j,PHI_PAR)*Structure[Si].lmb/(2*pi*c);
 
 	double W=Beam[Si]->GetParameter(j,W_PAR);
-	double gamma=MeVToGamma(W);
+	double gamma=MeVToGamma(W,BeamPar.W0);
 
-	px=We0*gamma*Beam[Si]->GetParameter(j,BX_PAR);
-	py=We0*gamma*Beam[Si]->GetParameter(j,BY_PAR);
-	pz=We0*gamma*Beam[Si]->GetParameter(j,BZ_PAR);
+	px=BeamPar.W0*gamma*Beam[Si]->GetParameter(j,BX_PAR);
+	py=BeamPar.W0*gamma*Beam[Si]->GetParameter(j,BY_PAR);
+	pz=BeamPar.W0*gamma*Beam[Si]->GetParameter(j,BZ_PAR);
 
 	I=BeamPar.Current/BeamPar.NParticles;
 	q=I*Structure[Si].lmb/c;
@@ -4803,7 +4665,7 @@ void TBeamSolver::DumpASTRA(ofstream &fo,int Sn,int j,int jref)
 	   status=5;  //reference particle
 	}  else {
 	   z=z-Beam[Si]->GetParameter(jref,PHI_PAR)*Structure[Si].lmb/(2*pi);
-	   pz=pz-We0*gamma*Beam[Si]->GetParameter(jref,BZ_PAR);
+	   pz=pz-BeamPar.W0*gamma*Beam[Si]->GetParameter(jref,BZ_PAR);
 	   clock=clock-Beam[Si]->GetParameter(jref,PHI_PAR)*Structure[Si].lmb/(2*pi*c);
 
 	   status=3; //regular
@@ -4833,16 +4695,61 @@ void TBeamSolver::DumpASTRA(ofstream &fo,int Sn,int j,int jref)
 	fo<<"\n";
 }
 //---------------------------------------------------------------------------
-void TBeamSolver::DumpCST(ofstream &fo,int Sn,int j)
+void TBeamSolver::DumpT2(ofstream &fo,TDump *ExportParameters,int j)
+{
+	AnsiString s;
+	double x=0, y=0;
+	double px=0, py=0;
+	double phi=0, W=0;
+
+	int Si=ExportParameters->Nmesh;
+
+	if (Beam[Si]->Particle[j].lost!=LIVE)
+		return;
+
+	x=100*Beam[Si]->GetParameter(j,X_PAR);
+	y=100*Beam[Si]->GetParameter(j,Y_PAR);
+	phi=RadToDegree(Beam[Si]->GetParameter(j,PHI_PAR));
+	W=Beam[Si]->GetParameter(j,W_PAR);
+
+	px=1000*Beam[Si]->GetParameter(j,BX_PAR);
+	py=1000*Beam[Si]->GetParameter(j,BY_PAR);
+
+	if (ExportParameters->Binary){
+		fo.write(reinterpret_cast<char*>(&x), sizeof(double));
+		fo.write(reinterpret_cast<char*>(&px), sizeof(double));
+		fo.write(reinterpret_cast<char*>(&y), sizeof(double));
+		fo.write(reinterpret_cast<char*>(&py), sizeof(double));
+		fo.write(reinterpret_cast<char*>(&phi), sizeof(double));
+		fo.write(reinterpret_cast<char*>(&W), sizeof(double));
+	} else {
+		s=s.FormatFloat("#0.0000\t",x);
+		fo<<s.c_str();
+		s=s.FormatFloat("#0.000\t",px);
+		fo<<s.c_str();
+		s=s.FormatFloat("#0.0000\t",y);
+		fo<<s.c_str();
+		s=s.FormatFloat("#0.000\t",py);
+		fo<<s.c_str();
+		s=s.FormatFloat("#0.000\t",phi);
+		fo<<s.c_str();
+		s=s.FormatFloat("#0.000\t",W);
+		fo<<s.c_str();
+
+		fo<<"\n";
+	}
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::DumpCST(ofstream &fo,TDump *ExportParameters,int j)
 {
 	AnsiString s;
 	double x=0, y=0, z=0;
 	double px=0, py=0, pz=0;
 	double m=0, q=0, I=0,t=0;
 
-	int Si=BeamExport[Sn].Nmesh;
+	int Si=ExportParameters->Nmesh;
 	if (!Beam[Si]->GetParameter(j,LIVE_PAR)) {
-    	return;
+		return;
 	}
 //	double l=Structure[Si].lmb;
 	double beta=Beam[Si]->GetParameter(j,BETA_PAR);
@@ -4855,14 +4762,32 @@ void TBeamSolver::DumpCST(ofstream &fo,int Sn,int j)
    	//z=4.0*z*1.1;
 
 	double W=Beam[Si]->GetParameter(j,W_PAR);
-	double p=MeVToBetaGamma(W);
+	double p=MeVToBetaGamma(W,BeamPar.W0);
 
 	px=p*Beam[Si]->GetParameter(j,BX_PAR)/beta;
 	py=p*Beam[Si]->GetParameter(j,BY_PAR)/beta;
 	pz=p*Beam[Si]->GetParameter(j,BZ_PAR)/beta;
 
-	m=me;
 	q=qe;
+	switch (BeamPar.Species.Type){
+		case PROTON: {
+			m=mp;
+			break;
+		}
+		case ION: {
+			m=mu*BeamPar.Species.A;
+			q*=BeamPar.Species.Q;
+            break;
+        }
+		case ELECTRON: {}
+		default: {
+			m=me;
+			break;
+		}
+	}
+
+	//NEED TO CHECK if Q matters for ions for PID/PIT
+
 	I=BeamPar.Current/BeamPar.NParticles;
 	s=s.FormatFloat("#.##############e+0 ",x);
 	fo<<s.c_str();
@@ -4880,10 +4805,10 @@ void TBeamSolver::DumpCST(ofstream &fo,int Sn,int j)
 	fo<<s.c_str();
 	s=s.FormatFloat("#.##############e+0 ",q);
 	fo<<s.c_str();
-	if (BeamExport[Sn].SpecialFormat==CST_PID) {
+	if (ExportParameters->SpecialFormat==CST_PID) {
 		s=s.FormatFloat("#.##############e+0",I);
 		fo<<s.c_str();
-	} else if (BeamExport[Sn].SpecialFormat==CST_PIT) {
+	} else if (ExportParameters->SpecialFormat==CST_PIT) {
 		s=s.FormatFloat("#.##############e+0 ",I*Structure[Si].lmb/c);
 		fo<<s.c_str();
 		s=s.FormatFloat("#.##############e+0",t);
@@ -4895,56 +4820,158 @@ void TBeamSolver::DumpCST(ofstream &fo,int Sn,int j)
 //---------------------------------------------------------------------------
 void TBeamSolver::DumpBeam(int Sn)
 {
-	int Si=BeamExport[Sn].Nmesh;
-	AnsiString F=BeamExport[Sn].File.c_str();
+	TDump *ExportParameters=NULL;
+	ExportParameters=&BeamExport[Sn];
+	DumpBeam(ExportParameters);
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::DumpBeam(TDump *ExportParameters)
+{
+	int Si=ExportParameters->Nmesh;
+	int Nlive=0;
+	AnsiString F=ExportParameters->File.c_str();
 	AnsiString s;
 
-	switch (BeamExport[Sn].SpecialFormat) {
+	switch (ExportParameters->SpecialFormat) {
 		case CST_PID:{F+=".pid";break;}
 		case CST_PIT:{F+=".pit";break;}
 		case ASTRA:{F+=".ini";break;}
+		case PARMELA_T2:{
+			if (ExportParameters->Binary)
+				F+=".bin";
+			else
+				F+=".out";
+			break;
+		}
 		case NOBEAM:{}
 		default: {F+=".dat";break;}
 	}
 
-	std::ofstream fo(F.c_str());
+	std::ofstream fo;
+	if (ExportParameters->Binary)
+		fo.open(F.c_str(),std::ios::out | std::ios::binary);
+	else
+		fo.open(F.c_str());
+
 
 	int jmin=0;
 	int jmax=BeamPar.NParticles;
 
-	if (BeamExport[Sn].N1>0 && BeamExport[Sn].N2==0) {
+	if (ExportParameters->N1>0 && ExportParameters->N2==0) {
 		jmin=0;
-		jmax=BeamExport[Sn].N1;
-	} else if (BeamExport[Sn].N1>0 && BeamExport[Sn].N2>0) {
-		jmin=BeamExport[Sn].N1-1;
-		jmax=BeamExport[Sn].N2;
+		jmax=ExportParameters->N1;
+	} else if (ExportParameters->N1>0 && ExportParameters->N2>0) {
+		jmin=ExportParameters->N1-1;
+		jmax=ExportParameters->N2;
 	}
 
 	if (jmin>BeamPar.NParticles || jmax>BeamPar.NParticles) {
-		if (BeamExport[Sn].SpecialFormat==NOBEAM)
+		if (ExportParameters->SpecialFormat==NOBEAM)
 			fo<<"WARNING: The defined range of particle numbers exceeds the number of available particles. The region was set to default.\n";
 		jmin=0;
 		jmax=BeamPar.NParticles;
 	}
-	switch (BeamExport[Sn].SpecialFormat) {
+	switch (ExportParameters->SpecialFormat) {
 		case CST_PIT: {}
 		case CST_PID: {
 			for (int j=jmin;j<jmax;j++)
-				DumpCST(fo,Sn,j);
+				DumpCST(fo,ExportParameters,j);
 			break;
 		}
 		case ASTRA: {
 			for (int j=jmin;j<jmax;j++)
-				DumpASTRA(fo,Sn,j,jmin);
+				DumpASTRA(fo,ExportParameters,j,jmin);
+			break;
+		}
+		case PARMELA_T2: {
+			Nlive=GetLivingNumber(Si);
+			std::time_t timestamp = std::time(0);
+			fo << std::ctime(&timestamp);
+			if (ExportParameters->Binary){
+				//fo.write(reinterpret_cast<char*>(&timestamp), sizeof(std::time_t ));
+				fo.write(reinterpret_cast<char*>(&Nlive), sizeof(int));
+			}else {
+				//fo << std::ctime(&timestamp);
+				s=s.FormatFloat("0",Nlive);
+				fo<<s.c_str();
+				fo<<"\n";
+			}
+			for (int j=jmin;j<jmax;j++)
+				DumpT2(fo,ExportParameters,j);
+
 			break;
 		}
 		case NOBEAM:{}
 		default:{
-			DumpHeader(fo,Sn,jmin,jmax);
+			DumpHeader(fo,ExportParameters,jmin,jmax);
 			for (int j=jmin;j<jmax;j++)
-				DumpFile(fo,Sn,j);
+				DumpFile(fo,ExportParameters,j);
 		}
 	}
+	fo.close();
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::SaveOutput(AnsiString& Fname, bool binary)
+{
+	TDump ExportParameters;
+
+	ExportParameters.File=Fname.c_str();
+	ExportParameters.SpecialFormat=PARMELA_T2;
+
+	ExportParameters.Nmesh=Npoints-1;
+	ExportParameters.N1=BeamPar.NParticles;;
+	ExportParameters.N2=0;
+
+    ExportParameters.Binary=binary;
+
+	DumpBeam(&ExportParameters);
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::SaveTrajectories(AnsiString& Fname)
+{
+	std::time_t timestamp = std::time(0);
+	int Np=GetNumberOfParticles();
+	double z=0;
+	std::ofstream fo(Fname.c_str(),std::ios::out | std::ios::binary);
+
+    fo << std::ctime(&timestamp);
+	//fo.write(reinterpret_cast<char*>(&timestamp), sizeof(std::time_t ));
+	fo.write(reinterpret_cast<char*>(&Np), sizeof(int));
+	fo.write(reinterpret_cast<char*>(&Npoints), sizeof(int));
+
+	for (int k = 0; k < Npoints; k++) {
+		z=100*GetStructureParameter(k,Z_PAR);
+        fo.write(reinterpret_cast<char*>(&z), sizeof(double));
+    }
+
+	for (int j = 0; j < Np; j++) {
+		for (int k = 0; k < Npoints; k++) {
+			double x=0,px=0,y=0,py=0,phi=0,W=0,L=0;
+			bool live=false;
+			live=Beam[k]->Particle[j].lost==LIVE;
+
+			if (live){
+				x=100*Beam[k]->GetParameter(j,X_PAR);
+				y=100*Beam[k]->GetParameter(j,Y_PAR);
+				phi=RadToDegree(Beam[k]->GetParameter(j,PHI_PAR));
+				W=Beam[k]->GetParameter(j,W_PAR);
+				px=1000*Beam[k]->GetParameter(j,BX_PAR);
+				py=1000*Beam[k]->GetParameter(j,BY_PAR);
+			}
+
+			L=live?1:0;
+
+			//fo.write(reinterpret_cast<char*>(&live), sizeof(bool));
+			fo.write(reinterpret_cast<char*>(&L), sizeof(double));
+			fo.write(reinterpret_cast<char*>(&x), sizeof(double));
+			fo.write(reinterpret_cast<char*>(&px), sizeof(double));
+			fo.write(reinterpret_cast<char*>(&y), sizeof(double));
+			fo.write(reinterpret_cast<char*>(&py), sizeof(double));
+			fo.write(reinterpret_cast<char*>(&phi), sizeof(double));
+			fo.write(reinterpret_cast<char*>(&W), sizeof(double));
+		}
+	}
+
 	fo.close();
 }
 //---------------------------------------------------------------------------
@@ -5158,10 +5185,11 @@ TError TBeamSolver::Solve()
 {
 	#ifndef RSLINAC
 	if (SmartProgress==NULL){
-		ShowMessage("System Message: ProgressBar not assigned! Code needs to be corrected");
+		//ShowMessage("System Message: ProgressBar not assigned! Code needs to be corrected");
         return ERR_OTHER;
     }
-    SmartProgress->Reset(Npoints-1/*Np*/);
+	SmartProgress->Reset(Npoints-1/*Np*/);
+    SmartProgress->ShowMessage("Running...");
 	#endif
 
 	double phi0=0, phi_s=0, phi_p=0;
@@ -5236,13 +5264,18 @@ TError TBeamSolver::Solve()
 		SmartProgress->operator ++();
 		Application->ProcessMessages();
 		#endif
-		if (Stop){
-			Stop=false;
+		if (SolverStop!=ERR_NO){
+
 			#ifndef RSLINAC
 			AnsiString S="Solve Process Aborted!";
 			ShowError(S);
-			SmartProgress->Reset();
+			if (SolverStop==ERR_ABORT)
+				SmartProgress->Reset();
+			else if (SolverStop==ERR_BEAM)
+				SmartProgress->TerminateTime();
 			#endif
+
+			SolverStop=ERR_NO;
 			return ERR_ABORT;
         }
         for (int i=0;i<Ncoef;i++)
@@ -5254,7 +5287,9 @@ TError TBeamSolver::Solve()
 
     #ifndef RSLINAC
     SmartProgress->SetPercent(100);
-    SmartProgress->SetTime(0);
+	SmartProgress->SetTime(0);
+	SmartProgress->TerminateTime();
+    SmartProgress->ShowMessage("Finished");
 	#endif
 
 	return ERR_NO;
@@ -5266,28 +5301,30 @@ TResult TBeamSolver::Output(AnsiString& FileName,TMemo *Memo)
 TResult TBeamSolver::Output(AnsiString& FileName)
 #endif
 {
-    AnsiString Line,s;
+	AnsiString Line,s;
+	AnsiString EU=GetEnergyUnit(BeamPar.Species.Type);
     TStringList *OutputStrings;
     OutputStrings= new TStringList;
-    TResult Result;
+	TResult Result;
   /*    int Nliv=0;
     Nliv=Beam[Npoints-1]->GetLivingNumber();
                      */
-    OutputStrings->Clear();
-	OutputStrings->Add("========================================");
-    OutputStrings->Add("INPUT DATA from:");
-	OutputStrings->Add(InputFile);
+   // OutputStrings->Clear();
+   //	OutputStrings->Add("========================================");
+   // OutputStrings->Add("INPUT DATA from:");
+   //	OutputStrings->Add(InputFile);
 	OutputStrings->Add("========================================");
 
   /*    TStringList *InputStrings;
     InputStrings= new TStringList;
 	InputStrings->LoadFromFile(InputFile);    */
-    OutputStrings->AddStrings(InputStrings);
-
+	OutputStrings->AddStrings(InputStrings);
+	//OutputStrings->AddStrings(ParsedStrings);
 	OutputStrings->Add("========================================");
+	OutputStrings->Add("");
     OutputStrings->Add("RESULTS");
 	OutputStrings->Add("========================================");
-    OutputStrings->Add("");
+   //OutputStrings->Add("");
 
     double Ws=0;
    //   AnsiString s;
@@ -5315,11 +5352,11 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 
 	double v=Structure[j].betta;
 	double E=sqrt(2*Structure[j].Rp);
-	double Pb=E!=0?1e-6*sqr(Structure[j].A*We0/E):0;
+	double Pb=E!=0?1e-6*sqr(Structure[j].A*BeamPar.Wnorm/E):0;
 
-	double beta_gamma=MeVToVelocity(Gw.mean)*MeVToGamma(Gw.mean);
+	double beta_gamma=MeVToVelocity(Gw.mean,BeamPar.W0)*MeVToGamma(Gw.mean,BeamPar.W0);
 
-    /*double Pw=P0;
+	/*double Pw=P0;
     for(int i=1;i<Npoints;i++)
         Pw=Pw*exp(-2*(Structure[i].ksi-Structure[i-1].ksi)*Structure[i].alpha*Structure[i].lmb);  */
 	//double Pw=1e-6*P0-(P-Pin+Pb);
@@ -5349,17 +5386,32 @@ TResult TBeamSolver::Output(AnsiString& FileName)
   //  Result.A=A;
 
 	Line="Total Length = "+s.FormatFloat("#0.000",Result.Length)+" cm";
-    OutputStrings->Add(Line);
-	Line="Average Energy = "+s.FormatFloat("#0.000",Result.Energy.mean)+" MeV";
-    OutputStrings->Add(Line);
-    Line="Maximum Energy = "+s.FormatFloat("#0.000",Result.MaximumEnergy)+" MeV";
-    OutputStrings->Add(Line);
+	OutputStrings->Add(Line);
+	Line="Average Energy = "+s.FormatFloat("#0.000 ",Result.Energy.mean)+EU;
+	if (BeamPar.Species.Type==ION)
+		Line=Line+" ("+s.FormatFloat("#0.000 ",BeamPar.Species.A*Result.Energy.mean)+" MeV)";
+	OutputStrings->Add(Line);
+
+	Line="Maximum Energy = "+s.FormatFloat("#0.000 ",Result.MaximumEnergy)+EU;
+	if (BeamPar.Species.Type==ION)
+		Line=Line+" ("+s.FormatFloat("#0.000 ",BeamPar.Species.A*Result.MaximumEnergy)+" MeV)";
+	OutputStrings->Add(Line);
+
 	Line="Energy Spectrum (FWHM) = "+s.FormatFloat("#0.00",100*Result.Energy.FWHM/Result.Energy.mean)+" %";
 	OutputStrings->Add(Line);
-    Line="Input Current = "+s.FormatFloat("#0.00",Result.InputCurrent)+" mA";
-    OutputStrings->Add(Line);
-    Line="Beam Current = "+s.FormatFloat("#0.00",Result.BeamCurrent)+" mA";
-    OutputStrings->Add(Line);
+
+	Line="Input Current = "+s.FormatFloat("#0.00",Result.InputCurrent)+" mA";
+	if (BeamPar.Species.Type==ION){
+		Line=Line+" ("+s.FormatFloat("#0.00",Result.InputCurrent/BeamPar.Species.Q)+" pmA)";
+	}
+	OutputStrings->Add(Line);
+
+	Line="Beam Current = "+s.FormatFloat("#0.00",Result.BeamCurrent)+" mA";
+	if (BeamPar.Species.Type==ION){
+		Line=Line+" ("+s.FormatFloat("#0.00",Result.BeamCurrent/BeamPar.Species.Q)+" pmA)";
+	}
+	OutputStrings->Add(Line);
+
 	Line="Particles Transmitted = "+s.FormatFloat("#0.00",Result.Captured)+" %";
 	OutputStrings->Add(Line);
     Line="Beam Radius (RMS) = "+s.FormatFloat("#0.00",Result.BeamRadius)+" mm";
@@ -5406,7 +5458,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 			Wb=Beam[i]->GetAverageEnergy();
 
 			if (Nsec>0) {
-				double Pload=E!=0?1e-6*sqr(Structure[i-1].A*We0/E):0;
+				double Pload=E!=0?1e-6*sqr(Structure[i-1].A*BeamPar.Wnorm/E):0;
 				double Pbeam=Ib*Wb;
 				double F0=1e-6*GetSectionFrequency(Nsec-1);
 
@@ -5420,8 +5472,11 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 				OutputStrings->Add(Line);
 				Line="Beam Energy = "+s.FormatFloat("#0.0000",Wb)+" MeV";
 				OutputStrings->Add(Line);   */
-				Line="Beam Energy Gain = "+s.FormatFloat("#0.0000",Wb-Wb0)+" MeV";
+				Line="Beam Energy Gain = "+s.FormatFloat("#0.0000 ",Wb-Wb0)+EU;
+                if (BeamPar.Species.Type==ION)
+					Line=Line+" ("+s.FormatFloat("#0.000 ",BeamPar.Species.A*(Wb-Wb0))+" MeV)";
 				OutputStrings->Add(Line);
+
 				Line="Beam Power Gain = "+s.FormatFloat("#0.0000",Pbeam-Pbeam0)+" MW";
 				OutputStrings->Add(Line);
 				Line="Load Power = "+s.FormatFloat("#0.0000",Pload)+" MW";
@@ -5441,12 +5496,12 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 
     #ifndef RSLINAC
 	if (Memo!=NULL){
-        Memo->Lines->AddStrings(OutputStrings);
-    }
+		Memo->Lines->AddStrings(OutputStrings);
+                Memo->Lines->SaveToFile(FileName);
+        }
     #endif
-
-    OutputStrings->SaveToFile(FileName);
-    delete OutputStrings;
+  	OutputStrings->SaveToFile(FileName);
+        delete OutputStrings;
    //   delete Strings;
 
 

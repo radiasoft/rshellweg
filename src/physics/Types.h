@@ -38,7 +38,7 @@ using namespace std;
 //namespace HellwegTypes {
 
 enum TError {ERR_NO,ERR_NOFILE,ERR_OPENFILE,ERR_COUPLER,ERR_SOLENOID,ERR_BEAM,ERR_QUAD,
-				ERR_CURRENT,ERR_DRIFT,ERR_CELL,ERR_CELLS,ERR_OPTIONS,ERR_DUMP,
+				ERR_CURRENT,ERR_DRIFT,ERR_CELL,ERR_CELLS,ERR_OPTIONS,ERR_DUMP,ERR_PARTICLE,
 				ERR_FORMAT,ERR_IMPORT,ERR_SPCHARGE,ERR_ABORT,ERR_STRUCT,ERR_OTHER};
 
 enum TBeamParameter {R_PAR,TH_PAR,BR_PAR,BTH_PAR,BZ_PAR,PHI_PAR,Z0_PAR,ZREL_PAR,BETA_PAR,X_PAR,Y_PAR,BX_PAR,BY_PAR,
@@ -49,7 +49,7 @@ enum TStructureParameter {KSI_PAR,Z_PAR,A_PAR,RP_PAR,ALPHA_PAR,SBETA_PAR,RA_PAR,
 enum TSplineType {ZSPLINE,LSPLINE,CSPLINE,SSPLINE};
 enum TChartType {CH_EMITTANCE,CH_SECTION,CH_PORTRAIT,CH_PHASE,CH_ENERGY,CH_BETTA,CH_A,CH_B,CH_ELP,CH_ATT,CH_APP,CH_BEXT,CH_CLEAR};
 
-enum TInputParameter {POWER,SOLENOID,BEAM,CURRENT,DRIFT,CELL,CELLS,OPTIONS,DUMP,COMMENT,UNDEFINED,SPCHARGE,QUAD,STRUCT};
+enum TInputParameter {UNDEFINED,POWER,SOLENOID,BEAM,CURRENT,DRIFT,CELL,CELLS,OPTIONS,DUMP,COMMENT,SPCHARGE,QUAD,STRUCT,PARTICLES};
 enum TTrig {SIN,COS,TG,CTG,SEC,CSC};
 enum TDeviation {D_RMS,D_FWHM};
 enum TLoss {LIVE,RADIUS_LOST,PHASE_LOST,BZ_LOST,BR_LOST,BTH_LOST,BETA_LOST,STEP_LOST};
@@ -62,6 +62,7 @@ enum TBeamType {NOBEAM,ASTRA,CST_PID,CST_PIT,TWISS_2D,TWISS_4D,SPH_2D,ELL_2D,FIL
 enum TImportType {NO_ELEMENT,ANALYTIC_0D,ANALYTIC_1D,IMPORT_1D,IMPORT_2DC,IMPORT_2DR,IMPORT_3DC,IMPORT_3DR};
 enum TMagnetType {MAG_GENERAL,MAG_SOLENOID,MAG_DIPOLE,MAG_QUAD,MAG_NO};
 enum TSpaceChargeType {SPCH_NO,SPCH_LPST,SPCH_ELL,SPCH_GW};
+enum TParticleType {ELECTRON, PROTON, ION};
 
 const int MaxParameters=14;  //Maximum number of parameters after a keyword. Currently: BEAM
 const int NumBessel=6;
@@ -121,6 +122,13 @@ struct TSpaceCharge
 	double Ltrain;
 };
 
+struct TParticlesSpecies
+{
+	TParticleType Type;
+	double A;
+	int Q;
+};
+
 struct TBeamInput
 {
 	TBeamType RBeamType;
@@ -140,7 +148,10 @@ struct TBeamInput
 	double Current;
 	int NParticles;
 	bool ZCompress;
-   	bool Demagnetize;
+	bool Demagnetize;
+	TParticlesSpecies Species;
+	double W0; //MeV/u for beta
+	double Wnorm; //A/Q for fields
 };
 
 struct TStructData
@@ -218,6 +229,7 @@ struct TDump
    int N1;  //limits
    int N2;
    TBeamType SpecialFormat;
+   bool Binary;
    bool LiveOnly;
    bool Phase;
    bool Energy;

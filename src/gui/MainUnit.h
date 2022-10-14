@@ -76,6 +76,18 @@ __published:    // IDE-managed Components
 	TLabel *Label_EmittanceY;
 	TLabel *Label_Fringe;
 	TButton *cBuncherButton;
+	TLabel *Label_Input;
+	TGroupBox *InterfaceGroup;
+	TEdit *InputFileEdit;
+	TLabel *Label_Output;
+	TEdit *OutputFileEdit;
+	TCheckBox *BinaryCheck;
+	TCheckBox *TrajectoryCheck;
+	TCheckBox *OutputCheck;
+	TLabel *Label_Particles;
+	TGroupBox *GroupEnergy;
+	TLabel *Label_beta;
+	TLabel *Label_W0_full;
     void __fastcall ExitButtonClick(TObject *Sender);
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
@@ -90,15 +102,25 @@ __published:    // IDE-managed Components
     void __fastcall LoadResultsButtonClick(TObject *Sender);
 	void __fastcall OptButtonClick(TObject *Sender);
 	void __fastcall cBuncherButtonClick(TObject *Sender);
+	void __fastcall OutputCheckClick(TObject *Sender);
+	void __fastcall FormActivate(TObject *Sender);
 private:    // User declarations
 //    TBeamSolver *Solver;
-    void DisplayError();
-    void DisplayInputData();
+	bool GUIDisabled, SaveOutput, SaveTemp, SaveTraj, OutputBinary;
+	AnsiString Path,UserIniPath, InputFileName, OutputName, TempFileName;
+
+	void InterfaceVisibility();
+    void GUIVisibility();
+
+	void DisplayError();
+	void DisplayInputData();
+	void Initialize();
+    bool LoadIniFile();
 	bool LoadInputData(bool display_err=true);
 	bool CreateInputData(bool display_err=true);
 	void ShowGeometryForm(bool BeamView);
 	TError ERR; //remove
-	AnsiString InputFileName;
+	//AnsiString InputFileName;
 	bool DataReady;
 	bool InputReady;
 	bool ReloadData;

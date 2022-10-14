@@ -10,7 +10,8 @@ class TSmartProgress: public TProgressBar
 {
 private:
     TLabel *ProgressLabel;
-    TLabel *TimeLabel;
+	TLabel *TimeLabel;
+	TLabel *MessageLabel;
     TPanel *TextPanel;
 
     clock_t start,finish,last;
@@ -30,7 +31,9 @@ public:
     void Reset();
     void Reset(int M);
     void SetPercent(double p);
-    void SetTime(int m);
+	void SetTime(int m);
+    void TerminateTime();
+	void ShowMessage(char *S);
 };
 //---------------------------------------------------------------------------
 #endif

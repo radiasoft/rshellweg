@@ -12,7 +12,8 @@ __fastcall TBeam::TBeam(int N)
     Nbars=200;
     Kernel=0.95;
     lmb=1;
-    Cmag=0;
+	Cmag=0;
+    W0=We0;
     SetKernel(Kernel);
 
     Particle=new TParticle[Np];
@@ -179,13 +180,13 @@ bool TBeam::ImportEnergy(TBeamInput *BeamPar)
 			switch (BeamPar->ZBeamType){
 				case FILE_1D:
 				{
-					Particle[i].beta0=MeVToVelocity(X[0][i]);
+					Particle[i].beta0=MeVToVelocity(X[0][i],W0);
 					break;
 				}
 				case FILE_2D:
 				{
 					Particle[i].phi=DegreeToRad(X[0][i]);
-					Particle[i].beta0=MeVToVelocity(X[1][i]);
+					Particle[i].beta0=MeVToVelocity(X[1][i],W0);
 					break;
 				}
 				default: {};
@@ -285,7 +286,7 @@ bool TBeam::BeamFromImport(TBeamInput *BeamPar)
 					pr=C.px;
 					pth=C.py;
 
-					beta=MeVToVelocity(W);
+					beta=MeVToVelocity(W,W0);
 					p=1/sqrt(1/sqr(beta)-1);
 
 					Particle[i].phi=DegreeToRad(phi);
@@ -473,7 +474,7 @@ bool TBeam::BeamFromFile(TBeamInput *BeamPar)
 bool TBeam::BeamFromSphere(TBeamInput *BeamPar)
 {
 	double *X, *Y, *V;
-	double r=0,th=0,pr=0,pz=0,v=0,psi=0;
+	double r=0,th=0,pr=0,pz=0,v=0,psi=0,m=0,q=qe;
 	TGauss Gx, Gy, Gv;
 	TPhaseSpace C;
 
@@ -485,9 +486,20 @@ bool TBeam::BeamFromSphere(TBeamInput *BeamPar)
 	Gy.sigma=100*pi;
 	Gv.mean=0;
 	Gv.limit=0;
-	if (BeamPar->Sph.kT>0)
-		Gv.sigma=sqrt(2*qe*BeamPar->Sph.kT/me);
-	else
+	if (BeamPar->Sph.kT>0){
+		switch (BeamPar->Species.Type) {
+			case PROTON:{m=mp;break;}
+			case ION:{
+				m=mu*BeamPar->Species.A;
+				q*=BeamPar->Species.Q;
+				break;
+			}
+			case ELECTRON:{}
+			default: {m=me;}
+        }
+
+		Gv.sigma=sqrt(2*q*BeamPar->Sph.kT/m);
+	}else
 		Gv.sigma=0;
 
 	X=MakeRayleighDistribution(Gx);
@@ -620,7 +632,7 @@ void TBeam::SetParameters(double *X,TBeamParameter Par)
         }
 		case (BETA_PAR):{
 			for (int i=0;i<Np;i++)
-				Particle[i].beta0=MeVToVelocity(X[i]);
+				Particle[i].beta0=MeVToVelocity(X[i],W0);
 			break;
 		}
 		case (BZ_PAR):{
@@ -641,6 +653,11 @@ void TBeam::SetCurrent(double I)
 void TBeam::SetInputCurrent(double I)
 {
 	I0=I;
+}
+//---------------------------------------------------------------------------
+void TBeam::SetRestEnergy(double W)
+{
+	W0=W;
 }
 //---------------------------------------------------------------------------
 double *TBeam::MakeEquiprobableDistribution(double Xav, double dX)
@@ -885,7 +902,7 @@ TEllipse TBeam::GetEllipseDirect(TBeamParameter P)
 
 	E1=FindEmittanceAngle(P);
 	E.ax=E1.ax;
-	E.by=atan2(E1.by,MeVToVelocity(GetAverageEnergy()));
+	E.by=atan2(E1.by,MeVToVelocity(GetAverageEnergy(),W0));
 
 	E.phi=E1.phi;
 
@@ -1062,7 +1079,7 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 
 	if (Norm) {
 		double W=GetAverageEnergy();
-		double beta_gamma=MeVToVelocity(W)*MeVToGamma(W);
+		double beta_gamma=MeVToVelocity(W,W0)*MeVToGamma(W,W0);
 		T.epsilon=beta_gamma*T.epsilon;
 		T.beta=T.beta/beta_gamma;
 	}
@@ -1178,7 +1195,7 @@ double TBeam::GetParameter(int i,TBeamParameter P)
 			break;
 		}
 		case (W_PAR):{
-			x=VelocityToMeV(Particle[i].beta0);
+			x=VelocityToMeV(Particle[i].beta0,W0);
 			break;
 			}
 		case (LIVE_PAR):{

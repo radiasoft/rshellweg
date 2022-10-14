@@ -15,12 +15,16 @@ const int PID_LENGTH=9;
 const int T2_LENGTH=7;
 const int DEFAULT_MESH=20;
 const double MESH_TOLERANCE=10;
+const int DEFAULT_MAX_CELLS=1000;
+const double DEFAULT_SMOOTH=0.91;
 
 //PHYSICAL
 const double c=2.99792458e8;
 //const double pi=3.1415926;
 const double pi=M_PI;
 const double We0=0.5110034e6;
+const double Wp0=938.272013e6;
+const double Wu0=931.494028e6;
 const double Ia=17068;//Alfen Current
 const double eps0=8.85418782e-12;
 const double myu0=1.25663706e-6;
@@ -28,6 +32,8 @@ const double kF=1/(4*pi*eps0);
 const double kFc=1/(4*pi*eps0*c);
 const double qe=1.60217711444647E-19;
 const double me=9.10938344542608E-31;
+const double mp=1.672611E-27;
+const double mu=1.6606E-27;
 
 //OPTIMIZER
 const double RS=0.61803399;
@@ -67,6 +73,10 @@ const char CST_FileY[]="cst_y.txt";
 const char CST_FileR[]="cst_r.txt";
 const char Solenoid_File[]="BFIELD.txt";
 const char Energy_File[]="ENERGY_FILE.txt";
+const char INI_File[]="Hellweg.ini";
+const char DefaultInput[]="INPUT.TXT";
+const char DefaultOutput[]="OUTPUT";
+const char DefaultTemp[]="PARSED.TXT";
 
 //TABLES
 const int Nb12=5;

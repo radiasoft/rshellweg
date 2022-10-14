@@ -1,4 +1,6 @@
 # cython: language_level=3
+# distutils: language=c++
+
 import subprocess as sp
 
 def unmangle_cpp_class(mangled_str):
