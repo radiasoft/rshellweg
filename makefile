@@ -3,15 +3,15 @@ PY_INCLUDE := $(shell python -c 'import sysconfig; print(sysconfig.get_path("dat
 PY_LIBDIR := $(shell python -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR"))')
 PY_EXT_SUFFIX := $(shell python -c 'import sysconfig; print(sysconfig.get_config_var("EXT_SUFFIX"))')
 
-TGT_DIR := lib
+BUILD_DIR := build
 HPP_DIR := src/libHellweg2D
 H_DIR := src/physics
 SRC_PATH := $(H_DIR):$(HPP_DIR)
 vpath %.cpp $(SRC_PATH)
 INCLUDES := $(wildcard $(HPP_DIR)/*.hpp) $(wildcard $(H_DIR)/*.h)
 SRC := $(foreach d, $(subst :, ,$(SRC_PATH)), $(wildcard $(d)/*.cpp)) pyhellweg.cpp
-OBJ :=$(addprefix $(TGT_DIR)/,$(notdir $(SRC:%.cpp=%.o)))
-TGT := $(TGT_DIR)/pyhellweg.$(PY_EXT_SUFFIX)
+OBJ :=$(addprefix $(BUILD_DIR)/,$(notdir $(SRC:%.cpp=%.o)))
+TGT := $(BUILD_DIR)/pyhellweg$(PY_EXT_SUFFIX)
 INSTALL_DIR :=  rslinac
 LOCAL_INCLUDE := $(HOME)/.local/include
 CPPFLAGS := -pthread -Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -fPIC -DRSLINAC=1 -I$(HPP_DIR) -I$(H_DIR) -I$(PY_PLATINCLUDE) -I$(PY_INCLUDE) -I$(LOCAL_INCLUDE) -std=c++11
@@ -24,17 +24,17 @@ install: all
 	install -m 555 $(TGT) $(INSTALL_DIR)/$(notdir $(TGT))
 
 clean:
-	rm -rf $(TGT_DIR) build rslinac/pyhellweg*so
+	rm -rf $(BUILD_DIR) rslinac/pyhellweg*so
 
 pyhellweg.cpp: pyhellweg.pyx
 	cythonize $^
 
-$(OBJ): $(INCLUDES) | $(TGT_DIR)
+$(OBJ): $(INCLUDES) | $(BUILD_DIR)
 
-$(TGT_DIR):
-	mkdir $@
+$(BUILD_DIR):
+	mkdir -p $@
 
-$(TGT_DIR)/%.o: %.cpp
+$(BUILD_DIR)/%.o: %.cpp
 	$(COMPILE.cpp) $(OUTPUT_OPTION) $<
 
 $(TGT): $(OBJ)
