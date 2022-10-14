@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
-u"""Python to C++ Proxy interface for Solvers
+"""Python to C++ Proxy interface for Solvers
 
 :copyright: Copyright (c) 2016 RadiaSoft LLC.  All Rights Reserved.
 :license: http://www.apache.org/licenses/LICENSE-2.0.html
 """
 import rslinac.pyhellweg
 
+
 def _b(o):
-    return str(o).encode('utf-8')
+    return str(o).encode("utf-8")
+
 
 class BeamSolver(object):
     def __init__(self, ini_path, input_path):

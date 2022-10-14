@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-u"""Front-end command line for :mod:`rslinac`.
+"""Front-end command line for :mod:`rslinac`.
 
 See :mod:`pykern.pkcli` for how this module is used.
 
@@ -14,8 +14,8 @@ from pykern import pkcli
 
 
 def main():
-    return pkcli.main('rslinac')
+    return pkcli.main("rslinac")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())
