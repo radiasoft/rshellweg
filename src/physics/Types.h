@@ -200,6 +200,11 @@ struct TParticle
 	double z;
 	double beta0; //full beta. distinguish beta from bz!
 	TLoss lost;
+	/*
+	TField gb;  // gamma*beta 
+	double rgb; // r if tracked separately by using gb 
+	double thgb;  // theta -''-
+	*/
 };
 
 struct TPhaseSpace
@@ -355,19 +360,24 @@ struct TSpectrumBar
 };
 struct TIntegration
 {
-	double phi;
-	TField E;
-	TField H;
-	TField beta;
+    double phi;
+    TField E;
+    TField H;
+    TField beta;
 	/*double Az;
-    double Ar;
+    	double Ar;
 	double Hth;
 	double br;
 	double bth;
 	double bz;   */
-	double r;
+    double r;
     double th;
-    double A;
+    double A; 
+    /*
+    TField gb;  // gamma*beta
+    double rgb; // r if tracked separately by using gb
+    double thgb;  // theta -''-
+    */
 };
 struct TIntParameters
 {
