@@ -177,31 +177,13 @@ inline double Ib0(double x){
     return f;
 }
 //---------------------------------------------------------------------------
-inline double Ib0_beta(double r,double b2){  //I0(r*x)
-	double f=0;
-
-	for (int k=0;k<=NumBessel;k++)
-		f+=Pow(sqr(r)*b2/2,k)/sqr(Fact(k));
-
-	return f;
-}
-//---------------------------------------------------------------------------
 inline double Ib1(double x){
 	double f=0;
 
     for (int k=0;k<=NumBessel;k++)
-		f+=Pow(x/2,2*k+1)/(Fact(k)*Fact(k+1));
+        f+=Pow(x/2,2*k+1)/(Fact(k)*Fact(k+1));
 
     return f;
-}
-//---------------------------------------------------------------------------
-inline double Ib1_beta(double r,double b2){   //I1(r*x)/x
-	double f=0;
-
-	for (int k=0;k<=NumBessel;k++)
-		f+=Pow(r/2,2*k+1)*Pow(b2,k)/(Fact(k)*Fact(k+1));
-
-	return f;
 }
 //---------------------------------------------------------------------------
 inline void TwoRandom(double& Ran1,double& Ran2)

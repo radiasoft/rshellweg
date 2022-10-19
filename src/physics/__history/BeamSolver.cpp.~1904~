@@ -2907,7 +2907,7 @@ void TBeamSolver::CreateStrucutre()
 			Structure[k].dF=0;
 
 		   //	if (StructPar.Cells[i].beta<1)
-				Structure[k].beta=beta;
+				Structure[k].betta=beta;
 		  //	else
 			  //	Structure[k].betta=MeVToVelocity(EnergyLimit,BeamPar.W0);   */
 
@@ -3970,7 +3970,7 @@ double TBeamSolver::GetStructureParameter(int Nknot, TStructureParameter P)
 			break;
 		}
 		case (SBETA_PAR):{
-			x=Structure[Nknot].beta;
+			x=Structure[Nknot].betta;
 			break;
 		}
 		case (BBETA_PAR):{
@@ -5009,11 +5009,11 @@ void TBeamSolver::Step(int Si)
     Par[2].h=Par[1].h;
 	Par[3].h=dh;
 
-	double db=Structure[Si+1].beta-Structure[Si].beta;
-	Par[0].bw=Structure[Si].beta;
-	Par[1].bw=Structure[Si].beta+db/2;
+	double db=Structure[Si+1].betta-Structure[Si].betta;
+    Par[0].bw=Structure[Si].betta;
+    Par[1].bw=Structure[Si].betta+db/2;
     Par[2].bw=Par[1].bw;
-	Par[3].bw=Structure[Si+1].beta;
+    Par[3].bw=Structure[Si+1].betta;
 
 	double dw=Structure[Si+1].alpha-Structure[Si].alpha;
     Par[0].w=Structure[Si].alpha*lmb;
@@ -5358,7 +5358,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	double Pin=W0*I0;
 
 
-	double v=Structure[j].beta;
+	double v=Structure[j].betta;
 	double E=sqrt(2*Structure[j].Rp);
 	double Pb=E!=0?1e-6*sqr(Structure[j].A*BeamPar.Wnorm/E):0;
 

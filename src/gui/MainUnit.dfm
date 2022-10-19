@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Left = 0
   Top = 0
-  Caption = 'Hellweg (RsLinac) v. 10/09/22'
+  Caption = 'Hellweg (RsLinac) v. 10/19/22'
   ClientHeight = 741
   ClientWidth = 593
   Color = clBtnFace
@@ -330,7 +330,6 @@ object MainForm: TMainForm
     Align = alTop
     Caption = 'Solver Progress'
     TabOrder = 2
-    ExplicitTop = 395
   end
   object ResultsGroup: TGroupBox
     Left = 0
@@ -340,9 +339,6 @@ object MainForm: TMainForm
     Align = alClient
     Caption = 'Results'
     TabOrder = 3
-    ExplicitTop = 459
-    ExplicitWidth = 577
-    ExplicitHeight = 245
     object MemoPanel: TPanel
       Left = 2
       Top = 15
@@ -350,8 +346,6 @@ object MainForm: TMainForm
       Height = 230
       Align = alClient
       TabOrder = 0
-      ExplicitWidth = 466
-      ExplicitHeight = 228
       object ResultsMemo: TMemo
         Left = 1
         Top = 1
@@ -364,8 +358,6 @@ object MainForm: TMainForm
         ScrollBars = ssVertical
         TabOrder = 0
         Visible = False
-        ExplicitWidth = 464
-        ExplicitHeight = 226
       end
     end
     object ActPanel: TPanel
@@ -375,8 +367,6 @@ object MainForm: TMainForm
       Height = 230
       Align = alRight
       TabOrder = 1
-      ExplicitLeft = 468
-      ExplicitHeight = 228
       object OptButton: TButton
         Left = 16
         Top = 70
@@ -413,6 +403,7 @@ object MainForm: TMainForm
         Width = 75
         Height = 25
         Caption = 'Buncher'
+        Enabled = False
         TabOrder = 3
         OnClick = cBuncherButtonClick
       end
@@ -426,8 +417,6 @@ object MainForm: TMainForm
     Align = alTop
     Caption = 'Controls'
     TabOrder = 0
-    ExplicitTop = 347
-    ExplicitWidth = 577
     DesignSize = (
       593
       56)
@@ -440,7 +429,6 @@ object MainForm: TMainForm
       Caption = 'Exit'
       TabOrder = 1
       OnClick = ExitButtonClick
-      ExplicitLeft = 486
     end
     object AbortButton: TButton
       Left = 286
@@ -469,8 +457,6 @@ object MainForm: TMainForm
     Align = alTop
     Caption = 'Data Interface '
     TabOrder = 4
-    ExplicitTop = 403
-    ExplicitWidth = 577
     object Label_Input: TLabel
       Left = 21
       Top = 27

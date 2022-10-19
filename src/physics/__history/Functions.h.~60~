@@ -177,11 +177,11 @@ inline double Ib0(double x){
     return f;
 }
 //---------------------------------------------------------------------------
-inline double Ib0_beta(double r,double b2){  //I0(r*x)
+inline double Ib0_beta(double r,double b2){
 	double f=0;
 
 	for (int k=0;k<=NumBessel;k++)
-		f+=Pow(sqr(r)*b2/2,k)/sqr(Fact(k));
+		f+=Pow(r^2*b2/2,k)/sqr(Fact(k));
 
 	return f;
 }
@@ -195,7 +195,7 @@ inline double Ib1(double x){
     return f;
 }
 //---------------------------------------------------------------------------
-inline double Ib1_beta(double r,double b2){   //I1(r*x)/x
+inline double Ib1_beta(double r,double b2){
 	double f=0;
 
 	for (int k=0;k<=NumBessel;k++)

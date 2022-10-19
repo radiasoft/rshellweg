@@ -177,7 +177,7 @@ inline double Ib0(double x){
     return f;
 }
 //---------------------------------------------------------------------------
-inline double Ib0_beta(double r,double b2){  //I0(r*x)
+inline double Ib0_beta(double r,double b2){  //I0(r,x)
 	double f=0;
 
 	for (int k=0;k<=NumBessel;k++)
