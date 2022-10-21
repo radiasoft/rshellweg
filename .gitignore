@@ -1,4 +1,5 @@
 pyhellweg.cpp
+__history
 
 # Created by https://www.gitignore.io/api/c++
 
@@ -47,11 +48,13 @@ cmake_install.cmake
 install_manifest.txt
 CTestTestfile.cmake
 
+# Backup files
 *.#00
 *.~1~
 *.~3~
 *.~4~
-src/.gitignore~
+*~
+
 
 # Created by https://www.gitignore.io/api/python
 
