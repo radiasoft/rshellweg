@@ -19,7 +19,7 @@ __fastcall TGeomForm::TGeomForm(TComponent* Owner)
 void TGeomForm::SignChart(TChartType ChartType)
 {
     switch (ChartType) {
-        case CH_BETTA:{
+		case CH_BETA:{
             GChart->Title->Caption="Wave Phase Velocity";
             GChart->BottomAxis->Title->Caption="z,cm";
             GChart->LeftAxis->Title->Caption="betta phase";
@@ -537,7 +537,7 @@ void TGeomForm::DrawChart(TLineSeries *Series0,TBeamSolver *Solver,TColor Col1, 
     
 	switch (ChartGroup->ItemIndex) {
         case (betta_chart):{
-            SignChart(CH_BETTA);
+            SignChart(CH_BETA);
 			Y0=Solver->GetStructureParameters(SBETA_PAR);
             break;
         }

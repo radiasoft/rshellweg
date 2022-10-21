@@ -4,7 +4,7 @@
 #pragma hdrstop
 
 #include "BeamSolver.h"
-#include <mcheck.h>
+
 // #include "Types.h"
 
 //---------------------------------------------------------------------------
@@ -47,8 +47,6 @@ __fastcall TBeamSolver::~TBeamSolver()
 //---------------------------------------------------------------------------
 void TBeamSolver::Initialize()
 {
-    mcheck(NULL);
-
 	MaxCells=DEFAULT_MAX_CELLS;
     Nmesh=DEFAULT_MESH;
 	//Kernel=0;
@@ -502,48 +500,51 @@ TMagnetParameters TBeamSolver::GetSolenoidInfo()
 //---------------------------------------------------------------------------
 bool TBeamSolver::IsKeyWord(AnsiString &S)
 {
-    return S=="POWER" ||
-        S=="SOLENOID" ||
-        S=="BEAM" ||
-        S=="CURRENT" ||
-		S=="DRIFT" ||
-		S=="QUAD" ||
-        S=="CELL" ||
-		S=="CELLS" ||
-		S=="SAVE" ||
-		S=="OPTIONS" ||
-		S=="STRUCT" ||
-		S=="SPCHARGE" ||
-		S=="PARTICLES";
-	  //	S=="COMMENT";
+    const AnsiString u = S.UpperCase();
+
+    return u=="POWER" ||
+        u=="SOLENOID" ||
+        u=="BEAM" ||
+        u=="CURRENT" ||
+		u=="DRIFT" ||
+		u=="QUAD" ||
+        u=="CELL" ||
+		u=="CELLS" ||
+		u=="SAVE" ||
+		u=="OPTIONS" ||
+		u=="STRUCT" ||
+		u=="SPCHARGE" ||
+		u=="PARTICLES";
+	  //	u=="COMMENT";
 }
 //---------------------------------------------------------------------------
 TBeamType TBeamSolver::ParseDistribution(AnsiString &S)
 {
+         const AnsiString u = S.UpperCase();
 	 TBeamType D=NOBEAM;
-		if (S=="CST_PID")
+		if (u=="CST_PID")
 			D=CST_PID;
-		else if (S=="CST_PIT")
+		else if (u=="CST_PIT")
 			D=CST_PIT;
-		else if (S=="TWISS2D")
+		else if (u=="TWISS2D")
 			D=TWISS_2D;
-		else if (S=="TWISS4D")
+		else if (u=="TWISS4D")
 			D=TWISS_4D;
-		else if (S=="SPH2D")
+		else if (u=="SPH2D")
 			D=SPH_2D;
-		else if (S=="ELL2D")
+		else if (u=="ELL2D")
 			D=ELL_2D;
-		else if (S=="FILE1D")
+		else if (u=="FILE1D")
 			D=FILE_1D;
-		else if (S=="FILE2D")
+		else if (u=="FILE2D")
 			D=FILE_2D;
-		else if (S=="FILE4D")
+		else if (u=="FILE4D")
 			D=FILE_4D;
-		else if (S=="NORM2D")
+		else if (u=="NORM2D")
 			D=NORM_2D;
-		else if (S=="PARMELA_T2")
+		else if (u=="PARMELA_T2")
 			D=PARMELA_T2;
-		/*else if (S=="NORM4D")
+		/*else if (u=="NORM4D")
 			D=NORM_4D;  */
 	 return D;
 }
@@ -625,52 +626,54 @@ bool TBeamSolver::IsImportType(TImportType T)
 //---------------------------------------------------------------------------
 TInputParameter TBeamSolver::Parse(AnsiString &S)
 {
+    const AnsiString u = S.UpperCase();
     TInputParameter P;
    // FILE *logFile;
 
 /*    logFile=fopen("BeamSolver.log","a");
 	fprintf(logFile,"Parse: S=%s\n",S);
 	fclose(logFile); */
-	if (S=="POWER")
+	if (u=="POWER")
 		P=POWER;
-    else if (S=="SOLENOID")
+    else if (u=="SOLENOID")
         P=SOLENOID;
-    else if (S=="BEAM")
+    else if (u=="BEAM")
         P=BEAM;
-    else if (S=="CURRENT")
+    else if (u=="CURRENT")
 		P=CURRENT;
-    else if (S=="DRIFT")
+    else if (u=="DRIFT")
 		P=DRIFT;
-	else if (S=="QUAD")
+	else if (u=="QUAD")
 		P=QUAD;
-    else if (S=="CELL")
+    else if (u=="CELL")
         P=CELL;
-    else if (S=="CELLS")
+    else if (u=="CELLS")
         P=CELLS;
-    else if (S=="OPTIONS")
+    else if (u=="OPTIONS")
 		P=OPTIONS;
-	else if (S=="SAVE")
+	else if (u=="SAVE")
 		P=DUMP;
-    else if (S=="SPCHARGE")
+    else if (u=="SPCHARGE")
 		P=SPCHARGE;
-	else if (S=="STRUCT")
+	else if (u=="STRUCT")
 		P=STRUCT;
-	else if (S=="PARTICLES")
+	else if (u=="PARTICLES")
 		P=PARTICLES;
-	else if (S[1]=='!')
+	else if (u[1]=='!')
 		P=COMMENT;
 	return  P;
 }
 //---------------------------------------------------------------------------
 TSpaceChargeType TBeamSolver::ParseSpchType(AnsiString &S)
 {
+        const AnsiString u = S.UpperCase();
 	TSpaceChargeType T;;
 
-	if (S=="COULOMB")
+	if (u=="COULOMB")
 		T=SPCH_LPST;
-	else if (S=="ELLIPTIC")
+	else if (u=="ELLIPTIC")
 		T=SPCH_ELL;
-	else if (S=="GWMETHOD")
+	else if (u=="GWMETHOD")
 		T=SPCH_GW;
 	else
 		T=SPCH_NO;
@@ -922,6 +925,7 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 	while (!fs.eof()){
 		L=GetLine(fs);   //Now reads line by line
 		S=ReadWord(L,1);
+		S=S.UpperCase();
 	   //	S=GetLine(fs);   //Hid common actions inside the function
 		if (S=="")
 			continue;
@@ -950,6 +954,7 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 	while (!fs.eof()){
 		L=GetLine(fs);   //Now reads line by line
 		S=ReadWord(L,1);  //Gets the first word in the line (should be a key word)
+		S=S.UpperCase();
 		if (S=="END")
 			break;
 		else if (S=="") //empty line
@@ -1047,7 +1052,7 @@ TError TBeamSolver::ParsePIT(TInputLine *Line, AnsiString &F)
 		F+=AddLines(Line,0,1);
 
 		if (Line->N == 3){
-			if (Line->S[2]=="COMPRESS") {
+			if (Line->S[2].UpperCase()=="COMPRESS") {
 				BeamPar.ZCompress=true;
 				F+=" COMPRESS";
 			} else {
@@ -1290,15 +1295,16 @@ TError TBeamSolver::ParseOptions(TInputLine *Line)
 	AnsiString F="OPTIONS ";
 
 	for (int j=0;j<Line->N;j++){
-		if (Line->S[j]=="REVERSE")
+                const AnsiString s = Line->S[j].UpperCase();
+		if (s=="REVERSE")
 			StructPar.Reverse=true;
-		if (Line->S[j]=="DEMAGNETIZE")
+		if (s=="DEMAGNETIZE")
 			BeamPar.Demagnetize=true;
 
-	/*	if (Line->S[j]=="MAGNETIZED")
+	/*	if (s=="MAGNETIZED")
 			BeamPar.Magnetized=true;   */
 
-		F=F+"\t"+Line->S[j];
+		F=F+"\t"+s;
 	}
 	ParsedStrings->Add(F);
 
@@ -1309,23 +1315,24 @@ TError TBeamSolver::ParseParticleType(TInputLine *Line)
 {
 	TError Error=ERR_NO;
 	AnsiString S="", F="PARTICLES ";
+	const AnsiString s = Line->S[0].UpperCase();
 
 
-	if (Line->S[0]=="ELECTRON" || Line->S[0]=="ELECTRONS"){
+	if (s=="ELECTRON" || s=="ELECTRONS"){
 		BeamPar.Species.Type=ELECTRON;
 		BeamPar.Species.A=1;
 		BeamPar.Species.Q=1;
 		F+="ELECTRONS ";
 		if (Line->N > 1)
 			S="!WARNING: Excessive parameters for electrons will be ignored\n";
-	} else if (Line->S[0]=="PROTON" || Line->S[0]=="PROTONS"){
+	} else if (s=="PROTON" || s=="PROTONS"){
 		BeamPar.Species.Type=PROTON;
 		BeamPar.Species.A=1;
 		BeamPar.Species.Q=1;
 		F+="PROTONS ";
 		if (Line->N > 1)
 			S="!WARNING: Excessive parameters for protons will be ignored\n";
-	} else if (Line->S[0]=="ION" || Line->S[0]=="IONS"){
+	} else if (s=="ION" || s=="IONS"){
 		F+="IONS ";
 		BeamPar.Species.Type=ION;
 		if (Line->N == 1) {
@@ -1384,7 +1391,7 @@ TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 		F=F+"\t"+"ELLIPTIC";
 	}else{
 		for (int i = 1; i < Line->N; i++) {
-			if (Line->S[i]=="TRAIN") {
+			if (Line->S[i].UpperCase()=="TRAIN") {
 				//Ntr++;//=i+1;
 				Ntr=Line->N-i;
 				break;
@@ -2116,54 +2123,55 @@ TError TBeamSolver::ParseDump(TInputLine *Line, int Ns, int Ni)
 			}
 			if (Line->N>=2 && Line->N<=9) {
 				for (int j=Nkey;j<Line->N;j++){
-					if (Line->S[j]=="PID") {
+                                        const AnsiString s = Line->S[j].UpperCase();
+					if (s=="PID") {
 						BeamExport[Ns].SpecialFormat=CST_PID;
 						F=F0+" PID";
 						DefaultSet=false;
 						break;
 					}
-					else if (Line->S[j]=="PIT") {
+					else if (s=="PIT") {
 						BeamExport[Ns].SpecialFormat=CST_PIT;
 						F=F0+" PIT";
 						DefaultSet=false;
 						break;
 					}
-					else if (Line->S[j]=="ASTRA") {
+					else if (s=="ASTRA") {
 						BeamExport[Ns].SpecialFormat=ASTRA;
 						F=F0+" ASTRA";
 						DefaultSet=false;
 						break;
 					}
-					else if (Line->S[j]=="LOST") {
+					else if (s=="LOST") {
 						BeamExport[Ns].LiveOnly=false;
 						F=F+" LOST";
 					}
-					else if (Line->S[j]=="PHASE") {
+					else if (s=="PHASE") {
 						BeamExport[Ns].Phase=true;
 						F=F+" PHASE";
 						DefaultSet=false;
 					}
-					else if (Line->S[j]=="ENERGY") {
+					else if (s=="ENERGY") {
 						BeamExport[Ns].Energy=true;
 						F=F+" ENERGY";
 						DefaultSet=false;
 					}
-					else if (Line->S[j]=="RADIUS") {
+					else if (s=="RADIUS") {
 						BeamExport[Ns].Radius=true;
 						F=F+" RADIUS";
 						DefaultSet=false;
 					}
-					else if (Line->S[j]=="AZIMUTH") {
+					else if (s=="AZIMUTH") {
 						BeamExport[Ns].Azimuth=true;
 						F=F+" AZIMUTH";
 						DefaultSet=false;
 					}
-					else if (Line->S[j]=="DIVERGENCE") {
+					else if (s=="DIVERGENCE") {
 						BeamExport[Ns].Divergence=true;
 						F=F+" DIVERGENCE";
 						DefaultSet=false;
 					} else {
-						S="WARNING: The keyword "+Line->S[j]+" in SAVE line is not recognized and will be ignored";
+						S="WARNING: The keyword "+s+" in SAVE line is not recognized and will be ignored";
 						ShowError(S);
 					}
 				}
@@ -2898,10 +2906,10 @@ void TBeamSolver::CreateStrucutre()
 			Structure[k].P=P0;
 			Structure[k].dF=0;
 
-			if (StructPar.Cells[i].beta<1)
-				Structure[k].betta=beta;
-			else
-				Structure[k].betta=MeVToVelocity(EnergyLimit,BeamPar.W0);
+		   //	if (StructPar.Cells[i].beta<1)
+				Structure[k].beta=beta;
+		  //	else
+			  //	Structure[k].betta=MeVToVelocity(EnergyLimit,BeamPar.W0);   */
 
 			Structure[k].E=E;
 			Structure[k].A=A;
@@ -3962,7 +3970,7 @@ double TBeamSolver::GetStructureParameter(int Nknot, TStructureParameter P)
 			break;
 		}
 		case (SBETA_PAR):{
-			x=Structure[Nknot].betta;
+			x=Structure[Nknot].beta;
 			break;
 		}
 		case (BBETA_PAR):{
@@ -5001,11 +5009,11 @@ void TBeamSolver::Step(int Si)
     Par[2].h=Par[1].h;
 	Par[3].h=dh;
 
-	double db=Structure[Si+1].betta-Structure[Si].betta;
-    Par[0].bw=Structure[Si].betta;
-    Par[1].bw=Structure[Si].betta+db/2;
+	double db=Structure[Si+1].beta-Structure[Si].beta;
+	Par[0].bw=Structure[Si].beta;
+	Par[1].bw=Structure[Si].beta+db/2;
     Par[2].bw=Par[1].bw;
-    Par[3].bw=Structure[Si+1].betta;
+	Par[3].bw=Structure[Si+1].beta;
 
 	double dw=Structure[Si+1].alpha-Structure[Si].alpha;
     Par[0].w=Structure[Si].alpha*lmb;
@@ -5350,7 +5358,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	double Pin=W0*I0;
 
 
-	double v=Structure[j].betta;
+	double v=Structure[j].beta;
 	double E=sqrt(2*Structure[j].Rp);
 	double Pb=E!=0?1e-6*sqr(Structure[j].A*BeamPar.Wnorm/E):0;
 
@@ -5423,7 +5431,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	OutputStrings->Add("Twiss Parameters (R):");
 	Line="alpha= "+s.FormatFloat("#0.00000",Result.RTwiss.alpha);
 	OutputStrings->Add(Line);
-	Line="betta = "+s.FormatFloat("#0.00000",100*Result.RTwiss.beta)+" cm/rad";
+	Line="beta = "+s.FormatFloat("#0.00000",100*Result.RTwiss.beta)+" cm/rad";
 	OutputStrings->Add(Line);
 	Line="emittance = "+s.FormatFloat("#0.000000",1e6*Result.RTwiss.epsilon)+" um";
 	OutputStrings->Add(Line);
@@ -5432,7 +5440,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	OutputStrings->Add("Twiss Parameters (X):");
 	Line="alpha= "+s.FormatFloat("#0.00000",Result.XTwiss.alpha);
 	OutputStrings->Add(Line);
-	Line="betta = "+s.FormatFloat("#0.00000",100*Result.XTwiss.beta)+" cm/rad";
+	Line="beta = "+s.FormatFloat("#0.00000",100*Result.XTwiss.beta)+" cm/rad";
 	OutputStrings->Add(Line);
 	Line="emittance = "+s.FormatFloat("#0.000000",1e6*Result.XTwiss.epsilon)+" um";
 	OutputStrings->Add(Line);
@@ -5441,7 +5449,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	OutputStrings->Add("Twiss Parameters (Y):");
 	Line="alpha= "+s.FormatFloat("#0.00000",Result.YTwiss.alpha);
 	OutputStrings->Add(Line);
-	Line="betta = "+s.FormatFloat("#0.00000",100*Result.YTwiss.beta)+" cm/rad";
+	Line="beta = "+s.FormatFloat("#0.00000",100*Result.YTwiss.beta)+" cm/rad";
 	OutputStrings->Add(Line);
 	Line="emittance = "+s.FormatFloat("#0.000000",1e6*Result.YTwiss.epsilon)+" um";
 	OutputStrings->Add(Line);

@@ -1496,7 +1496,7 @@ double TBeam::CosSum(TIntParameters& Par,TIntegration *I)
 double TBeam::BesselSum(TIntParameters& Par,TIntegration *I,TTrig Trig)
 {
     double S=0,N=0,S1=0;
-	double phi=0,r=0,bw=0,c=0,bz=0;
+	double phi=0,r=0,bw=0,c=0,bz=0, arg=0, Bes=0;
     double Res=0;
 
 	for (int i=0;i<Np;i++){
@@ -1514,8 +1514,13 @@ double TBeam::BesselSum(TIntParameters& Par,TIntegration *I,TTrig Trig)
             else if (Trig==COS)
                 c=cos(phi);
 
-            double arg=2*pi*sqrt(1-sqr(bw))*r/bw;
-            double Bes=Ib0(arg)*c;
+	  /*		if (bw<1){
+				arg=2*pi*sqrt(1-sqr(bw))*r/bw;
+				Bes=Ib0(arg)*c;
+			} else {   */
+				arg=sqr(2*pi)*(1/sqr(bw)-1); //^2
+				Bes=Ib0_beta(r,arg)*c;
+        //    }
            /*   if (mod(Bes)>100)
                 ShowMessage("this!");      */
             S+=Bes;
@@ -1731,20 +1736,34 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 			r=Particle[i].r+I[Si][i].r*Par.h;
 			th=Particle[i].th+I[Si][i].th*Par.h;
 			phi=Particle[i].phi+I[Si][i].phi*Par.h;
-			Sr=2*pi*sqrt(1-sqr(Par.bw))/Par.bw;
 
 			if (!Par.drift)
 				k_phi=2*pi*(1/Par.bw-1/beta.z)+2*Par.B*Par.SumSin/A;
 			else
 				k_phi=2*pi*(1/Par.bw-1/beta.z);
 
+		/*	if (Par.bw<1){      //Regular equations
+				Sr=2*pi*sqrt(1-sqr(Par.bw))/Par.bw;
+
 			//RF FIELDS
-			E.z=A*Ib0(r*Sr)*cos(phi)+Par.Eq[i].z;   //k_Az = Az
-			E.r=-(1/Sr)*Ib1(r*Sr)*(dA*cos(phi)-(2*Par.B*Par.SumSin+2*pi*A/Par.bw)*sin(phi))+Par.Eq[i].r; //k_Ar = Ar
-			E.th=Par.Eq[i].th;
-			H.z=0;
-			H.r=0;
-			H.th=(Par.bw*A*Ib1(r*Sr)*sin(phi))/sqrt(1-sqr(Par.bw));      //k_Hth = Hth
+				E.z=A*Ib0(r*Sr)*cos(phi)+Par.Eq[i].z;   //k_Az = Az
+				E.r=-(1/Sr)*Ib1(r*Sr)*(dA*cos(phi)-(2*Par.B*Par.SumSin+2*pi*A/Par.bw)*sin(phi))+Par.Eq[i].r; //k_Ar = Ar
+				E.th=Par.Eq[i].th;
+				H.z=0;
+				H.r=0;
+				H.th=(Par.bw*A*Ib1(r*Sr)*sin(phi))/sqrt(1-sqr(Par.bw));      //k_Hth = Hth
+			}
+			else{*/  // Series for Bessel and then remove sqrt(1-b^2).
+				Sr=sqr(2*pi)*(1/sqr(Par.bw)-1); //Sr^2
+				E.z=A*Ib0_beta(r,Sr)*cos(phi)+Par.Eq[i].z;
+				//E.r=A*Ib1_beta(r,Sr)*sin(phi)+Par.Eq[i].r;
+				E.r=-Ib1_beta(r,Sr)*(dA*cos(phi)-(2*Par.B*Par.SumSin+2*pi*A/Par.bw)*sin(phi))+Par.Eq[i].r;
+				E.th=Par.Eq[i].th;
+				H.z=0;
+				H.r=0;
+				//H.th=Par.bw*A*Ib1_beta(r,Sr)*sin(phi);      //should be beta/c? - need to check
+				H.th=2*pi*A*Ib1_beta(r,Sr)*sin(phi);
+	   //}
 
 			Hx.r=0;
 			Hx.th=0;

@@ -131,3 +131,12 @@ AnsiString AnsiString::FormatFloat(const char *format, float f) {
 
     return AnsiString(buf);
 }
+
+
+AnsiString AnsiString::UpperCase() {
+    char res[this->Length() + 1];
+    char *d = res;
+    const char *s = this->c_str();
+    while ((*d++ = toupper(*s++)) != '\0');
+    return AnsiString(res);
+}

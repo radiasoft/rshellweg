@@ -1,4 +1,8 @@
 10/09/2022
+- Input file is now non-sensitive to upper/lower case
+- Cells with phase velocities beta_ph >= 1.0 are can now be treated. 
+
+10/09/2022
 - Added capablity to model protons and ions, defined by mass A (in a.m.u) and charge Q
 - Added beta parameter in GUI
 - Added status into the progress bar in GUI

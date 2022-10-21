@@ -13,7 +13,7 @@ OBJ :=$(addprefix $(BUILD_DIR)/,$(notdir $(SRC:%.cpp=%.o)))
 TGT := $(BUILD_DIR)/pyhellweg$(PY_EXT_SUFFIX)
 INSTALL_DIR :=  rslinac
 LOCAL_INCLUDE := $(HOME)/.local/include
-CPPFLAGS := -pthread -Wno-unused-result -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -fPIC -DRSLINAC=1 -I$(HPP_DIR) -I$(H_DIR) -I$(PY_PLATINCLUDE) -I$(PY_INCLUDE) -I$(LOCAL_INCLUDE) -std=c++11
+CPPFLAGS := -pthread -Wno-unused-result -Wsign-compare -DNDEBUG -g -O0 -fwrapv -Wall -fPIC -DRSLINAC=1 -I$(HPP_DIR) -I$(H_DIR) -I$(PY_PLATINCLUDE) -I$(PY_INCLUDE) -I$(LOCAL_INCLUDE) -std=c++11
 
 LDFLAGS := -shared -L$(PY_LIBDIR)
 
