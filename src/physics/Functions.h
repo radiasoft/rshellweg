@@ -431,19 +431,22 @@ static bool IsNumber(AnsiString &S)   //Checks if the string is a number
 //---------------------------------------------------------------------------
 static AnsiString GetFileName(AnsiString &F)   //Gets the file name from path
 {
-	/*std::string s = std::string(F.c_str());
-	return s.substr(s.find_last_of("/\\") + 1));  */
-	//SK: The operation AnsiString = std:string doesn't compile in Embzrcadero.
+#ifdef RSLINAC
+        std::string s = std::string(F.c_str());
+	return s.substr(s.find_last_of("/\\") + 1);
+#else
 	return F.SubString(F.LastDelimiter("/\\")+1,F.Length());
+#endif
 }
 //---------------------------------------------------------------------------
 static AnsiString GetFileCaption(AnsiString &F)   //Gets the file name without extension
 {
-   /* std::string s = std::string(F.c_str());
-	return s.substr(0,s.find_last_of("/.")-1); */
-	// SK: The operation AnsiString = std:string doesn't compile in Embzrcadero.
-    return F.SubString(0,F.LastDelimiter("/.")-1);
-
+#ifdef RSLINAC
+        std::string s = std::string(F.c_str());
+	return s.substr(0, s.find_last_of("/.") - 1);
+#else
+        return F.SubString(0,F.LastDelimiter("/.")-1);
+#endif
 }
 //---------------------------------------------------------------------------
 static bool CheckFile(AnsiString &F)   //Checks if the file exists

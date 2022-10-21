@@ -5,9 +5,6 @@
 
 #include "BeamSolver.h"
 
-//#include <mcheck.h>
-//SK: Unable to include file mcheck.h
-
 // #include "Types.h"
 
 //---------------------------------------------------------------------------
@@ -50,9 +47,6 @@ __fastcall TBeamSolver::~TBeamSolver()
 //---------------------------------------------------------------------------
 void TBeamSolver::Initialize()
 {
-	//mcheck(NULL);
-    //SK: Unable to include file mcheck.h
-
 	MaxCells=DEFAULT_MAX_CELLS;
     Nmesh=DEFAULT_MESH;
 	//Kernel=0;
@@ -977,7 +971,7 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 
 				for (j=0;j<Lines[i].N;j++){
 					Lines[i].S[j]=ReadWord(L,j+2);
-					Lines[i].S[j]=Lines[i].S[j].UpperCase();
+					Lines[i].S[j]=Lines[i].S[j];
 				}
 			}
 		}
