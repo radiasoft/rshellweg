@@ -3494,7 +3494,7 @@ TError TBeamSolver::CreateBeam()
 	Beam=new TBeam*[Npoints];
 	for (int i=0;i<Npoints;i++){
 		Beam[i]=new TBeam(BeamPar.NParticles);
-	  //  Beam[i]->SetBarsNumber(Nbars);
+	  	//Beam[i]->SetBarsNumber(Nbars);
 		//Beam[i]->SetKernel(Kernel);
 		Beam[i]->lmb=Structure[i].lmb;
 		Beam[i]->SetInputCurrent(BeamPar.Current);
@@ -3509,7 +3509,7 @@ TError TBeamSolver::CreateBeam()
 			Beam[i]->Particle[j].beta.th=0;
 			//Beam[i]->Particle[j].Br=0;
 			Beam[i]->Particle[j].phi=0;
-		   //	Beam[i]->Particle[j].Bth=0;
+		   	//Beam[i]->Particle[j].Bth=0;
 			Beam[i]->Particle[j].r=0;
 			//Beam[i]->Particle[j].Cmag=0;
 			Beam[i]->Particle[j].th=0;
@@ -3550,7 +3550,7 @@ TError TBeamSolver::CreateBeam()
 		case CST_PID:{
 			Beam[0]->GeneratePhase(BeamPar.ZNorm);
 		}
-        case PARMELA_T2:{
+        	case PARMELA_T2:{
 		}
 		case CST_PIT:{
 			if (!Beam[0]->BeamFromImport(&BeamPar))

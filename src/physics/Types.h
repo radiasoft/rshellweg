@@ -202,6 +202,7 @@ struct TFieldMap2D
 	TField **Field;
 };
 
+/* IVP
 struct TParticle
 {
 	double r;  //x/lmb (-Rb<x<Rb) - rename to r
@@ -210,6 +211,19 @@ struct TParticle
 	double phi;
 	double z;
 	double beta0; //full beta. distinguish beta from bz!
+	TLoss lost;
+};
+IVP */
+
+struct TParticle
+{
+        double r;  //x/lmb (-Rb<x<Rb) - rename to r
+        double th; 
+        double z; 
+
+        TField gb; // gamma*\vec{beta}
+        double phi;
+        
 	TLoss lost;
 };
 
@@ -365,22 +379,40 @@ struct TSpectrumBar
 	double yAv;
 	double yRMS;
 };
+
+/* IVP
 struct TIntegration
 {
-	double phi;
-	TField E;
-	TField H;
-	TField beta;
+   double phi;
+    TField E;
+    TField H;
+    TField beta; */
 	/*double Az;
-    double Ar;
+        double Ar;
 	double Hth;
 	double br;
 	double bth;
 	double bz;   */
-	double r;
+/*  double r;
     double th;
     double A;
 };
+IVP */
+
+struct TIntegration
+{
+    double phi;
+    double A;
+
+    TField E;
+    TField H;
+
+    TField gb;
+
+    double r;
+    double th;
+};
+
 struct TIntParameters
 {
     double h;

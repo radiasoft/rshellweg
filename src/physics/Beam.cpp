@@ -217,6 +217,7 @@ bool TBeam::BeamFromImport(TBeamInput *BeamPar)
 	double x=0,y=0,z=0,px=0,py=0,pz=0,t=0;
 	double phi=0,W=0;
 	double r=0,th=0,p=0,pr=0,pth=0,beta=0;
+	double gb, gbx, gby, gbz; 
 	int i=0;
 	bool Success=false;
 	TPhaseSpace C;
@@ -242,7 +243,7 @@ bool TBeam::BeamFromImport(TBeamInput *BeamPar)
 					}
 				}
 				case CST_PID:
-				{
+				{  /* IVP
 					x=X[0][i];
 					y=X[1][i];
 					z=X[2][i];
@@ -269,41 +270,59 @@ bool TBeam::BeamFromImport(TBeamInput *BeamPar)
 					Particle[i].beta.th=(pth/p)*beta;
 
 					//fprintf(logFile,"%f %f %f\n",px,pr*cos(th)-pth*sin(th),px-pr*cos(th)+pth*sin(th));
+					IVP */
                     break;
 				}
 				case PARMELA_T2:
 				{
-					x=X[0][i]/100;  //cm
-					px=X[1][i]/1000;  //mrad
+					x=X[0][i]/100;  //cm to m 
+					px=X[1][i]/1000;  //mrad to rad 
 					y=X[2][i]/100;
 					py=X[3][i]/1000;
 					phi=X[4][i];   //deg
-					W=X[5][i];     //MeV
+					W=X[5][i];     //MeV (kinetic) 
 
-                    C=CartesianToCylinrical(x,y,px,py);
+					gamma = MeVToGamma(W, W0); 
+					gb = sqrt(sqr(gamma) -1.); 
+					gbx = gb *px /sqrt(1. +sqr(px) +sqr(py)); 
+					gby = gb *py /sqrt(1. +sqr(px) +sqr(py)); 
+					gbz = gb /sqrt(1. +sqr(px) +sqr(py)); 
+
+					C = CartesianToCylinrical(x, y, gbx, gby); 
+
+					/* IVP 
+                    			C=CartesianToCylinrical(x,y,px,py);
 					r=C.x;
 					th=C.y;
 					pr=C.px;
 					pth=C.py;
 
 					beta=MeVToVelocity(W,W0);
-					p=1/sqrt(1/sqr(beta)-1);
+					p=1/sqrt(1/sqr(beta)-1); 
+					IVP */ 
 
-					Particle[i].phi=DegreeToRad(phi);
+					Particle[i].phi = DegreeToRad(phi);
 					if (BeamPar->ZCompress)
 						CompressPhase(Particle[i].phi);
 
-
+					/* IVP 
 					Particle[i].beta0=beta;
 					Particle[i].beta.z=beta;
 					Particle[i].r=r/lmb;
 					Particle[i].beta.r=(pr/p)*beta;
 					Particle[i].th=th;
 					Particle[i].beta.th=(pth/p)*beta;
-                    break;
+					IVP */ 
+
+                                        Particle[i].r = C.x /lmb;
+                                        Particle[i].th = C.y;
+					Particle[i].gb.r = C.px; 
+                                        Particle[i].gb.th = C.py;
+					Particle[i].gb.z = gbz; 
+
+                    		break;
 				}
-				default:
-									throw std::runtime_error("BeamFromCST error: Unhandled RBeamType");
+				default: throw std::runtime_error("BeamFromCST error: Unhandled RBeamType");
 			}
 		}
 		int N=0;
@@ -311,7 +330,7 @@ bool TBeam::BeamFromImport(TBeamInput *BeamPar)
 			case CST_PIT: {N=PIT_LENGTH;break;}
 			case CST_PID: {N=PID_LENGTH;break;}
 			case PARMELA_T2: {N=T2_LENGTH;break;}
-						default: throw std::runtime_error("BeamFromCST error: Unhandled RBeamType value");
+			default: throw std::runtime_error("BeamFromCST error: Unhandled RBeamType value");
 		}
 		X=DeleteDoubleArray(X,N);
 		Success=true;
@@ -477,7 +496,7 @@ bool TBeam::BeamFromSphere(TBeamInput *BeamPar)
 	double r=0,th=0,pr=0,pz=0,v=0,psi=0,m=0,q=qe;
 	TGauss Gx, Gy, Gv;
 	TPhaseSpace C;
-
+/* IVP 
 	Gx.mean=0;
 	Gx.limit=BeamPar->Sph.Rcath;
 	Gx.sigma=BeamPar->Sph.Rcath;
@@ -521,7 +540,7 @@ bool TBeam::BeamFromSphere(TBeamInput *BeamPar)
 		Particle[i].beta.th=0;
 		Particle[i].beta.z=BzFromOther(Particle[i].beta0,Particle[i].beta.r,0);//double-check!!!
     }
-
+IVP */
 	delete[] X;
 	delete[] Y;
 
@@ -533,7 +552,7 @@ bool TBeam::BeamFromEllipse(TBeamInput *BeamPar)
 	double sx=0,sy=0,r=0,th=0,x=0,y=0;
 	double a=0,b=0,phi=0;
 	TPhaseSpace C;
-
+/* IVP 
 	phi=BeamPar->Ell.phi;
 	b=BeamPar->Ell.by;
 	a=BeamPar->Ell.ax;
@@ -569,7 +588,7 @@ bool TBeam::BeamFromEllipse(TBeamInput *BeamPar)
 		Particle[i].beta.th=0;
 		Particle[i].beta.z=BzFromOther(Particle[i].beta0,Particle[i].beta.r,0);//double-check!!!
 	}
-
+IVP */ 
 	return true;
 }
 //---------------------------------------------------------------------------
@@ -1674,10 +1693,12 @@ TGauss TBeam::iGetBeamRadius(TIntParameters& Par,TIntegration *I,TBeamParameter 
 	return X;
 }      */
 //---------------------------------------------------------------------------
+
+/* IVP
 void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 {
 	double Sr=0,beta0=1,gamma=1,C=0;
-	double k_phi=0,/*k_Az=0,k_Ar=0,k_Hth=0,k_bz=0,k_br=0,k_bth=0,*/k_r=0,k_th=0,k_A=0,A=0,dA=0,th_dot=0;
+	double k_phi=0,k_r=0,k_th=0,k_A=0,A=0,dA=0,th_dot=0;//k_Az=0,k_Ar=0,k_Hth=0,k_bz=0,k_br=0,k_bth=0;
 	double k_rr=0, k_rth=0;
 	int Sj=0;
 	double r=0,r0=0,phi=0,th=0;//,bz=0,br=0,bth=0;
@@ -1712,10 +1733,6 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 	for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){
 			beta.z=Particle[i].beta.z+I[Si][i].beta.z*Par.h;
-		 /*	if (beta.z<0) {
-				Particle[i].lost=BZ_LOST;
-				continue;
-			}  */
 			beta.r=Particle[i].beta.r+I[Si][i].beta.r*Par.h;
 			beta.th=Particle[i].beta.th+I[Si][i].beta.th*Par.h;
 			beta0=sqrt(sqr(beta.z)+sqr(beta.r)+sqr(beta.th));
@@ -1780,13 +1797,20 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 			k_beta.r=((1-sqr(beta.r))*E.r+beta.th*(H.z+Hx.z-beta.r*E.th)-beta.z*(H.th+Hx.th+beta.r*E.z))/(gamma*beta.z)+k_rr;//sqr(beta.th)/(r*beta.z);
 			k_rth=r==0?0:beta.th*beta.r/(r*beta.z);
 			k_beta.th=((1-sqr(beta.th))*E.th+beta.z*(H.r+Hx.r-beta.th*E.z)-beta.r*(H.z+Hx.z+beta.th*E.r))/(gamma*beta.z)-k_rth;//beta.th*beta.r/(r*beta.z);
+
+                        //k_gb.z = (sqr(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.z +gb.r*(H.th +Hx.th) -gb.th*(H.r +Hx.r))/gb.z; 
+                        //k_rr_gb =  r==0?0:sqr(gb.th)/(r*gb.z); 
+                        //k_gb.r = (sqr(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.r +gb.th*(H.z +Hx.z) -gb.z*(H.th +Hx.th))/gb.z +k_rr_gb; 
+                        //k_rth_gb =  r==0?0:gb.th*gb.r/(r*gb.z); 
+                        //k_gb.th = (sqr(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.th +gb.z*(H.r +Hx.r) -gb.r*(H.z +Hx.z))/gb.z -k_rth_gb;
+
 			//k_beta.th=0;
-		   /*
-			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th-beta.z*E.r)-beta.th*r*Par.Hext.r)/(gamma*beta.z); //k_bz = dbz/dz  ; Br=-Bz'/2!;
-			k_beta.r=((E.r-beta.z*H.th-beta.r*(beta.z*E.z+beta.r*E.r))+beta.th*Par.Hext.z)/(gamma*beta.z)+r*sqr(th_dot)/(beta.z);
-			k_beta.th=(-beta.r*H.z+beta.z*H.r-beta.th*(beta.z*E.z+beta.r*E.r))/(gamma*beta.z)-beta.r*beta.th/(r*beta.z);
+		     
+////			k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th-beta.z*E.r)-beta.th*r*Par.Hext.r)/(gamma*beta.z); //k_bz = dbz/dz  ; Br=-Bz'/2!;
+////			k_beta.r=((E.r-beta.z*H.th-beta.r*(beta.z*E.z+beta.r*E.r))+beta.th*Par.Hext.z)/(gamma*beta.z)+r*sqr(th_dot)/(beta.z);
+////			k_beta.th=(-beta.r*H.z+beta.z*H.r-beta.th*(beta.z*E.z+beta.r*E.r))/(gamma*beta.z)-beta.r*beta.th/(r*beta.z);
 			//k_bth=-(br*(C/sqr(r)+Par.Bz_ext)+r*bz*Par.dH)/(2*gamma*bz);
-			//k_bth=-br*bth/(r*bz);    */
+			//k_bth=-br*bth/(r*bz);      
 
 
 			//k_r=PulseToAngle(br,bz);  //I don't understand why, but without it, the emittance doesn't preserve
@@ -1811,30 +1835,194 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 
    //fclose(logFile);
 }
+//--------------------------------------------------------------------------- 
+IVP */
+
+void TBeam::Integrate(TIntParameters& Par, TIntegration **I, int Si)
+{
+        double Sr=0, beta0=1, gamma=1, C=0;
+        double k_phi=0,/*k_Az=0,k_Ar=0,k_Hth=0,k_bz=0,k_br=0,k_bth=0,*/k_r=0,k_th=0,k_A=0,A=0,dA=0,th_dot=0;
+        double k_rr=0, k_rth=0;
+        int Sj=0;
+        double r=0,r0=0,phi=0,th=0;//,bz=0,br=0,bth=0;
+        double s=-1;
+        double rev=1;
+        TField E;
+        TField H;
+        TField Hx,Hm;
+        TField gb;
+        TField k_gb;
+        //logFile=fopen("beam.log","a");
+
+        if (Reverse)
+                rev=-1;
+
+        Sj=(Si+1<Ncoef)?Si+1:0;
+
+        CountLiving();
+
+        Par.B*=Ib;
+
+        //Hx=Par.Hext;
+
+    if (Par.drift)
+        I[Sj][0].A=0;//I[Si][0].A;
+    else{
+                A=Par.A+I[Si][0].A*Par.h;
+                I[Sj][0].A=A*(Par.dL-rev*Par.w)-rev*2*Par.B*Par.SumCos;
+                dA=I[Sj][0].A;
+    }
+
+        for (int i=0;i<Np;i++){
+                if (Particle[i].lost==LIVE){
+                        //IVP beta.z=Particle[i].beta.z+I[Si][i].beta.z*Par.h;
+			gb.z = Particle[i].gb.z +I[Si][i].gb.z*Par.h;
+                 /*     if (beta.z<0) {
+                                Particle[i].lost=BZ_LOST;
+                                continue;
+                        }  */
+                        //IVP beta.r=Particle[i].beta.r+I[Si][i].beta.r*Par.h;
+                        //IVP beta.th=Particle[i].beta.th+I[Si][i].beta.th*Par.h;
+                        //IVP beta0=sqrt(sqr(beta.z)+sqr(beta.r)+sqr(beta.th));
+			gb.r = Particle[i].gb.r +I[Si][i].gb.r *Par.h;
+                        gb.th = Particle[i].gb.th +I[Si][i].gb.th *Par.h;
+                        beta0 = sqrt(sqr(gb.z)+sqr(gb.r)+sqr(gb.th)) /sqrt(1. +sqr(gb.z)+sqr(gb.r)+sqr(gb.th)); 
+                        //bz=beta;  //I don't understand why, but without it, the emittance doesn't preserve
+                        if (beta0>1) {
+                Particle[i].lost=STEP_LOST;
+                                continue;
+                        }
+                        //IVP gamma=VelocityToEnergy(beta0);
+			gamma = sqrt(1. +sqr(gb.z)+sqr(gb.r)+sqr(gb.th)); 
+                        //gamma=VelocityToEnergy(beta.z);
+                        //C=Particle[i].Cmag;
+
+                        r=Particle[i].r+I[Si][i].r*Par.h;
+                        th=Particle[i].th+I[Si][i].th*Par.h;
+                        phi=Particle[i].phi+I[Si][i].phi*Par.h;
+                        Sr=2*pi*sqrt(1-sqr(Par.bw))/Par.bw;
+
+                        if (!Par.drift)
+                                //IVP k_phi=2*pi*(1/Par.bw-1/beta.z)+2*Par.B*Par.SumSin/A;
+			        k_phi = 2*pi*(1/Par.bw -gamma/gb.z) +2*Par.B*Par.SumSin/A;
+                        else
+                                //IVP k_phi=2*pi*(1/Par.bw-1/beta.z);
+			        k_phi = 2*pi*(1/Par.bw -gamma/gb.z);
+
+                        //RF FIELDS
+                        E.z=A*Ib0(r*Sr)*cos(phi)+Par.Eq[i].z;   //k_Az = Az
+                        E.r=-(1/Sr)*Ib1(r*Sr)*(dA*cos(phi)-(2*Par.B*Par.SumSin+2*pi*A/Par.bw)*sin(phi))+Par.Eq[i].r; //k_Ar = Ar
+                        E.th=Par.Eq[i].th;
+                        H.z=0;
+                        H.r=0;
+                        H.th=(Par.bw*A*Ib1(r*Sr)*sin(phi))/sqrt(1-sqr(Par.bw));      //k_Hth = Hth
+
+                        Hx.r=0;
+                        Hx.th=0;
+                        Hx.z=0;
+
+                        //GLOBAL EXTERNAL FIELDS (SOLENOID)
+                        if (Par.Hext.Field!=NULL) {
+                                if (Par.Hext.Dim.Ny==1)
+                                        Hx=LinInterpolation(r*lmb,Par.Hext.Piv.X,Par.Hext.Dim.Nx,Par.Hext.Field[0]);
+                                else
+                                        Hx=BiLinearInterpolation(th,r*lmb,Par.Hext.Piv.Y,Par.Hext.Piv.X,Par.Hext.Dim.Ny,Par.Hext.Dim.Nx,Par.Hext.Field);
+                        }
+
+                        //Hx.r=0;
+                   //   Hx.th=0;
+
+            //LOCAL EXTERNAL FIELDS (QUADS)
+                        if (Par.Hmap.Field!=NULL) {
+                                TPhaseSpace C,R;
+                                R.x=r*cos(th);
+                                R.y=r*sin(th);
+
+                                Hm=BiLinearInterpolation(R.x,R.y,Par.Hmap.Piv.X,Par.Hmap.Piv.Y,Par.Hmap.Dim.Nx,Par.Hmap.Dim.Ny,Par.Hmap.Field);
+                                R.px=Hm.r;
+                                R.py=Hm.th;
+                                C=CartesianToCylinrical(R);
+                                Hx.r+=C.px;
+                                Hx.th+=C.py;
+                        }
+                   //beta.th=0;
+                        //IVP  k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th+Hx.th-beta.z*E.r)-beta.th*(H.r+Hx.r+beta.z*E.th))/(gamma*beta.z);
+                        //IVP  k_rr=r==0?0:sqr(beta.th)/(r*beta.z);
+                        //IVP  k_beta.r=((1-sqr(beta.r))*E.r+beta.th*(H.z+Hx.z-beta.r*E.th)-beta.z*(H.th+Hx.th+beta.r*E.z))/(gamma*beta.z)+k_rr;//sqr(beta.th)/(r*beta.z);
+                        //IVP  k_rth=r==0?0:beta.th*beta.r/(r*beta.z);
+                        //IVP  k_beta.th=((1-sqr(beta.th))*E.th+beta.z*(H.r+Hx.r-beta.th*E.z)-beta.r*(H.z+Hx.z+beta.th*E.r))/(gamma*beta.z)-k_rth;//beta.th*beta.r/(r*beta.z);
+
+                        k_gb.z = (sqr(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.z +gb.r*(H.th +Hx.th) -gb.th*(H.r +Hx.r))/gb.z; 
+                        k_rr_gb =  r==0?0:sqr(gb.th)/(r*gb.z); 
+                        k_gb.r = (sqr(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.r +gb.th*(H.z +Hx.z) -gb.z*(H.th +Hx.th))/gb.z +k_rr_gb; 
+                        k_rth_gb =  r==0?0:gb.th*gb.r/(r*gb.z); 
+                        k_gb.th = (sqr(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.th +gb.z*(H.r +Hx.r) -gb.r*(H.z +Hx.z))/gb.z -k_rth_gb;
+
+                        //k_beta.th=0;
+                   /*
+                        k_beta.z=((1-sqr(beta.z))*E.z+beta.r*(H.th-beta.z*E.r)-beta.th*r*Par.Hext.r)/(gamma*beta.z); //k_bz = dbz/dz  ; Br=-Bz'/2!;
+                        k_beta.r=((E.r-beta.z*H.th-beta.r*(beta.z*E.z+beta.r*E.r))+beta.th*Par.Hext.z)/(gamma*beta.z)+r*sqr(th_dot)/(beta.z);
+                        k_beta.th=(-beta.r*H.z+beta.z*H.r-beta.th*(beta.z*E.z+beta.r*E.r))/(gamma*beta.z)-beta.r*beta.th/(r*beta.z);
+                        //k_bth=-(br*(C/sqr(r)+Par.Bz_ext)+r*bz*Par.dH)/(2*gamma*bz);
+                        //k_bth=-br*bth/(r*bz);    */
+
+
+                        //k_r=PulseToAngle(br,bz);  //I don't understand why, but without it, the emittance doesn't preserve
+                        //IVP  k_r=beta.r/beta.z;
+                        //IVP  k_th=r==0?0:beta.th/(r*beta.z);
+			k_r = gb.r /gb.z;
+                        k_th = r==0?0:gb.th/(r*gb.z);
+                        //k_th=PulseToAngle(bth/r,bz);
+
+                   //   if (i==0)
+                           //   fprintf(logFile,"%i %f %f %f\n",i,1e3*k_r,1e3*br,1e3*bz);
+
+                        I[Sj][i].phi = k_phi;
+                        I[Sj][i].E.r = E.r;
+                        I[Sj][i].E.z = E.z;
+                        I[Sj][i].H.th = H.th;
+                        //IVP  I[Sj][i].beta.z=k_beta.z;
+                        //IVP  I[Sj][i].beta.r=k_beta.r;
+                        //IVP  I[Sj][i].beta.th=k_beta.th;
+			I[Sj][i].gb.z = k_gb.z;
+                        I[Sj][i].gb.r = k_gb.r;
+                        I[Sj][i].gb.th = k_gb.th;
+                        I[Sj][i].th = k_th;
+                        I[Sj][i].r = k_r; 
+
+                }
+    }
+
+   //fclose(logFile);
+}
 //---------------------------------------------------------------------------
+
+
 void TBeam::Next(TBeam *nBeam,TIntParameters& Par,TIntegration **I)
 {
     TParticle *nParticle;
     nParticle=nBeam->Particle;
     int Nbx=0,Nb=0;
-	double dr=0,dth=0,dbz=0,dbr=0,dbth=0;
-	//logFile=fopen("next.log","a");
+    double dr=0,dth=0,dbz=0,dbr=0,dbth=0; 
+    double dgbr = 0., dgbth = 0., dgbz = 0.; 
+    double gamma, gb;
+    //logFile=fopen("next.log","a");
 
-	for (int i=0;i<Np;i++){
-		nParticle[i].lost=Particle[i].lost;
-		if (Particle[i].lost==LIVE){
-			nParticle[i].phi=0;
-			nParticle[i].phi=Particle[i].phi+(I[0][i].phi+I[1][i].phi+2*I[2][i].phi+2*I[3][i].phi)*Par.h/6;
+	for (int i=0; i<Np; i++){
+		nParticle[i].lost = Particle[i].lost;
+		if (Particle[i].lost == LIVE){
+			nParticle[i].phi = 0;
+			nParticle[i].phi = Particle[i].phi +(I[0][i].phi +I[1][i].phi +2*I[2][i].phi +2*I[3][i].phi) *Par.h /6;
 
-			dr=(I[0][i].r+I[1][i].r+2*I[2][i].r+2*I[3][i].r)*Par.h/6;
-			nParticle[i].r=Particle[i].r+dr;
+			dr = (I[0][i].r +I[1][i].r +2*I[2][i].r +2*I[3][i].r) *Par.h /6;
+			nParticle[i].r = Particle[i].r +dr;
 
-			dth=(I[0][i].th+I[1][i].th+2*I[2][i].th+2*I[3][i].th)*Par.h/6;
-			nParticle[i].th=Particle[i].th+dth;
-
+			dth = (I[0][i].th +I[1][i].th +2*I[2][i].th +2*I[3][i].th) *Par.h /6;
+			nParticle[i].th = Particle[i].th +dth;
+/* IVP 
 			nParticle[i].beta.z=0;
 			dbz=(I[0][i].beta.z+I[1][i].beta.z+2*I[2][i].beta.z+2*I[3][i].beta.z)*Par.h/6;
-			nParticle[i].beta.z=Particle[i].beta.z+dbz;
+			nParticle[i].beta.z=Particle[i].beta.z+dbz; 
 
 			//nParticle[i].beta=0;
 			//nParticle[i].beta=Particle[i].beta+dbz;//(I[0][i].bz+I[1][i].bz+2*I[2][i].bz+2*I[3][i].bz)*Par.h/6;
@@ -1845,8 +2033,20 @@ void TBeam::Next(TBeam *nBeam,TIntParameters& Par,TIntegration **I)
 
 			nParticle[i].beta.th=0;
 			dbth=(I[0][i].beta.th+I[1][i].beta.th+2*I[2][i].beta.th+2*I[3][i].beta.th)*Par.h/6;
-			nParticle[i].beta.th=Particle[i].beta.th+dbth;
+			nParticle[i].beta.th=Particle[i].beta.th+dbth; 
+IVP */ 
+			nParticle[i].gb.z = 0;
+                        dgbz = (I[0][i].gb.z +I[1][i].gb.z +2*I[2][i].gb.z +2*I[3][i].gb.z) *Par.h /6;
+                        nParticle[i].gb.z = Particle[i].gb.z +dgbz;
 
+			nParticle[i].gb.r = 0;
+                        dgbr = (I[0][i].gb.r +I[1][i].gb.r +2*I[2][i].gb.r +2*I[3][i].gb.r) *Par.h /6;
+                        nParticle[i].gb.r = Particle[i].gb.r +dgbr;
+
+                        nParticle[i].gb.th = 0;
+                        dgbth = (I[0][i].gb.th +I[1][i].gb.th +2*I[2][i].gb.th +2*I[3][i].gb.th) *Par.h /6;
+                        nParticle[i].gb.th = Particle[i].gb.th +dgbth;
+/* IVP 
 			//nParticle[i].Bz=0;
 			//nParticle[i].Bz=sqrt(sqr(nParticle[i].beta)-sqr(nParticle[i].Br)-sqr(nParticle[i].Bth));
 			nParticle[i].beta0=0;
@@ -1861,31 +2061,54 @@ void TBeam::Next(TBeam *nBeam,TIntParameters& Par,TIntegration **I)
 			if (mod(nParticle[i].beta.th)>1){
 				nParticle[i].lost=BTH_LOST;
 			}
-			if (nParticle[i].beta.z>1 /*|| nParticle[i].beta.z<0*/){
+			if (nParticle[i].beta.z>1){ //|| nParticle[i].beta.z<0){
 				nParticle[i].lost=BZ_LOST;
 			}
 
 			if (nParticle[i].beta.z<0){
 				nParticle[i].lost=PHASE_LOST;
 			}
-			/*if ((nParticle[i].phi+Particle[i+1].phi0)<-2*pi){
-				nParticle[i].lost=PHASE_LOST;
-			} */
+			//if ((nParticle[i].phi+Particle[i+1].phi0)<-2*pi){
+			//	nParticle[i].lost=PHASE_LOST;
+			//} 
+IVP */ 
+			gamma = sqrt(1. +sqr(nParticle[i].gb.z) +sqr(nParticle[i].gb.r) +sqr(nParticle[i].gb.th)); 
+			gb = sqrt(sqr(nParticle[i].gb.z) +sqr(nParticle[i].gb.r) +sqr(nParticle[i].gb.th)); 
 
-			for (int j=0;j<4;j++){
-				I[j][i].r=0;
-				I[j][i].th=0;
+			if(gb /gamma > 1.0) 
+				nParticle[i].lost = BETA_LOST;
+
+			if(mod(nParticle[i].gb.r) /gamma > 1.0) 
+                                nParticle[i].lost = BETA_LOST; 
+
+			if(mod(nParticle[i].gb.th) /gamma > 1.0)
+                                nParticle[i].lost = BETA_LOST; 
+
+			if(mod(nParticle[i].gb.z) /gamma > 1.0)
+                                nParticle[i].lost = BETA_LOST; 
+
+			if(nParticle[i].gb.z < 0.0)
+                                nParticle[i].lost = BETA_LOST; 
+
+			for (int j=0; j<4; j++){
+				I[j][i].r = 0;
+				I[j][i].th = 0;
+				/* IVP 
 				I[j][i].beta.z=0;
 				I[j][i].beta.r=0;
 				I[j][i].beta.th=0;
-				I[j][i].phi=0;
-				I[j][i].E.z=0;
-				I[j][i].E.r=0;
-				I[j][i].E.th=0;
-				I[j][i].H.z=0;
-				I[j][i].H.r=0;
-				I[j][i].H.th=0;
-				I[j][i].A=0;
+				IVP */ 
+				I[j][i].gb.z = 0;
+                                I[j][i].gb.r = 0;
+                                I[j][i].gb.th = 0;
+				I[j][i].phi = 0;
+				I[j][i].E.z = 0;
+				I[j][i].E.r = 0;
+				I[j][i].E.th = 0;
+				I[j][i].H.z = 0;
+				I[j][i].H.r = 0;
+				I[j][i].H.th = 0;
+				I[j][i].A = 0;
 
             }
            /*   if (b>1)
@@ -1895,7 +2118,7 @@ void TBeam::Next(TBeam *nBeam,TIntParameters& Par,TIntegration **I)
         }
     }
     CountLiving();
-    nBeam->Ib=I0*Nliv/Np;
+    nBeam->Ib = I0 *Nliv /Np;
 	//fclose(logFile);
 }
 //---------------------------------------------------------------------------
@@ -1906,17 +2129,22 @@ void TBeam::Next(TBeam *nBeam)
     int Nbx=0,Nb=0;
     float b=0;
 
-    for (int i=0;i<Np;i++){
-        nParticle[i].lost=Particle[i].lost;
-		nParticle[i].r=Particle[i].r;
-		nParticle[i].th=Particle[i].th;
-		nParticle[i].phi=Particle[i].phi;
-		nParticle[i].beta0=Particle[i].beta0;
-		nParticle[i].beta.z=Particle[i].beta.z;
-		nParticle[i].beta.th=Particle[i].beta.th;
-		nParticle[i].beta.r=Particle[i].beta.r;
+    for (int i=0; i<Np; i++){
+        nParticle[i].lost = Particle[i].lost;
+	nParticle[i].r = Particle[i].r;
+	nParticle[i].th = Particle[i].th;
+	nParticle[i].phi = Particle[i].phi;
+	/* IVP
+	nParticle[i].beta0=Particle[i].beta0;
+	nParticle[i].beta.z=Particle[i].beta.z;
+	nParticle[i].beta.th=Particle[i].beta.th;
+	nParticle[i].beta.r=Particle[i].beta.r;
+	IVP */
+	nParticle[i].gb.z = Particle[i].gb.z;
+        nParticle[i].gb.th = Particle[i].gb.th;
+        nParticle[i].gb.r = Particle[i].gb.r;
 	}
-    nBeam->Ib=Ib;
+    nBeam->Ib = Ib;
 }
 //---------------------------------------------------------------------------
 
