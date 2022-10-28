@@ -3503,10 +3503,15 @@ TError TBeamSolver::CreateBeam()
 		//Beam[i]->Cmag=c*Cmag/(Structure[i].lmb*We0); //Cmag = c*B*lmb/Wo * (1/lmb^2 from r normalization)
 		for (int j=0;j<BeamPar.NParticles;j++){
 			Beam[i]->Particle[j].lost=LIVE;
+			/* IVP 
 			Beam[i]->Particle[j].beta0=0;
 			Beam[i]->Particle[j].beta.z=0;
 			Beam[i]->Particle[j].beta.r=0;
 			Beam[i]->Particle[j].beta.th=0;
+			IVP */ 
+                        Beam[i]->Particle[j].gb.z=0;
+                        Beam[i]->Particle[j].gb.r=0;
+                        Beam[i]->Particle[j].gb.th=0;
 			//Beam[i]->Particle[j].Br=0;
 			Beam[i]->Particle[j].phi=0;
 		   	//Beam[i]->Particle[j].Bth=0;
@@ -4336,6 +4341,7 @@ void TBeamSolver::SpaceCharge(int Si, int Sj)
 				for (int i=0;i<BeamPar.NParticles;i++){
 					if (Particle[i].lost==LIVE){
 						double x=0,y=0,z=0,r=0,th=0,phi=0,gamma=1,beta_z=1,beta=1,g2=1;
+						double gb; 
 						double Ex=0,Ey=0,Ez=0,Lx=0,Ly=0,Lz=0;
 						double r3=0,r2=0,rv=0,s=0;
 
@@ -4343,9 +4349,13 @@ void TBeamSolver::SpaceCharge(int Si, int Sj)
 						r=(Particle[i].r+K[Sj][i].r*Par[Sj].h)*lmb;
 						th=Particle[i].th+K[Sj][i].th*Par[Sj].h;
 
-						beta_z=Particle[i].beta.z+K[Sj][i].beta.z*Par[Sj].h;
-						beta=Particle[i].beta0;
+						//IVP  beta_z=Particle[i].beta.z+K[Sj][i].beta.z*Par[Sj].h;
+						//IVP  beta=Particle[i].beta0;
 						//+K[Sj][i].beta.z*Par[Sj].h;
+
+						gb = sqrt(sqr(Particle[i].gb.r) +sqr(Particle[i].gb.th) +sqr(Particle[i].gb.z)); 
+						gamma = sqrt(1. +sqr(gb)); 
+						beta = gb /gamma; 
 
 						x=r*cos(th)-x0;
 						y=r*sin(th)-y0;
@@ -4354,7 +4364,7 @@ void TBeamSolver::SpaceCharge(int Si, int Sj)
 						r3=sqr(x/rx)+sqr(y/ry)+sqr(z/rz);
 //					   	z=rz;
 
-						gamma=VelocityToEnergy(beta); //change to beta
+						//IVP  gamma=VelocityToEnergy(beta); //change to beta
 						g2=1/sqr(gamma);
 
 						if  (BeamPar.SpaceCharge.Type==SPCH_LPST) { //Lapostolle

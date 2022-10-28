@@ -1515,18 +1515,23 @@ double TBeam::CosSum(TIntParameters& Par,TIntegration *I)
 double TBeam::BesselSum(TIntParameters& Par,TIntegration *I,TTrig Trig)
 {
     double S=0,N=0,S1=0;
-	double phi=0,r=0,bw=0,c=0,bz=0;
-    double Res=0;
+    double phi=0,r=0,bw=0,c=0,bz=0;
+    double Res=0; 
+    double gamma, gammai; 
 
 	for (int i=0;i<Np;i++){
-		if (Particle[i].lost==LIVE){
-			bz=Particle[i].beta.z+I[i].beta.z*Par.h;
+		if (Particle[i].lost==LIVE){ 
+			//IVP  bz=Particle[i].beta.z+I[i].beta.z*Par.h;
+			gamma = sqrt(1. +sqr(Particle[i].gb.r) +sqr(Particle[i].gb.th) +sqr(Particle[i].gb.z)); 
+			gammai = sqrt(1. +sqr(I[i].gb.r) +sqr(I[i].gb.th) +sqr(I[i].gb.z));
+			bz = Particle[i].gb.z /gamma +I[i].gb.z *Par.h /gammai; 
+
 			if (bz<0 || bz>1) {
 			  //	Particle[i].lost=BZ_LOST;
 				continue;
 			}
             phi=Particle[i].phi+I[i].phi*Par.h;
-			r=Particle[i].r+I[i].r*Par.h;
+	    r=Particle[i].r+I[i].r*Par.h;
             bw=Par.bw;
             if (Trig==SIN)
                 c=sin(phi);
@@ -1549,7 +1554,7 @@ double TBeam::BesselSum(TIntParameters& Par,TIntegration *I,TTrig Trig)
 //---------------------------------------------------------------------------
 double TBeam::iGetAverageEnergy(TIntParameters& Par,TIntegration *I)
 {
-    double gamma=1;
+    double gamma=1, gb = 0;
     bool err=false;
     int j=0;
 
@@ -1558,10 +1563,15 @@ double TBeam::iGetAverageEnergy(TIntParameters& Par,TIntegration *I)
 
 	for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){
+			/* IVP 
 			bz=Particle[i].beta.z+I[i].beta.z*Par.h;
 			br=Particle[i].beta.r+I[i].beta.r*Par.h;
 			bth=Particle[i].beta.th+I[i].beta.th*Par.h;
 			beta=sqrt(sqr(bz)+sqr(br)+sqr(bth));
+			IVP  */
+			gb = sqrt(sqr(Particle[i].gb.r) +sqr(Particle[i].gb.th) +sqr(Particle[i].gb.z));
+			gamma = sqrt(1. +sqr(gb));
+			beta = gb /gamma; 
 		   /*	double betta=Particle[i].beta+I[i].betta*Par.h;
 			double bx=Particle[i].Br+I[i].bx*Par.h;
 			double b=betta;  */
@@ -1570,7 +1580,8 @@ double TBeam::iGetAverageEnergy(TIntParameters& Par,TIntegration *I)
 				continue;
 			}else{
 			//if (mod(beta)<1) {
-                G+=VelocityToEnergy(beta);
+                		//IVP  G+=VelocityToEnergy(beta);
+				G += gamma;
 				j++;
 			}
 		}
@@ -1594,6 +1605,7 @@ TGauss TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices)
 
 	//	double L[Nliv];
 	double phi=0,Iphi=0,x=0,beta=1,Ib=0,b=1;
+	double gamma = 1, gammai = 1;
 
 	CountLiving();
 
@@ -1603,9 +1615,15 @@ TGauss TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices)
 			Iphi=I[i].phi;
 			x=phi+Iphi*Par.h;
 
+			/* IVP 
 			beta=Particle[i].beta.z;
 			Ib=I[i].beta.z;
 			b=beta+Ib*Par.h;
+			IVP */
+
+			gamma = sqrt(1. +sqr(Particle[i].gb.r) +sqr(Particle[i].gb.th) +sqr(Particle[i].gb.z));
+                        gammai = sqrt(1. +sqr(I[i].gb.r) +sqr(I[i].gb.th) +sqr(I[i].gb.z));
+                        b = Particle[i].gb.z /gamma +I[i].gb.z *Par.h /gammai;
 
 			L[j]=x*b*lmb/(2*pi);
 			j++;
