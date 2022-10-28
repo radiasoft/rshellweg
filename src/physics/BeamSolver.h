@@ -14,7 +14,7 @@
 #include "Spline.h"
 #include "Spectrum.h"
 
-#ifndef RSLINAC
+#ifndef RSHELLWEG_LINUX
 #include "SmartProgressBar.h"
 #else
 #include "TStringList.hpp"
@@ -66,7 +66,7 @@ private:
 	bool ReadSolenoid(int Nz,double *Z,double* B);
 
 	//OTHER
-    #ifndef RSLINAC 
+    #ifndef RSHELLWEG_LINUX 
     TSmartProgress *SmartProgress;
 	#endif
 
@@ -177,7 +177,7 @@ public:
     __fastcall TBeamSolver();
     __fastcall ~TBeamSolver();
 
-    #ifndef RSLINAC
+    #ifndef RSHELLWEG_LINUX
     void AssignSolverPanel(TObject *SolverPanel);
     #endif
 
@@ -272,7 +272,7 @@ public:
 	double *GetStructureParameters(TStructureParameter P);
 
 	TError Solve();
-	#ifndef RSLINAC
+	#ifndef RSHELLWEG_LINUX
 	TResult Output(AnsiString& FileName,TMemo *Memo=NULL);
     #else
     TResult Output(AnsiString& FileName);

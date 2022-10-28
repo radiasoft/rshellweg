@@ -11,9 +11,9 @@ INCLUDES := $(wildcard $(HPP_DIR)/*.hpp) $(wildcard $(H_DIR)/*.h)
 SRC := $(foreach d, $(subst :, ,$(SRC_PATH)), $(wildcard $(d)/*.cpp)) pyhellweg.cpp
 OBJ :=$(addprefix $(BUILD_DIR)/,$(notdir $(SRC:%.cpp=%.o)))
 TGT := $(BUILD_DIR)/pyhellweg$(PY_EXT_SUFFIX)
-INSTALL_DIR :=  rslinac
+INSTALL_DIR :=  rshellweg
 LOCAL_INCLUDE := $(HOME)/.local/include
-CPPFLAGS := -pthread -Wno-unused-result -Wsign-compare -DNDEBUG -g -O0 -fwrapv -Wall -fPIC -DRSLINAC=1 -I$(HPP_DIR) -I$(H_DIR) -I$(PY_PLATINCLUDE) -I$(PY_INCLUDE) -I$(LOCAL_INCLUDE) -std=c++11
+CPPFLAGS := -pthread -Wno-unused-result -Wsign-compare -DNDEBUG -g -O0 -fwrapv -Wall -fPIC -DRSHELLWEG_LINUX=1 -I$(HPP_DIR) -I$(H_DIR) -I$(PY_PLATINCLUDE) -I$(PY_INCLUDE) -I$(LOCAL_INCLUDE) -std=c++11
 
 LDFLAGS := -shared -L$(PY_LIBDIR)
 
@@ -23,7 +23,7 @@ install: all
 	install -m 555 $(TGT) $(INSTALL_DIR)/$(notdir $(TGT))
 
 clean:
-	rm -rf $(BUILD_DIR) rslinac/pyhellweg*so
+	rm -rf $(BUILD_DIR) rshellweg/pyhellweg*so
 
 pyhellweg.cpp: pyhellweg.pyx
 	cythonize $^

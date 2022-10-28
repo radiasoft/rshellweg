@@ -1,4 +1,4 @@
-Welcome to rslinac
+Welcome to rshellweg
 =================
 
 description
@@ -6,7 +6,7 @@ description
 .. toctree::
    :maxdepth: 2
 
-   rslinac
+   rshellweg
    modules
 
 Indices and tables

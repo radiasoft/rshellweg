@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""rslinac setup script
+"""rshellweg setup script
 
 :copyright: Copyright (c) 2016 RadiaSoft LLC.  All Rights Reserved.
 :license: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -31,12 +31,12 @@ def _get_compile_args():
 
 
 pykern.pksetup.setup(
-    name="rslinac",
+    name="rshellweg",
     author="RadiaSoft LLC",
     author_email="pip@radiasoft.net",
     description="description",
     license="http://www.apache.org/licenses/LICENSE-2.0.html",
-    url="https://github.com/radiasoft/rslinac",
+    url="https://github.com/radiasoft/rshellweg",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Environment :: Console",
@@ -49,8 +49,8 @@ pykern.pksetup.setup(
     ext_modules=Cython.Build.cythonize(
         [
             setuptools.Extension(
-                name="rslinac.pyhellweg",
-                define_macros=[("RSLINAC", 1)],
+                name="rshellweg.pyhellweg",
+                define_macros=[("RSHELLWEG_LINUX", 1)],
                 include_dirs=[_LIB_DIR, _PHYS_DIR],
                 sources=_get_src_files(_PHYS_DIR, "cpp")
                 + _get_src_files(_LIB_DIR, "cpp")

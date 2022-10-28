@@ -1,5 +1,5 @@
 ### Utilities for modeling [linacs](https://en.wikipedia.org/wiki/Linear_particle_accelerator)
-The rslinac repository is where RadiaSoft maintains open source software for modeling linacs.  'Linac' is a long-time nickname for 'linear accelerator'. This includes the Hellweg C++ physics kernel, the Windows-only Hellweg GUI, and associated Python code for testing. In the future, rslinac will be broadened to include other software specific to modeling linacs.
+The rshellweg repository is where RadiaSoft maintains open source software for modeling linacs.  'Linac' is a long-time nickname for 'linear accelerator'. This includes the Hellweg C++ physics kernel, the Windows-only Hellweg GUI, and associated Python code for testing. In the future, rshellweg will be broadened to include other software specific to modeling linacs.
 
 #### Support
 For support or more information, please [create an issue](https://github.com/radiasoft/rslinac/issues) in this repository.
@@ -24,7 +24,7 @@ Hellweg has a GUI for use on Windows, if compiled with [Embarcadero's C++ Builde
 
 We provide a [User Guide](https://github.com/radiasoft/rslinac/tree/master/docs) and a [Suite of Examples](https://github.com/radiasoft/rslinac/tree/master/src/examples).
 
-The Hellweg physics kernel compiles on Linux without the GUI. The C++ physics kernel provides an API that is called from Python. These Python-wrapped capabilities are referred to as 'rslinac'.
+The Hellweg physics kernel compiles on Linux without the GUI. The C++ physics kernel provides an API that is called from Python. These Python-wrapped capabilities are referred to as 'rshellweg'.
 
 ### Publications
 S.V. Kutsaev, “Electron dynamics simulations with Hellweg 2D code”, [Nuclear Instruments and Methods in Physics Research A618, pp. 298–305](http://www.sciencedirect.com/science/article/pii/S0168900210003141) (2010).
@@ -40,7 +40,7 @@ S.V. Kutsaev, Y. Eidelman and D.L. Bruhwiler, “Generalized 3D beam dynamics mo
 S.V. Kutsaev, Y. Eidelman and D.L. Bruhwiler, “Self-consistent 3D beam dynamics model with space charge for Hellweg code enhancement” (2019), in preparation.
 
 ### Support
-Support for Hellweg and rslinac development has been provided by the US Department of Energy, Office of Science, Office of High Energy Physics under Award # DE-SC0015897. Additional support has been provided by [RadiaSoft LLC](http://radiasoft.net) and [RadiaBeam Technologies, LLC](http://radiabeam.com/).
+Support for Hellweg and rshellweg development has been provided by the US Department of Energy, Office of Science, Office of High Energy Physics under Award # DE-SC0015897. Additional support has been provided by [RadiaSoft LLC](http://radiasoft.net) and [RadiaBeam Technologies, LLC](http://radiabeam.com/).
 
 ### License
 License: http://www.apache.org/licenses/LICENSE-2.0.html

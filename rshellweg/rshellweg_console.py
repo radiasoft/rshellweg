@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Front-end command line for :mod:`rslinac`.
+"""Front-end command line for :mod:`rshellweg`.
 
 See :mod:`pykern.pkcli` for how this module is used.
 
@@ -14,7 +14,7 @@ from pykern import pkcli
 
 
 def main():
-    return pkcli.main("rslinac")
+    return pkcli.main("rshellweg")
 
 
 if __name__ == "__main__":
