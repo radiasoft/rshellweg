@@ -34,7 +34,7 @@ __fastcall TBeamSolver::~TBeamSolver()
         delete[] K[i];
     delete[] K;
 
-    #ifndef RSLINAC
+    #ifndef RSHELLWEG_LINUX
 	if (SmartProgress!=NULL)
         delete SmartProgress;
     #endif
@@ -122,7 +122,7 @@ void TBeamSolver::Initialize()
 
 	BeamExport=NULL;
 
-    #ifndef RSLINAC
+    #ifndef RSHELLWEG_LINUX
     SmartProgress=NULL;
     #endif
 }
@@ -256,7 +256,7 @@ void TBeamSolver::ResetDump(int Ns)
 //---------------------------------------------------------------------------
 void TBeamSolver::ShowError(AnsiString &S)
 {
-	 /*   #ifndef RSLINAC
+	 /*   #ifndef RSHELLWEG_LINUX
 	ShowMessage(S);
         #endif           */
 	ParsedStrings->Add(S);
@@ -336,7 +336,7 @@ bool TBeamSolver::LoadFromFile(AnsiString& Fname)
     return Success;
 }
 //---------------------------------------------------------------------------
-#ifndef RSLINAC
+#ifndef RSHELLWEG_LINUX
 void TBeamSolver::AssignSolverPanel(TObject *SolverPanel)
 {
     SmartProgress=new TSmartProgress(static_cast <TWinControl *>(SolverPanel));
@@ -4093,7 +4093,7 @@ double *TBeamSolver::GetStructureParameters(TStructureParameter P)
 void TBeamSolver::Abort()
 {
 	SolverStop=ERR_ABORT;
-	#ifndef RSLINAC
+	#ifndef RSHELLWEG_LINUX
 	SmartProgress->ShowMessage("Aborted");
 	#endif
 }
@@ -4534,7 +4534,7 @@ void TBeamSolver::CountLiving(int Si)
 			fprintf(F,"\n");
 		}
 		fclose(F);   */
-		#ifndef RSLINAC
+		#ifndef RSHELLWEG_LINUX
 		AnsiString S="Beam Lost!";
 		ShowError(S);
         SmartProgress->ShowMessage(S.c_str());
@@ -5191,7 +5191,7 @@ void TBeamSolver::Step(int Si)
 //---------------------------------------------------------------------------
 TError TBeamSolver::Solve()
 {
-	#ifndef RSLINAC
+	#ifndef RSHELLWEG_LINUX
 	if (SmartProgress==NULL){
 		//ShowMessage("System Message: ProgressBar not assigned! Code needs to be corrected");
         return ERR_OTHER;
@@ -5268,13 +5268,13 @@ TError TBeamSolver::Solve()
 			Beam[i+1]->Particle[j].phi-=Structure[i+1].dF;
 		}
 
-		#ifndef RSLINAC
+		#ifndef RSHELLWEG_LINUX
 		SmartProgress->operator ++();
 		Application->ProcessMessages();
 		#endif
 		if (SolverStop!=ERR_NO){
 
-			#ifndef RSLINAC
+			#ifndef RSHELLWEG_LINUX
 			AnsiString S="Solve Process Aborted!";
 			ShowError(S);
 			if (SolverStop==ERR_ABORT)
@@ -5293,7 +5293,7 @@ TError TBeamSolver::Solve()
 
    //
 
-    #ifndef RSLINAC
+    #ifndef RSHELLWEG_LINUX
     SmartProgress->SetPercent(100);
 	SmartProgress->SetTime(0);
 	SmartProgress->TerminateTime();
@@ -5303,7 +5303,7 @@ TError TBeamSolver::Solve()
 	return ERR_NO;
 }
 //---------------------------------------------------------------------------
-#ifndef RSLINAC
+#ifndef RSHELLWEG_LINUX
 TResult TBeamSolver::Output(AnsiString& FileName,TMemo *Memo)
 #else
 TResult TBeamSolver::Output(AnsiString& FileName)
@@ -5502,7 +5502,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	OutputStrings->Add("========================================");
 
 
-    #ifndef RSLINAC
+    #ifndef RSHELLWEG_LINUX
 	if (Memo!=NULL){
 		Memo->Lines->AddStrings(OutputStrings);
                 Memo->Lines->SaveToFile(FileName);

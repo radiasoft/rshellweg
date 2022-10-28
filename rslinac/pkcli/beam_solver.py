@@ -6,12 +6,12 @@
 """
 from __future__ import absolute_import, division, print_function
 from pykern import pkcli
-from rslinac.pyhellweg import PyHellwegCppException
+from rshellweg.pyhellweg import PyHellwegCppException
 import os
 import py.path
 import six
 import sys
-import rslinac.pyhellweg
+import rshellweg.pyhellweg
 
 
 def _normalize_path_arg(path, **kw):
@@ -57,7 +57,7 @@ def run(ini_file, input_file, output_file):
     Raises:
         PyHellwegCppException: if an error occurrs within the Beam Solver
     """
-    rslinac.pyhellweg.run_beam_solver(
+    rshellweg.pyhellweg.run_beam_solver(
         _normalize_path_arg(ini_file, file=True, exists=True),
         _normalize_path_arg(input_file, file=True, exists=True),
         _normalize_path_arg(output_file, exists=False),

@@ -25,7 +25,7 @@ set(PHYS_SRC ${PHYS_DIR}/BeamSolver.cpp ${PHYS_DIR}/Spline.cpp ${PHYS_DIR}/Matri
 
 set(BUILDER_SRC AnsiString.cpp TStringList.cpp IniFiles.cpp)
 
-add_definitions(-DRSLINAC)
+add_definitions(-DRSHELLWEG_LINUX)
 
 find_package(Boost)
 

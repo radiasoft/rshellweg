@@ -14,7 +14,7 @@
 #include <cmath>
 #include <cstdlib>
 
-#ifndef RSLINAC
+#ifndef RSHELLWEG_LINUX
 
 #include <system.hpp>
 #include <conio.h>
@@ -67,7 +67,7 @@ enum TParticleType {ELECTRON, PROTON, ION};
 const int MaxParameters=14;  //Maximum number of parameters after a keyword. Currently: BEAM
 const int NumBessel=6;
 
-#ifdef RSLINAC
+#ifdef RSHELLWEG_LINUX
 typedef long double Extended;
 
 inline Extended DegToRad(const Extended Degrees) {

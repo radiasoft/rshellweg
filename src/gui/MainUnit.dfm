@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Left = 0
   Top = 0
-  Caption = 'Hellweg (RsLinac) v. 10/19/22'
+  Caption = 'Hellweg (rshellweg) v. 10/19/22'
   ClientHeight = 741
   ClientWidth = 593
   Color = clBtnFace

@@ -4,7 +4,7 @@
 :copyright: Copyright (c) 2016 RadiaSoft LLC.  All Rights Reserved.
 :license: http://www.apache.org/licenses/LICENSE-2.0.html
 """
-import rslinac.pyhellweg
+import rshellweg.pyhellweg
 
 
 def _b(o):
@@ -13,7 +13,7 @@ def _b(o):
 
 class BeamSolver(object):
     def __init__(self, ini_path, input_path):
-        self._solver = rslinac.pyhellweg.PyHellwegBeamSolver(
+        self._solver = rshellweg.pyhellweg.PyHellwegBeamSolver(
             _b(ini_path),
             _b(input_path),
         )

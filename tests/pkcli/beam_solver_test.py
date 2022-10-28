@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""rslinac.pkcli.beam_solver tests
+"""rshellweg.pkcli.beam_solver tests
 
 :copyright: Copyright (c) 2016 RadiaSoft LLC.  All Rights Reserved.
 :license: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -13,7 +13,7 @@ def test_beam_solver():
     """Ensure BeamSolver interface solves and produces output"""
     from pykern import pkio
     from pykern.pkunit import pkeq
-    from rslinac.solver import BeamSolver
+    from rshellweg.solver import BeamSolver
 
     f = _files()
     with pkunit.save_chdir_work():
@@ -48,7 +48,7 @@ def test_run_beam_solver():
             "Solenoid.txt", pkio.read_text(pkunit.data_dir().join("Solenoid.txt"))
         )
         # for now beam_solver modifies some global state so it needs a new process
-        os.system(f"rslinac beam_solver run {f['ini']} {f['input']} {f['output']}")
+        os.system(f"rshellweg beam_solver run {f['ini']} {f['input']} {f['output']}")
         assert f["output"].exists()
         for outfile in ("PARSED.TXT", "test1.pid"):
             expect = pkunit.data_dir().join(outfile)
@@ -58,7 +58,7 @@ def test_run_beam_solver():
 
 def test_run_deviance():
     """Incorrect arguments should raise exceptions"""
-    from rslinac.pkcli import beam_solver
+    from rshellweg.pkcli import beam_solver
     from pykern import pkcli
 
     f = _files()
@@ -87,7 +87,7 @@ def _files():
 
     return {
         "existing": existing_filename,
-        "ini": d.join("rslinac.ini"),
+        "ini": d.join("rshellweg.ini"),
         "input": d.join("input.txt"),
         "output": w.join("output.txt"),
         "not found": w.join("guaranteed not to exist"),

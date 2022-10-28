@@ -1,6 +1,6 @@
-from rslinac.solver import BeamSolver
+from rshellweg.solver import BeamSolver
 
-INI = "rslinac.ini"
+INI = "rshellweg.ini"
 INPUT = "input.txt"
 OUTPUT_BIN = "output.bin"
 OUTPUT_TXT = "output.txt"
