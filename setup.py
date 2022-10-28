@@ -36,7 +36,7 @@ pykern.pksetup.setup(
     author_email="pip@radiasoft.net",
     description="description",
     license="http://www.apache.org/licenses/LICENSE-2.0.html",
-    url="https://github.com/radiasoft/rslinac",
+    url="https://github.com/radiasoft/rshellweg",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Environment :: Console",
