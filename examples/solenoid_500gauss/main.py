@@ -9,7 +9,7 @@ from rshellweg.solver import BeamSolver
 
 cwd = os.getcwd()
 null_file = os.path.join(cwd, 'rshellweg.ini')
-input_file = os.path.join(cwd, 'test_01.txt')
+input_file = os.path.join(cwd, 'solenoid_500gauss_30kev.txt')
 
 print(' ')
 print(' Invoking the solver...')
