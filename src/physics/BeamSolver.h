@@ -29,7 +29,7 @@ private:
     //FLAGS
 	bool DataReady;
 	AnsiString UserIniPath ;
-    TError SolverStop;
+	TError SolverStop;
 
 	//BEAM
 	TBeamInput BeamPar;
@@ -66,12 +66,12 @@ private:
 	bool ReadSolenoid(int Nz,double *Z,double* B);
 
 	//OTHER
-    #ifndef RSLINAC 
-    TSmartProgress *SmartProgress;
+	#ifndef RSLINAC 
+	TSmartProgress *SmartProgress;
 	#endif
 
 	//INITIALIZATION & PARSING
-    void Initialize();
+	void Initialize();
 	void LoadIniConstants();
 	double DefaultFrequency(int N);
 
@@ -85,7 +85,7 @@ private:
 	TError ParseSolenoid (TInputLine *Line);
 	TError ParseBeam (TInputLine *Line);
 	TError ParseCurrent (TInputLine *Line);
-    TError ParseParticleType (TInputLine *Line);
+	TError ParseParticleType (TInputLine *Line);
 	TError ParseStruct (TInputLine *Line, int Ni);
 	TError ParseCell (TInputLine *Line,int Ni,int Nsec, bool NewCell);
 	TError ParseSingleCell (TInputLine *Line,int Ni,int Nsec, bool NewCell);
@@ -99,7 +99,7 @@ private:
 	TError ParseStructFile (TStructData &D, AnsiString &F);
 	TError ParsePID (TInputLine *Line, AnsiString &F);
 	TError ParsePIT (TInputLine *Line, AnsiString &F);
-    TError ParseT2 (TInputLine *Line, AnsiString &F);
+	TError ParseT2 (TInputLine *Line, AnsiString &F);
 	TError ParseFile2R (TInputLine *Line, AnsiString &F, int Nr);
 	TError ParseFile1Z (TInputLine *Line, AnsiString &F, int Nz,int Zpos);
 	TError ParseFile2Z (TInputLine *Line, AnsiString &F, int Nz,int Zpos);
@@ -133,8 +133,9 @@ private:
 
 	//INTERPOLATION
 	double *LinearInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
-    double *SplineInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
-    double *SmoothInterpolation(double *x,double *X,double *Y,int Nbase,int Nint,double p0,double *W=NULL);
+	double *SplineInterpolation(double *x,double *X,double *Y,int Nbase,int Nint);
+	double *SmoothInterpolation(double *x,double *X,double *Y,int Nbase,int Nint,double p0,double *W=NULL);
+	
 	void GetDimensions(TCell& Cell);
 	void GetDimensionsFromTab(TCell& Cell);
 	void GetDimensionsFromFile(TCell& Cell,TStructData *D);
@@ -146,12 +147,12 @@ private:
 	void DumpFile(ofstream &fo,TDump *ExportParameters,int j);
 	void DumpASTRA(ofstream &fo,TDump *ExportParameters,int j,int jref);
 	void DumpCST(ofstream &fo,TDump *ExportParameters,int j);
-	void DumpT2(ofstream &fo,TDump *ExportParameters,int j);
+	void DumpT2(ofstream &fo, TDump *ExportParameters, int j);
 	void DumpBeam(int Sn);
 	void DumpBeam(TDump *ExportParameters);
 	void Step(int Si);
 	void Integrate(int Si, int Sj);
-    void SpaceCharge(int Si, int Sj);
+	void SpaceCharge(int Si, int Sj);
 	void CountLiving(int Si);
 	TIntegration **K;
 	TIntParameters *Par;
@@ -173,7 +174,7 @@ protected:
 
 public:
     //INITIALIZATION
-	__fastcall TBeamSolver(AnsiString _Path);
+    __fastcall TBeamSolver(AnsiString _Path);
     __fastcall TBeamSolver();
     __fastcall ~TBeamSolver();
 
@@ -185,8 +186,8 @@ public:
 
     AnsiString InputFile;
 
-	TError LoadData(int Nlim=-1);
-	TError LoadData(AnsiString LogFileName, int Nlim=-1);
+    TError LoadData(int Nlim=-1);
+    TError LoadData(AnsiString LogFileName, int Nlim=-1);
 
     TError MakeBuncher(TCell& iCell);
 

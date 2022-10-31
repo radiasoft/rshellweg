@@ -41,11 +41,14 @@ enum TError {ERR_NO,ERR_NOFILE,ERR_OPENFILE,ERR_COUPLER,ERR_SOLENOID,ERR_BEAM,ER
 				ERR_CURRENT,ERR_DRIFT,ERR_CELL,ERR_CELLS,ERR_OPTIONS,ERR_DUMP,ERR_PARTICLE,
 				ERR_FORMAT,ERR_IMPORT,ERR_SPCHARGE,ERR_ABORT,ERR_STRUCT,ERR_OTHER};
 
-enum TBeamParameter {R_PAR,TH_PAR,BR_PAR,BTH_PAR,BZ_PAR,PHI_PAR,Z0_PAR,ZREL_PAR,BETA_PAR,X_PAR,Y_PAR,BX_PAR,BY_PAR,
-					AR_PAR,ATH_PAR,AX_PAR,AY_PAR,AZ_PAR,W_PAR,RTH_PAR,NO_PAR,LIVE_PAR} ;
+enum TBeamParameter {R_PAR,TH_PAR, BR_PAR,BTH_PAR,BZ_PAR, PHI_PAR,Z0_PAR,ZREL_PAR, BETA_PAR, X_PAR,Y_PAR, BX_PAR,BY_PAR,
+			GBX_PAR, GBY_PAR, GBZ_PAR, GBR_PAR, GBTH_PAR, GAMMA_PAR,
+			AR_PAR,ATH_PAR,AX_PAR,AY_PAR,AZ_PAR,W_PAR,RTH_PAR,NO_PAR,LIVE_PAR} ;
+
 enum TStructureParameter {KSI_PAR,Z_PAR,A_PAR,RP_PAR,ALPHA_PAR,SBETA_PAR,RA_PAR,RB_PAR,BZ_EXT_PAR,BR_EXT_PAR,NUM_PAR,
 					E0_PAR,EREAL_PAR,PRF_PAR,PBEAM_PAR,BBETA_PAR,WAV_PAR,WMAX_PAR,XB_PAR,YB_PAR,
 					ER_PAR,EX_PAR,EY_PAR,ENR_PAR,ENX_PAR,ENY_PAR,E4D_PAR,E4DN_PAR,ET_PAR,ENT_PAR} ;
+
 enum TSplineType {ZSPLINE,LSPLINE,CSPLINE,SSPLINE};
 enum TChartType {CH_EMITTANCE,CH_SECTION,CH_PORTRAIT,CH_PHASE,CH_ENERGY,CH_BETTA,CH_A,CH_B,CH_ELP,CH_ATT,CH_APP,CH_BEXT,CH_CLEAR};
 
@@ -222,6 +225,7 @@ struct TParticle
         double z; 
 
         TField gb; // gamma*\vec{beta}
+        double g;  // gamma 
         double phi;
         
 	TLoss lost;
@@ -272,11 +276,11 @@ struct TCell
     double Mode;
     double F0;
     double P0;
-	double dF;
-	int Mesh;
+    double dF;
+    int Mesh;
     bool Drift;
-	bool First;
-	TMagnetParameters Magnet;
+    bool First;
+    TMagnetParameters Magnet;
    /*	bool Dump;
 	TDump DumpParameters;  */
 };
@@ -292,15 +296,15 @@ struct TStructure
     double B;
     double alpha;
     double betta;
-	double Ra;
-	TFieldMap2D Bmap;
+    double Ra;
+    TFieldMap2D Bmap;
 	//TField Hext;
    /*	double Bz_ext;
 	double Br_ext;   */
 	//TFieldMap Hext;
     bool jump;
     bool drift;
-	int CellNumber;
+    int CellNumber;
   /*	bool Dump;
 	TDump DumpParameters;    */
 };
@@ -430,7 +434,7 @@ struct TIntParameters
 	double Br_ext;  */
 	double dH;
 	//double Cmag;
-    double SumSin;
+	double SumSin;
 	double SumCos;
 	TField *Eq;
 	/*double *Aqz;

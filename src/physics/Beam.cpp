@@ -12,7 +12,7 @@ __fastcall TBeam::TBeam(int N)
     Nbars=200;
     Kernel=0.95;
     lmb=1;
-	Cmag=0;
+    Cmag=0;
     W0=We0;
     SetKernel(Kernel);
 
@@ -180,13 +180,15 @@ bool TBeam::ImportEnergy(TBeamInput *BeamPar)
 			switch (BeamPar->ZBeamType){
 				case FILE_1D:
 				{
-					Particle[i].beta0=MeVToVelocity(X[0][i],W0);
+					//IVP  Particle[i].beta0=MeVToVelocity(X[0][i],W0);
+					Particle[i].g = MeVToGamma(X[0][i], W0);
 					break;
 				}
 				case FILE_2D:
 				{
 					Particle[i].phi=DegreeToRad(X[0][i]);
-					Particle[i].beta0=MeVToVelocity(X[1][i],W0);
+					//IVP  Particle[i].beta0=MeVToVelocity(X[1][i],W0);
+					Particle[i].g = MeVToGamma(X[0][i], W0);
 					break;
 				}
 				default: {};
@@ -225,7 +227,7 @@ bool TBeam::BeamFromImport(TBeamInput *BeamPar)
    /*FILE *logFile;
 	logFile=fopen("BeamImport.log","w");    */
 
-	X=ImportFromFile(BeamPar->RBeamType,BeamPar,true);
+	X = ImportFromFile(BeamPar->RBeamType, BeamPar, true);
 
 	if (X!=NULL) {
 		for (int i = 0; i < BeamPar->NParticles; i++) {
@@ -233,7 +235,7 @@ bool TBeam::BeamFromImport(TBeamInput *BeamPar)
 				case CST_PIT:
 				{
 					t=X[9][i];
-					Particle[i].phi=-2*pi*t*c/lmb;
+					Particle[i].phi = -2*pi*t*c/lmb;
 					if (BeamPar->ZCompress){
 					   /*	int phase_dig=-DigitConst*Particle[i].phi;
 						int max_dig=DigitConst*2*pi;
@@ -271,6 +273,22 @@ bool TBeam::BeamFromImport(TBeamInput *BeamPar)
 
 					//fprintf(logFile,"%f %f %f\n",px,pr*cos(th)-pth*sin(th),px-pr*cos(th)+pth*sin(th));
 					IVP */
+					x = X[0][i];
+                                        y = X[1][i];
+                                        z = X[2][i];
+                                        gbx = X[3][i]; // gamma*beta_x 
+                                        gby = X[4][i];
+                                        gbz = X[5][i];
+
+                                        C = CartesianToCylinrical(x, y, gbx, gby);
+                                        r = C.x;
+					Particle[i].r = r /lmb; 
+                                        th = C.y;
+					Particle[i].th = th; 
+                                        Particle[i].gb.r = C.px;
+                                        Particle[i].gb.th = C.py; 
+					Particle[i].gb.z = gbz; 
+					Particle[i].g = sqrt(1. +sqr(gbx) +sqr(gby) +sqr(gbz));
                     break;
 				}
 				case PARMELA_T2:
@@ -283,6 +301,7 @@ bool TBeam::BeamFromImport(TBeamInput *BeamPar)
 					W=X[5][i];     //MeV (kinetic) 
 
 					gamma = MeVToGamma(W, W0); 
+					Particle[i].g = gamma; 
 					gb = sqrt(sqr(gamma) -1.); 
 					gbx = gb *px /sqrt(1. +sqr(px) +sqr(py)); 
 					gby = gb *py /sqrt(1. +sqr(px) +sqr(py)); 
@@ -621,7 +640,7 @@ TPhaseSpace *TBeam::MakeTwissDistribution(TTwiss T)
    	return X;
 }
 //---------------------------------------------------------------------------
-void TBeam::SetParameters(double *X,TBeamParameter Par)
+void TBeam::SetParameters(double *X, TBeamParameter Par)
 {
 	switch (Par) {
 		case (R_PAR):{
@@ -629,36 +648,56 @@ void TBeam::SetParameters(double *X,TBeamParameter Par)
 				Particle[i].r=X[i];
 			break;
 		}
-		case (BR_PAR):{
-            for (int i=0;i<Np;i++)
-				Particle[i].beta.r=X[i];
-            break;
-        }
+		//IVP case (BR_PAR):{
+		//IVP 	for (int i=0;i<Np;i++)
+		//IVP 		Particle[i].beta.r=X[i];
+		//IVP 	break;
+		//IVP }
 		case (TH_PAR):{
-            for (int i=0;i<Np;i++)
+			for (int i=0;i<Np;i++)
 				Particle[i].th=X[i];
-            break;
-        }
-        case (BTH_PAR):{
-            for (int i=0;i<Np;i++)
-				Particle[i].beta.th=X[i];
-            break;
-        }
+			break;
+		}
+		//IVP case (BTH_PAR):{
+		//IVP 	for (int i=0;i<Np;i++)
+		//IVP 		Particle[i].beta.th=X[i];
+		//IVP 	break;
+		//IVP }
 		case (PHI_PAR):{
-            for (int i=0;i<Np;i++)
-                Particle[i].phi=X[i];
-            break;
-        }
-		case (BETA_PAR):{
 			for (int i=0;i<Np;i++)
-				Particle[i].beta0=MeVToVelocity(X[i],W0);
+				Particle[i].phi=X[i];
 			break;
 		}
-		case (BZ_PAR):{
-			for (int i=0;i<Np;i++)
-				Particle[i].beta.z=X[i];
-			break;
-		}
+		//IVP case (BETA_PAR):{
+		//IVP 	for (int i=0;i<Np;i++)
+		//IVP 		Particle[i].beta0=MeVToVelocity(X[i],W0);
+		//IVP 	break;
+		//IVP }
+		//IVP case (BZ_PAR):{
+		//IVP 	for (int i=0;i<Np;i++)
+		//IVP 		Particle[i].beta.z=X[i];
+		//IVP 	break;
+		//IVP }
+		case (GBR_PAR):{
+                        for (int i=0; i<Np; i++)
+                                Particle[i].gb.r = X[i];
+                        break;
+                }
+		case (GBTH_PAR):{
+                        for (int i=0; i<Np; i++)
+                                Particle[i].gb.th = X[i];
+                        break;
+                }
+		case (GBZ_PAR):{
+                        for (int i=0; i<Np; i++)
+                                Particle[i].gb.z = X[i];
+                        break;
+                }
+		case (GAMMA_PAR):{
+                        for (int i=0; i<Np; i++)
+                                Particle[i].g = MeVToGamma(X[i], W0);
+                        break;
+                }
         default:
 			throw std::runtime_error("SetParameters error: Unhandled TBeamParameter value");
 	}
@@ -811,9 +850,9 @@ TEllipse TBeam::FindEmittanceAngle(TBeamParameter P)
 	Beam1->SetKernel(Kernel);
 
 	double Ang0=-pi/2, Ang1=pi/2, dAngle,Angle;
-    double Angle1,Angle2,Res;
-    double Sx=0,Sbx=0;
-    double Sy=0,Sby=0;
+	double Angle1,Angle2,Res;
+	double Sx=0,Sbx=0;
+	double Sy=0,Sby=0;
 	double Err=1e-5;
 	int Nmax=30;
 
@@ -826,9 +865,9 @@ TEllipse TBeam::FindEmittanceAngle(TBeamParameter P)
 
 	//P1=ComplementaryParameter(P);
 	switch (P) {
-		case R_PAR:{P1=BR_PAR;break;}
-		case X_PAR:{P1=BX_PAR;break;}
-		case Y_PAR:{P1=BY_PAR;break;}
+		case R_PAR:{P1 = BR_PAR; break;}
+		case X_PAR:{P1 = BX_PAR; break;}
+		case Y_PAR:{P1 = BY_PAR; break;}
 		default: {P1=NO_PAR;};
 	}
 
@@ -843,10 +882,10 @@ TEllipse TBeam::FindEmittanceAngle(TBeamParameter P)
 	dAngle=(Ang1-Ang0)/2;
 	Angle=Ang0+dAngle;
 
-    int i=0;
+	int i=0;
 	while (dAngle>Err && i<Nmax){
-        dAngle/=2;
-        Angle1=Angle+dAngle;
+        	dAngle/=2;
+        	Angle1=Angle+dAngle;
 		Angle2=Angle-dAngle;
 
 		int j=0;
@@ -1111,16 +1150,19 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 	return T;
 }
 //---------------------------------------------------------------------------
-double TBeam::GetParameter(int i,TBeamParameter P)
+double TBeam::GetParameter(int i, TBeamParameter P)
 {
 	double x=0;
+	double gb0; 
 	TPhaseSpace C,R;
 
 	if (IsRectangular(P)) {
 		C.x=Particle[i].r;
 		C.y=Particle[i].th;
-		C.px=Particle[i].beta.r;//Particle[i].beta;
-		C.py=Particle[i].beta.th;//Particle[i].beta;
+		//IVP  C.px=Particle[i].beta.r;//Particle[i].beta;
+		//IVP  C.py=Particle[i].beta.th;//Particle[i].beta;
+		C.px = Particle[i].gb.r; 
+		C.py = Particle[i].gb.th; 
 		R=CylinricalToCartesian(C);
 	   //	C=CartesianToCylinrical(R);
 	}
@@ -1146,7 +1188,7 @@ double TBeam::GetParameter(int i,TBeamParameter P)
 			x=R.y*lmb;
 			break;
 		}
-
+		/* IVP
 		case (BR_PAR):{
 			//x=Particle[i].beta.r;//*sign(Particle[i].r);
 			x=Particle[i].beta.r*sign(Particle[i].r);
@@ -1170,25 +1212,54 @@ double TBeam::GetParameter(int i,TBeamParameter P)
 			x=Particle[i].beta.z;
 			break;
 		}
+		IVP */
+
+		case (GBR_PAR):{
+                        x = Particle[i].gb.r;//*sign(Particle[i].r); Can Particle[i].r be < 0?? 
+                        //x=Particle[i].beta.r*sign(Particle[i].r);
+                        break;
+                }
+                case (GBTH_PAR):{  //bth=r*th_dot
+                        x = Particle[i].gb.th;//*Particle[i].r;;
+                        break;
+                }
+                case (GBX_PAR):{
+                        x = R.px; 
+                        break;
+                }
+                case (GBY_PAR):{
+                        x = R.py; 
+                        break;
+                }
+                case (GBZ_PAR):{
+                        x = Particle[i].gb.z;
+                        break;
+                }		
 
 		case (AR_PAR):{
 			//x=arctg(Particle[i].Br/Particle[i].beta);
-			x=atan2(Particle[i].beta.r,Particle[i].beta0);
+			//IVP  x=atan2(Particle[i].beta.r,Particle[i].beta0);
 			//x=atan2(C.px,Particle[i].Bz);
+			gb0 = sqrt(sqr(Particle[i].g) -1.);
+			x = atan2(Particle[i].gb.r, gb0);
 			break;
 		}
 		case (ATH_PAR):{   //th'=bth/(r*bz)
 			//x=arctg(C.py/Particle[i].beta)/(Particle[i].r*lmb);
-			x=atan2(Particle[i].beta.th,Particle[i].beta0);
+			//IVP  x=atan2(Particle[i].beta.th,Particle[i].beta0);
 			//x=atan2(C.py,Particle[i].Bz);
+			gb0 = sqrt(sqr(Particle[i].g) -1.);
+                        x = atan2(Particle[i].gb.th, gb0); 
 			break;
 		}
 		case (AX_PAR):{
-			x=atan2(R.px,Particle[i].beta.z);
+			//IVP x=atan2(R.px,Particle[i].beta.z);
+			x = atan2(R.px, Particle[i].gb.z);
 			break;
 		}
 		case (AY_PAR):{
-			x=atan2(R.py,Particle[i].beta.z);
+			//IVP x=atan2(R.py,Particle[i].beta.z); 
+			x = atan2(R.py, Particle[i].gb.z); 
 			break;
 		}
 		case (AZ_PAR):{
@@ -1200,7 +1271,7 @@ double TBeam::GetParameter(int i,TBeamParameter P)
 			x=Particle[i].phi;
 			break;
 		}
-        case (ZREL_PAR):{
+		case (ZREL_PAR):{
 			//x=lmb*(Particle[i].phi-Particle[i].phi0)/(2*pi);
 			x=lmb*Particle[i].phi/(2*pi);
 			break;
@@ -1209,12 +1280,17 @@ double TBeam::GetParameter(int i,TBeamParameter P)
 			x=Particle[i].z;
 			break;
 		}
-		case (BETA_PAR):{
-			x=Particle[i].beta0;
-			break;
-		}
-		case (W_PAR):{
-			x=VelocityToMeV(Particle[i].beta0,W0);
+		//IVP case (BETA_PAR):{
+		//IVP 	x=Particle[i].beta0;
+		//IVP 	break;
+		//IVP }
+		case (GAMMA_PAR):{
+                        x = Particle[i].g;
+                        break;
+                }
+		case (W_PAR):{  // kinetic 
+			//IVP  x=VelocityToMeV(Particle[i].beta0,W0);
+			x = GammaToMeV(Particle[i].g, W0);
 			break;
 			}
 		case (LIVE_PAR):{
@@ -1611,9 +1687,9 @@ TGauss TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices)
 
     for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){
-			phi=Particle[i].phi;
-			Iphi=I[i].phi;
-			x=phi+Iphi*Par.h;
+			phi = Particle[i].phi;
+			Iphi = I[i].phi;
+			x = phi +Iphi*Par.h;
 
 			/* IVP 
 			beta=Particle[i].beta.z;
@@ -1625,7 +1701,7 @@ TGauss TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices)
                         gammai = sqrt(1. +sqr(I[i].gb.r) +sqr(I[i].gb.th) +sqr(I[i].gb.z));
                         b = Particle[i].gb.z /gamma +I[i].gb.z *Par.h /gammai;
 
-			L[j]=x*b*lmb/(2*pi);
+			L[j] = x*b*lmb/(2*pi);
 			j++;
 		}
 	}
@@ -1904,14 +1980,14 @@ void TBeam::Integrate(TIntParameters& Par, TIntegration **I, int Si)
                         //IVP beta0=sqrt(sqr(beta.z)+sqr(beta.r)+sqr(beta.th));
 			gb.r = Particle[i].gb.r +I[Si][i].gb.r *Par.h;
                         gb.th = Particle[i].gb.th +I[Si][i].gb.th *Par.h;
-                        beta0 = sqrt(sqr(gb.z)+sqr(gb.r)+sqr(gb.th)) /sqrt(1. +sqr(gb.z)+sqr(gb.r)+sqr(gb.th)); 
+                        beta0 = sqrt(sqr(gb.z) +sqr(gb.r) +sqr(gb.th)) /sqrt(1. +sqr(gb.z) +sqr(gb.r) +sqr(gb.th)); 
                         //bz=beta;  //I don't understand why, but without it, the emittance doesn't preserve
                         if (beta0>1) {
-                Particle[i].lost=STEP_LOST;
+                                Particle[i].lost = STEP_LOST;
                                 continue;
                         }
                         //IVP gamma=VelocityToEnergy(beta0);
-			gamma = sqrt(1. +sqr(gb.z)+sqr(gb.r)+sqr(gb.th)); 
+			gamma = sqrt(1. +sqr(gb.z) +sqr(gb.r) +sqr(gb.th)); 
                         //gamma=VelocityToEnergy(beta.z);
                         //C=Particle[i].Cmag;
 
@@ -2091,6 +2167,7 @@ IVP */
 			//} 
 IVP */ 
 			gamma = sqrt(1. +sqr(nParticle[i].gb.z) +sqr(nParticle[i].gb.r) +sqr(nParticle[i].gb.th)); 
+			nParticle[i].g = gamma; 
 			gb = sqrt(sqr(nParticle[i].gb.z) +sqr(nParticle[i].gb.r) +sqr(nParticle[i].gb.th)); 
 
 			if(gb /gamma > 1.0) 
@@ -2158,6 +2235,7 @@ void TBeam::Next(TBeam *nBeam)
 	nParticle[i].beta.th=Particle[i].beta.th;
 	nParticle[i].beta.r=Particle[i].beta.r;
 	IVP */
+	nParticle[i].g = Particle[i].g; 
 	nParticle[i].gb.z = Particle[i].gb.z;
         nParticle[i].gb.th = Particle[i].gb.th;
         nParticle[i].gb.r = Particle[i].gb.r;

@@ -3508,16 +3508,17 @@ TError TBeamSolver::CreateBeam()
 			Beam[i]->Particle[j].beta.z=0;
 			Beam[i]->Particle[j].beta.r=0;
 			Beam[i]->Particle[j].beta.th=0;
-			IVP */ 
-                        Beam[i]->Particle[j].gb.z=0;
-                        Beam[i]->Particle[j].gb.r=0;
-                        Beam[i]->Particle[j].gb.th=0;
+			IVP */
+		       	Beam[i]->Particle[j].g = 1;
+                        Beam[i]->Particle[j].gb.z = 0;
+                        Beam[i]->Particle[j].gb.r = 0;
+                        Beam[i]->Particle[j].gb.th = 0;
 			//Beam[i]->Particle[j].Br=0;
-			Beam[i]->Particle[j].phi=0;
+			Beam[i]->Particle[j].phi = 0;
 		   	//Beam[i]->Particle[j].Bth=0;
-			Beam[i]->Particle[j].r=0;
+			Beam[i]->Particle[j].r = 0;
 			//Beam[i]->Particle[j].Cmag=0;
-			Beam[i]->Particle[j].th=0;
+			Beam[i]->Particle[j].th = 0;
 		}
 	}
 	Beam[0]->SetCurrent(BeamPar.Current);
@@ -4359,7 +4360,7 @@ void TBeamSolver::SpaceCharge(int Si, int Sj)
 
 						x=r*cos(th)-x0;
 						y=r*sin(th)-y0;
-						z=phi*beta*lmb/(2*pi)-z0;
+						z=phi*beta*lmb/(2*pi)-z0; //IVP: should beta_z be used here instead?
 
 						r3=sqr(x/rx)+sqr(y/ry)+sqr(z/rz);
 //					   	z=rz;
@@ -4762,7 +4763,7 @@ void TBeamSolver::DumpCST(ofstream &fo,TDump *ExportParameters,int j)
 		return;
 	}
 //	double l=Structure[Si].lmb;
-	double beta=Beam[Si]->GetParameter(j,BETA_PAR);
+	//IVP  double beta = Beam[Si]->GetParameter(j, BETA_PAR);
 
 	x=Beam[Si]->GetParameter(j,X_PAR);
 	y=Beam[Si]->GetParameter(j,Y_PAR);
@@ -4770,13 +4771,17 @@ void TBeamSolver::DumpCST(ofstream &fo,TDump *ExportParameters,int j)
 	t=Beam[Si]->GetParameter(j,PHI_PAR)*Structure[Si].lmb/(2.0*pi*c);
 
    	//z=4.0*z*1.1;
-
+	/* IVP 
 	double W=Beam[Si]->GetParameter(j,W_PAR);
-	double p=MeVToBetaGamma(W,BeamPar.W0);
+	double p = MeVToBetaGamma(W, BeamPar.W0);
 
-	px=p*Beam[Si]->GetParameter(j,BX_PAR)/beta;
-	py=p*Beam[Si]->GetParameter(j,BY_PAR)/beta;
-	pz=p*Beam[Si]->GetParameter(j,BZ_PAR)/beta;
+	px = p *Beam[Si]->GetParameter(j, BX_PAR) /beta;
+	py = p *Beam[Si]->GetParameter(j, BY_PAR) /beta;
+	pz = p *Beam[Si]->GetParameter(j, BZ_PAR) /beta; 
+	IVP */
+	px = Beam[Si]->GetParameter(j, GBX_PAR);
+        py = Beam[Si]->GetParameter(j, GBY_PAR);
+        pz = Beam[Si]->GetParameter(j, GBZ_PAR);
 
 	q=qe;
 	switch (BeamPar.Species.Type){
