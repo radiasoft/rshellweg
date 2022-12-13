@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Left = 0
   Top = 0
-  Caption = 'Hellweg (rshellweg) v. 10/19/22'
+  Caption = 'Hellweg (rshellweg) v. 12/13/22'
   ClientHeight = 741
   ClientWidth = 593
   Color = clBtnFace
@@ -205,6 +205,7 @@ object MainForm: TMainForm
       Height = 74
       Caption = 'Twiss Parameters (R)'
       TabOrder = 8
+      OnExit = GroupTwissRExit
       object Label_AlphaR: TLabel
         Left = 16
         Top = 14
@@ -422,7 +423,7 @@ object MainForm: TMainForm
       56)
     object ExitButton: TButton
       Left = 502
-      Top = 20
+      Top = 17
       Width = 73
       Height = 25
       Anchors = [akTop, akRight]
@@ -473,7 +474,7 @@ object MainForm: TMainForm
     end
     object SelectFileButton: TButton
       Left = 72
-      Top = 20
+      Top = 25
       Width = 32
       Height = 25
       Caption = '...'

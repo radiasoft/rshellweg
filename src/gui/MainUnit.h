@@ -104,21 +104,25 @@ __published:    // IDE-managed Components
 	void __fastcall cBuncherButtonClick(TObject *Sender);
 	void __fastcall OutputCheckClick(TObject *Sender);
 	void __fastcall FormActivate(TObject *Sender);
+	void __fastcall GroupTwissRExit(TObject *Sender);
 private:    // User declarations
 //    TBeamSolver *Solver;
 	bool GUIDisabled, SaveOutput, SaveTemp, SaveTraj, OutputBinary;
 	AnsiString Path,UserIniPath, InputFileName, OutputName, TempFileName;
 
+	void Terminate();
+
 	void InterfaceVisibility();
-    void GUIVisibility();
+	void GUIVisibility();
 
 	void DisplayError();
 	void DisplayInputData();
 	void Initialize();
-    bool LoadIniFile();
+	bool LoadIniFile();
 	bool LoadInputData(bool display_err=true);
 	bool CreateInputData(bool display_err=true);
 	void ShowGeometryForm(bool BeamView);
+
 	TError ERR; //remove
 	//AnsiString InputFileName;
 	bool DataReady;
