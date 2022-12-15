@@ -125,6 +125,7 @@
         <LinkPackageStatics>rtl.lib;vcl.lib;Tee.lib;vclimg.lib;bcbsmp.lib;vclx.lib;VclSmp.lib;FMXTee.lib;fmx.lib</LinkPackageStatics>
         <VerInfo_MajorVer>2</VerInfo_MajorVer>
         <BT_BuildType>Debug</BT_BuildType>
+        <BCC_AllCodeguardOptions>true</BCC_AllCodeguardOptions>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <Defines>NDEBUG;$(Defines)</Defines>

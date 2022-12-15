@@ -1,3 +1,6 @@
+12/14/2022
+- Fixed the problem with multiple sections phasing
+
 12/13/2022
 - Fixed multiple memory leaks
 - Fixed problem with opening a new input file
