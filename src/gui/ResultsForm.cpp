@@ -38,7 +38,15 @@ void __fastcall TResForm::FormCreate(TObject *Sender)
 void __fastcall TResForm::FormShow(TObject *Sender)
 {
     Npts=Solver->GetNumberOfPoints();
-    Np=Solver->GetNumberOfParticles();
+	Np=Solver->GetNumberOfParticles();
+
+	for (int i=0;i<Npts;i++){
+		int Nliv=Solver->GetLivingNumber(i);
+		if (Nliv==0){
+			Npts=i;
+			break;
+		}
+	}
 	//Nb=Solver->GetNumberOfBars();
 
 	KernelChanged();
@@ -46,8 +54,8 @@ void __fastcall TResForm::FormShow(TObject *Sender)
 	BinsChanged();
 	SynchChanged();
 
-    PositionTrackBar->Max=Npts-1;
-    PositionTrackBar->Position=PositionTrackBar->Max;
+	PositionTrackBar->Max=Npts-1;
+	PositionTrackBar->Position=PositionTrackBar->Max;
  //   PositionChanged();
 
 	GetTransBoundaries();
@@ -1505,7 +1513,10 @@ void TResForm::ShowParameters()
 	Table->Cells[colValue][pZ]=s.FormatFloat("#0.000",100*z);
 	Table->Cells[colValue][pWav]=s.FormatFloat("#0.000",Gw.mean);
 	Table->Cells[colValue][pdW]=s.FormatFloat("#0.00",Gw.sigma);
-	Table->Cells[colValue][pdWp]=s.FormatFloat("#0.000",100*Gw.sigma/Gw.mean);
+	if (Gw.mean!=0)
+		Table->Cells[colValue][pdWp]=s.FormatFloat("#0.000",100*Gw.sigma/Gw.mean);
+	else
+		Table->Cells[colValue][pdWp]=0;
 	Table->Cells[colValue][pWm]=s.FormatFloat("#0.000",Wm);
 	Table->Cells[colValue][pI]=s.FormatFloat("#0.00",1e3*I);
     Table->Cells[colValue][pkc]=s.FormatFloat("#0.00",kc);
@@ -1579,27 +1590,29 @@ void TResForm::PositionChanged()
 	int j=PositionTrackBar->Position;
 	double z=100*Solver->GetStructureParameter(j,Z_PAR);
 	int N=Solver->GetStructureParameter(j,NUM_PAR);
-    AnsiString s,Z;
+	int Np=Solver->GetLivingNumber(j);
+	AnsiString s,Z;
 
-    CellLabel->Caption="Cell # "+IntToStr(N+1);
+	CellLabel->Caption="Cell # "+IntToStr(N+1);
     Z=s.FormatFloat("#0.000",z);
-    PositionLabel->Caption="z="+Z+" cm";
+	PositionLabel->Caption="z="+Z+" cm";
 
 	ShowParameters();
-
-	switch (gType) {
-		case TRANS_SEC: DrawTransSection();break;
-		case LONGT_SEC: DrawLongtSection();break;
-		case PHASE_SLID: DrawLongtSection(true);break;
-		case LONGT_MOTION: DrawLongtMotion();break;
-		case TRANS_SPACE: DrawTransSpace();break;
-		case LONGT_SPACE: DrawLongtSpace();break;
-		case F_SPEC: DrawPhaseSpectrum();break;
-		case W_SPEC: DrawEnergySpectrum();break;
-		case R_SPEC: DrawRadialSpectrum();break;
+	if (Np>0){
+		switch (gType) {
+			case TRANS_SEC: DrawTransSection();break;
+			case LONGT_SEC: DrawLongtSection();break;
+			case PHASE_SLID: DrawLongtSection(true);break;
+			case LONGT_MOTION: DrawLongtMotion();break;
+			case TRANS_SPACE: DrawTransSpace();break;
+			case LONGT_SPACE: DrawLongtSpace();break;
+			case F_SPEC: DrawPhaseSpectrum();break;
+			case W_SPEC: DrawEnergySpectrum();break;
+			case R_SPEC: DrawRadialSpectrum();break;
 	  /*	case R_TRACE: DrawRadius();break;
 		case PHI_TRACE: DrawPhase();break;
 		case W_TRACE: DrawEnergy();break;   */
+		}
 	}
 
    // DeleteTemp();
@@ -1640,7 +1653,7 @@ void TResForm::IncrementPosition()
 //---------------------------------------------------------------------------
 void __fastcall TResForm::PositionTrackBarChange(TObject *Sender)
 {
-    PositionChanged();
+	PositionChanged();
 }
 //---------------------------------------------------------------------------
 void __fastcall TResForm::PlayButtonClick(TObject *Sender)

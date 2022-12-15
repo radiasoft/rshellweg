@@ -110,10 +110,10 @@ private:
 	TError ParseNorm (TInputLine *Line, AnsiString &F, int Nz,int Zpos);
 
 	//STRUCTURE
-	void DeleteBeam();
 	void CreateMesh();
 	void CreateStrucutre();
 	void DeleteMesh();
+	void DeleteBeam();
 
 	TImportType ParseSolenoidType(AnsiString &F);
 	TDimensions ParseSolenoidLines(TMagnetParameters &P);
@@ -151,8 +151,10 @@ private:
 	void DumpBeam(TDump *ExportParameters);
 	void Step(int Si);
 	void Integrate(int Si, int Sj);
-    void SpaceCharge(int Si, int Sj);
+	void SpaceCharge(int Si, int Sj);
 	void CountLiving(int Si);
+	void KillParticles(int Si);
+	void KillParticles(int Si, int Sj);
 	TIntegration **K;
 	TIntParameters *Par;
 
@@ -202,7 +204,7 @@ public:
     bool LoadFromFile(AnsiString& Fname);
    // bool LoadEnergyFromFile(AnsiString& Fname, int NpEnergy);     move to beam.h
 
-    TError CreateBeam();
+	TError CreateBeam();
 	TError CreateGeometry();
     void SetBarsNumber(double Nbin);
     void ChangeInputCurrent(double Ib);

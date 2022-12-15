@@ -135,6 +135,7 @@ public:
     double CosSum(TIntParameters& Par,TIntegration *I);
 
 	int GetLivingNumber();
+	void KillParticles(TParticle *P=NULL);
 
     void Integrate(TIntParameters& Par,TIntegration **I,int Si);
     void Next(TBeam *nBeam,TIntParameters& Par,TIntegration **I);

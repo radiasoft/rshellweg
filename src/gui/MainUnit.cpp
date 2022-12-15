@@ -94,7 +94,7 @@ void TMainForm::Initialize()
 	//InputFileName
 	//OutputFileName
 
-	ReloadData=false;
+   	ReloadData=false;
     DataReady=false;
 	InputReady=false;
    //	DataReady=LoadInputData(false);
@@ -102,6 +102,12 @@ void TMainForm::Initialize()
 		InputReady=CreateInputData(false);
   //	}
 
+}
+//---------------------------------------------------------------------------
+void TMainForm::Terminate()
+{
+	Solver->Abort();
+	delete Solver;
 }
 //---------------------------------------------------------------------------
 bool TMainForm::LoadIniFile()
@@ -377,8 +383,9 @@ void TMainForm::DisplayInputData()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ExitButtonClick(TObject *Sender)
 {
+  //	Terminate();
     Solver->Abort();
-    Application->Terminate();
+	Application->Terminate();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormCreate(TObject *Sender)
@@ -388,7 +395,7 @@ void __fastcall TMainForm::FormCreate(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormDestroy(TObject *Sender)
 {
-//    delete Solver;
+	Terminate();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::SelectFileButtonClick(TObject *Sender)
@@ -398,7 +405,7 @@ void __fastcall TMainForm::SelectFileButtonClick(TObject *Sender)
 	InputDialog->Execute();
 	Path=InputDialog->FileName.c_str();
 	InputFileName=GetFileName(Path);
-
+	DataReady=false;
    //	DataReady=LoadInputData(true);
    //	if (DataReady) {
 		InputReady=CreateInputData(true);
@@ -421,8 +428,7 @@ void __fastcall TMainForm::SolveButtonClick(TObject *Sender)
 
 	if (ReloadData){
 		DataReady=false;
-		InputReady=false;
-		ReloadData=false;
+        InputReady=false;
 	}
 
 	if (!InputReady)
@@ -442,8 +448,8 @@ void __fastcall TMainForm::SolveButtonClick(TObject *Sender)
 		if (SaveTraj)
 			Solver->SaveTrajectories(TrajName);
 			//ResultsMemo->Visible=true;
-			ViewButton->Enabled=true;
 		}
+		ViewButton->Enabled=true;
 		ReloadData=true; //reload data when repeat simulations
 	} catch(...){
 		//ShowMessage("Error occurred while solving the task. Check the values in input file!");
@@ -496,7 +502,7 @@ void __fastcall TMainForm::AbortButtonClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ViewButtonClick(TObject *Sender)
 {
-    ResForm->Solver=Solver;
+	ResForm->Solver=Solver;
     ResForm->Show();
 }
 //---------------------------------------------------------------------------
@@ -543,7 +549,6 @@ void __fastcall TMainForm::OutputCheckClick(TObject *Sender)
 	InterfaceVisibility();
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TMainForm::FormActivate(TObject *Sender)
 {
 	if (GUIDisabled){
@@ -563,6 +568,12 @@ void __fastcall TMainForm::FormActivate(TObject *Sender)
 		SolveButton->Click();
 		ExitButton->Click();
 	}
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::GroupTwissRExit(TObject *Sender)
+{
+	delete Solver;
+    Application->Terminate();
 }
 //---------------------------------------------------------------------------
 

@@ -1,3 +1,13 @@
+12/14/2022
+- Fixed the problem with multiple sections phasing
+
+12/13/2022
+- Fixed multiple memory leaks
+- Fixed problem with opening a new input file
+- Only keywords are now case sensitive
+- Fixed problem with Results Viewer in case of beam loss
+- When DRIFT element is encountered phase loss is ignored due to the artificial phase slippage
+
 10/09/2022
 - Input file is now non-sensitive to upper/lower case
 - Cells with phase velocities beta_ph >= 1.0 are can now be treated. 
