@@ -53,9 +53,11 @@ __fastcall TBeamSolver::~TBeamSolver()
 void TBeamSolver::Initialize()
 {
 	MaxCells=DEFAULT_MAX_CELLS;
-    Nmesh=DEFAULT_MESH;
+	Nmesh=DEFAULT_MESH;
+	Nmesh_max-DEFAULT_MAX_MESH;
+	Adjust_Mesh=true;
 	//Kernel=0;
-    SplineType=LSPLINE;
+	SplineType=LSPLINE;
     Nstat=100;
     //Ngraph=500;
 	//Nbars=100; //default
@@ -358,10 +360,13 @@ void TBeamSolver::LoadIniConstants()
 
 	MaxCells=UserIni->ReadInteger("NUMERIC","Maximum Cells",DEFAULT_MAX_CELLS);
 	Nmesh=UserIni->ReadInteger("NUMERIC","Number of Mesh Points",DEFAULT_MESH);
+	Nmesh_max=UserIni->ReadInteger("NUMERIC","Maximum mesh points",DEFAULT_MAX_MESH);
+	Adjust_Mesh=UserIni->ReadBool("NUMERIC","Emission Energy Adjusted Mesh",true);
+
   /*	Kernel=UserIni->ReadFloat("NUMERIC","Percent Of Particles in Kernel",Kernel);
     if (Kernel>0)
-    	Kernel/=100;
-    	else
+		Kernel/=100;
+		else
 		Kernel=0.9;      */
 	Smooth=UserIni->ReadFloat("NUMERIC","Smoothing Factor",Smooth);
 
@@ -380,6 +385,7 @@ void TBeamSolver::LoadIniConstants()
             break;
         }
 	}
+
 
  /*	stat=UserIni->ReadFloat("RESULTS","Statistics Error",stat);
     if (stat<1e-6)
@@ -2733,6 +2739,31 @@ void TBeamSolver::CreateMesh()
 	Structure=new TStructure[Npoints];
 }
 //---------------------------------------------------------------------------
+TError TBeamSolver::AdjustMesh(double Winj)
+{
+	TError Err;
+	int Nadj=Nmesh;
+
+	if (Winj>0)
+		Nadj=2000/cubrt(Winj);
+	else Nadj=Nmesh_max;
+
+	if (Nadj<=Nmesh)
+		return ERR_NO;
+	if (Nadj>Nmesh_max)
+		Nadj=Nmesh_max;
+
+	for(int i=0;i<StructPar.NElements;i++){
+		StructPar.Cells[i].Mesh=Nadj;
+		if (!StructPar.Cells[i].Drift)
+			break;
+	}
+
+	CreateGeometry();
+	Err=CreateBeam();
+    return Err;
+}
+//---------------------------------------------------------------------------
 TFieldMap2D TBeamSolver::ParseMapFile(AnsiString &F)
 {
 	TFieldMap2D Map;
@@ -3496,6 +3527,18 @@ void TBeamSolver::DeleteBeam()
 
 	delete[] Beam;
 	Beam=NULL;
+}
+//---------------------------------------------------------------------------
+TError TBeamSolver::CreateBeam(bool adjusted)
+{
+	TError Err;
+	Err=CreateBeam();
+	if (Err==ERR_NO && Adjust_Mesh){
+		double Winj=Beam[0]->GetAverageEnergy()/1e-6;
+		Err=AdjustMesh(Winj);
+	}
+
+    return Err;
 }
 //---------------------------------------------------------------------------
 TError TBeamSolver::CreateBeam()
@@ -4789,7 +4832,7 @@ void TBeamSolver::DumpCST(ofstream &fo,TDump *ExportParameters,int j)
 	x=Beam[Si]->GetParameter(j,X_PAR);
 	y=Beam[Si]->GetParameter(j,Y_PAR);
 	//z=Beam[Si]->GetParameter(j,PHI_PAR)*beta*Structure[Si].lmb/(2*pi);
-	t = -Beam[Si]->GetParameter(j,PHI_PAR)*Structure[Si].lmb/(2.0*pi*c);
+	t=-Beam[Si]->GetParameter(j,PHI_PAR)*Structure[Si].lmb/(2.0*pi*c);
 
    	//z=4.0*z*1.1;
 

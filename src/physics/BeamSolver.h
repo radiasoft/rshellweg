@@ -60,7 +60,8 @@ private:
 	void ResetStructData();
 	void DeleteStructData(TStructData &D);
 
-	int Mode_N,Mode_M,MaxCells,Nmesh,Npoints;// //Move to TMeshParameters
+	int Mode_N,Mode_M,MaxCells,Nmesh,Npoints,Nmesh_max;// //Move to TMeshParameters
+	bool Adjust_Mesh;
 
 	//int GetSolenoidPoints();
 	bool ReadSolenoid(int Nz,double *Z,double* B);
@@ -114,6 +115,7 @@ private:
 	void CreateStrucutre();
 	void DeleteMesh();
 	void DeleteBeam();
+    TError AdjustMesh(double Winj);
 
 	TImportType ParseSolenoidType(AnsiString &F);
 	TDimensions ParseSolenoidLines(TMagnetParameters &P);
@@ -205,6 +207,7 @@ public:
    // bool LoadEnergyFromFile(AnsiString& Fname, int NpEnergy);     move to beam.h
 
 	TError CreateBeam();
+	TError CreateBeam(bool adjusted);
 	TError CreateGeometry();
     void SetBarsNumber(double Nbin);
     void ChangeInputCurrent(double Ib);
