@@ -204,7 +204,7 @@ public:
    // bool LoadEnergyFromFile(AnsiString& Fname, int NpEnergy);     move to beam.h
 
     TError CreateBeam();
-	TError CreateGeometry();
+    TError CreateGeometry();
     void SetBarsNumber(double Nbin);
     void ChangeInputCurrent(double Ib);
 

@@ -350,25 +350,25 @@ inline TPhaseSpace CylinricalToCartesian(TPhaseSpace C)
 inline TPhaseSpace CartesianToCylinrical(double x, double y, double px, double py)
 {
 	TPhaseSpace C;
-	double r=0,th=0,pr=0,pth=0;
+	double r=0, th=0, pr=0, pth=0;
 
-	r=sqrt(sqr(x)+sqr(y));
+	r = sqrt(sqr(x)+sqr(y));
 	if (y==0 && x==0)
 		th=0;
 	else
-		th=atan2(y,x);
+		th = atan2(y,x);
    /*	th=x==0?pi/2:arctg(y/x);
 
 	if (x<0)
 		th+=pi;  */
 
-	pr=px*cos(th)+py*sin(th);
-	pth=-px*sin(th)+py*cos(th);
+	pr  =  px*cos(th) +py*sin(th);
+	pth = -px*sin(th) +py*cos(th);
 
-	C.x=r;
-	C.y=th;
-	C.px=pr;
-	C.py=pth;
+	C.x = r;
+	C.y = th;
+	C.px = pr;
+	C.py = pth;
 
 	return C;
 }

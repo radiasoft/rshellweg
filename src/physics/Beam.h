@@ -8,6 +8,7 @@
 #include "SpectrumPhase.h"
 #include <stdlib.h>
 #include <stdexcept>
+#include <iostream>
 
 const int Ncoef=4;
 //---------------------------------------------------------------------------
@@ -57,11 +58,11 @@ private:
 	double GetMaxValue(TBeamParameter P);
 
 	//IMPORT
-	double **ImportFromFile(TBeamType BeamType,TBeamInput *BeamPar,bool T=true);
+	double **ImportFromFile(TBeamType BeamType, TBeamInput *BeamPar, bool T=true);
 
 	FILE *logFile;
 
-    double BesselSum(TIntParameters& Par,TIntegration *I,TTrig Trig);
+    	double BesselSum(TIntParameters& Par,TIntegration *I,TTrig Trig);
 public:
     __fastcall TBeam(int N);
     __fastcall ~TBeam();
