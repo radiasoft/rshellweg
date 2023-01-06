@@ -1761,15 +1761,15 @@ TGauss TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices)
 			Iphi=I[i].phi;
 			x=phi+Iphi*Par.h;
 
-+			/* IVP 
+			/* IVP 
 			beta=Particle[i].beta.z;
 			Ib=I[i].beta.z;
 			b=beta+Ib*Par.h;
-+			IVP */
-+
-+			gamma = sqrt(1. +sqr(Particle[i].gb.r) +sqr(Particle[i].gb.th) +sqr(Particle[i].gb.z));
-+                        gammai = sqrt(1. +sqr(I[i].gb.r) +sqr(I[i].gb.th) +sqr(I[i].gb.z));
-+                        b = Particle[i].gb.z /gamma +I[i].gb.z *Par.h /gammai;
+			IVP */
+
+			gamma = sqrt(1. +sqr(Particle[i].gb.r) +sqr(Particle[i].gb.th) +sqr(Particle[i].gb.z));
+                        gammai = sqrt(1. +sqr(I[i].gb.r) +sqr(I[i].gb.th) +sqr(I[i].gb.z));
+                        b = Particle[i].gb.z /gamma +I[i].gb.z *Par.h /gammai;
 
 			L[j]=x*b*lmb/(2*pi);
 			j++;
@@ -1918,18 +1918,18 @@ void TBeam::Integrate(TIntParameters& Par,TIntegration **I,int Si)
 			else
 				k_phi=2*pi*(1/Par.bw-1/beta.z);
 
-		/*	if (Par.bw<1){      //Regular equations
-				Sr=2*pi*sqrt(1-sqr(Par.bw))/Par.bw;
+		//	if (Par.bw<1){      //Regular equations
+		//		Sr=2*pi*sqrt(1-sqr(Par.bw))/Par.bw;
 
-			//RF FIELDS
-				E.z=A*Ib0(r*Sr)*cos(phi)+Par.Eq[i].z;   //k_Az = Az
-				E.r=-(1/Sr)*Ib1(r*Sr)*(dA*cos(phi)-(2*Par.B*Par.SumSin+2*pi*A/Par.bw)*sin(phi))+Par.Eq[i].r; //k_Ar = Ar
-				E.th=Par.Eq[i].th;
-				H.z=0;
-				H.r=0;
-				H.th=(Par.bw*A*Ib1(r*Sr)*sin(phi))/sqrt(1-sqr(Par.bw));      //k_Hth = Hth
-			}
-			else{*/  // Series for Bessel and then remove sqrt(1-b^2).
+		//	//RF FIELDS
+		//		E.z=A*Ib0(r*Sr)*cos(phi)+Par.Eq[i].z;   //k_Az = Az
+		//		E.r=-(1/Sr)*Ib1(r*Sr)*(dA*cos(phi)-(2*Par.B*Par.SumSin+2*pi*A/Par.bw)*sin(phi))+Par.Eq[i].r; //k_Ar = Ar
+		//		E.th=Par.Eq[i].th;
+		//		H.z=0;
+		//		H.r=0;
+		//		H.th=(Par.bw*A*Ib1(r*Sr)*sin(phi))/sqrt(1-sqr(Par.bw));      //k_Hth = Hth
+		//	}
+		//	else{  // Series for Bessel and then remove sqrt(1-b^2).
 				Sr=sqr(2*pi)*(1/sqr(Par.bw)-1); //Sr^2
 				E.z=A*Ib0_beta(r,Sr)*cos(phi)+Par.Eq[i].z;
 				//E.r=A*Ib1_beta(r,Sr)*sin(phi)+Par.Eq[i].r;
