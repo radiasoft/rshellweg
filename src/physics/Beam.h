@@ -8,6 +8,7 @@
 #include "SpectrumPhase.h"
 #include <stdlib.h>
 #include <stdexcept>
+#include <iostream>
 
 const int Ncoef=4;
 //---------------------------------------------------------------------------
@@ -57,11 +58,11 @@ private:
 	double GetMaxValue(TBeamParameter P);
 
 	//IMPORT
-	double **ImportFromFile(TBeamType BeamType,TBeamInput *BeamPar,bool T=true);
+	double **ImportFromFile(TBeamType BeamType, TBeamInput *BeamPar, bool T=true);
 
 	FILE *logFile;
 
-    double BesselSum(TIntParameters& Par,TIntegration *I,TTrig Trig);
+    	double BesselSum(TIntParameters& Par,TIntegration *I,TTrig Trig);
 public:
     __fastcall TBeam(int N);
     __fastcall ~TBeam();
@@ -82,14 +83,14 @@ public:
 	void GeneratePhase(TGauss G);
 	void GenerateAzimuth(TGauss G);
 	bool ImportEnergy(TBeamInput *BeamPar);
-    void ShiftPhase (double phi0);
+	void ShiftPhase (double phi0);
 
 	void SetCurrent(double I);
 	void SetInputCurrent(double I);
 	void SetBarsNumber(int N);
 	void SetRestEnergy(double W);
 
-		//GET OUTPUT PARAMETERS
+	//GET OUTPUT PARAMETERS
 	TTwiss GetTwiss(TBeamParameter P=R_PAR,bool Norm=false);
 	TTwiss GetTwissDirect(TBeamParameter P=R_PAR);
 	double Get4DEmittance(bool Norm=false);
@@ -114,7 +115,7 @@ public:
 	TSpectrumBar *GetYSpectrum(bool Smooth);
 
 	double GetPhaseLength(TDeviation D=D_RMS);
-    double GetAveragePhase();
+	double GetAveragePhase();
 	double GetAverageEnergy();
 	double GetMaxEnergy();
 	double GetMinPhase();
