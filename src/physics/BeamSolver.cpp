@@ -4493,6 +4493,14 @@ void TBeamSolver::Integrate(int Si, int Sj)    // Si is the "timestep" index, Sj
 
 	if(Si < 2){
 	std::cerr << "Par[Sj].SumSin = " << Par[Sj].SumSin << " Par[Sj].SumCos = " << Par[Sj].SumCos << " gamma0 = " << gamma0 << '\n';
+	std::cerr << "K.A, K.phi, K.r, K.theta: \n";
+	std::cerr << K[Sj][0].A << " " << K[Sj][0].phi << " " << K[Sj][0].r << " " << K[Sj][0].th << '\n';
+	std::cerr << "K.gb.r, K.gb.th, K.gb.z: \n";
+	std::cerr << K[Sj][0].gb.r << " " << K[Sj][0].gb.th << " " << K[Sj][0].gb.z << '\n';
+	std::cerr << "K.E.r, K.E.th, K.E.z: \n";
+        std::cerr << K[Sj][0].E.r << " " << K[Sj][0].E.th << " " << K[Sj][0].E.z << '\n';
+	std::cerr << "K.H.r, K.H.th, K.H.z: \n";
+        std::cerr << K[Sj][0].H.r << " " << K[Sj][0].H.th << " " << K[Sj][0].H.z << '\n';
 	std::cerr << "Calling Beam[Si]->Integrate(Par[Sj], K, Sj) with Si = " << Si << ", Sj = " << Sj << '\n';
 	}
 	
@@ -4502,6 +4510,15 @@ void TBeamSolver::Integrate(int Si, int Sj)    // Si is the "timestep" index, Sj
 	//delete[] Par[Sj].Aqr;
 	
 	if(Si < 2){ 
+	std::cerr << "After Beam[Si]->Integrate(Par[Sj], K, Sj): \n";
+	std::cerr << "K.A, K.phi, K.r, K.theta: \n";
+        std::cerr << K[Sj][0].A << " " << K[Sj][0].phi << " " << K[Sj][0].r << " " << K[Sj][0].th << '\n';
+        std::cerr << "K.gb.r, K.gb.th, K.gb.z: \n";
+        std::cerr << K[Sj][0].gb.r << " " << K[Sj][0].gb.th << " " << K[Sj][0].gb.z << '\n';
+        std::cerr << "K.E.r, K.E.th, K.E.z: \n";
+        std::cerr << K[Sj][0].E.r << " " << K[Sj][0].E.th << " " << K[Sj][0].E.z << '\n';
+        std::cerr << "K.H.r, K.H.th, K.H.z: \n";
+        std::cerr << K[Sj][0].H.r << " " << K[Sj][0].H.th << " " << K[Sj][0].H.z << '\n';
 	std::cerr << "Exiting TBeamSolver::Integrate(Si, Sj) with Si = " << Si << ", Sj = " << Sj << "\n\n";
 	}
 }

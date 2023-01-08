@@ -1681,7 +1681,7 @@ double TBeam::BesselSum(TIntParameters& Par, TIntegration *I, TTrig Trig)
     return Res;
 }
 //---------------------------------------------------------------------------
-double TBeam::iGetAverageEnergy(TIntParameters& Par,TIntegration *I)
+double TBeam::iGetAverageEnergy(TIntParameters& Par, TIntegration *I)
 {
     bool err=false;
     int j=0;
@@ -1691,6 +1691,7 @@ double TBeam::iGetAverageEnergy(TIntParameters& Par,TIntegration *I)
 	double gamma=1, gb = 0;
 	double gbr = 0, gbth = 0, gbz = 0;
 
+	std::cerr << "In TBeam::iGetAverageEnergy(TIntParameters& Par, TIntegration *I): \n";
 	for (int i=0; i<Np; i++){
 		if (Particle[i].lost==LIVE){
 			/* IVP 
@@ -1706,6 +1707,9 @@ double TBeam::iGetAverageEnergy(TIntParameters& Par,TIntegration *I)
 			//gb = sqrt(sqr(Particle[i].gb.r) +sqr(Particle[i].gb.th) +sqr(Particle[i].gb.z));
 			gamma = sqrt(1. +sqr(gb));
 			beta = gb /gamma; 
+			if(i < 2){
+			std::cerr << "Particle " << i << ": beta = " << beta << ", gamma = " << gamma << '\n';
+			}
 		   /*	double betta=Particle[i].beta+I[i].betta*Par.h;
 			double bx=Particle[i].Br+I[i].bx*Par.h;
 			double b=betta;  */
@@ -1720,6 +1724,8 @@ double TBeam::iGetAverageEnergy(TIntParameters& Par,TIntegration *I)
 			}
 		}
 	}
+		std::cerr << "G = " << G << ", j = " << j << '\n';
+		std::cerr << "Exiting TBeam::iGetAverageEnergy(., .) \n";
     if (j>0)
         Gav=G/j;
     else
@@ -2107,11 +2113,11 @@ void TBeam::Integrate(TIntParameters& Par, TIntegration **I, int Si)    // Si fr
                         //IVP  k_rth=r==0?0:beta.th*beta.r/(r*beta.z);
                         //IVP  k_beta.th=((1-sqr(beta.th))*E.th+beta.z*(H.r+Hx.r-beta.th*E.z)-beta.r*(H.z+Hx.z+beta.th*E.r))/(gamma*beta.z)-k_rth;//beta.th*beta.r/(r*beta.z);
 
-                        k_gb.z = (sqr(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.z +gb.r*(H.th +Hx.th) -gb.th*(H.r +Hx.r))/gb.z; 
                         k_rr_gb =  r==0?0:sqr(gb.th)/(r*gb.z); 
-                        k_gb.r = (sqr(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.r +gb.th*(H.z +Hx.z) -gb.z*(H.th +Hx.th))/gb.z +k_rr_gb; 
+                        k_gb.r  = (sqrt(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.r  +gb.th*(H.z +Hx.z)  -gb.z*(H.th +Hx.th))/gb.z +k_rr_gb; 
                         k_rth_gb =  r==0?0:gb.th*gb.r/(r*gb.z); 
-                        k_gb.th = (sqr(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.th +gb.z*(H.r +Hx.r) -gb.r*(H.z +Hx.z))/gb.z -k_rth_gb;
+                        k_gb.th = (sqrt(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.th +gb.z*(H.r +Hx.r)   -gb.r *(H.z +Hx.z))/gb.z -k_rth_gb;
+			k_gb.z  = (sqrt(1. +gb.r*gb.r +gb.th*gb.th +gb.z*gb.z)*E.z  +gb.r*(H.th +Hx.th) -gb.th*(H.r +Hx.r))/gb.z;
 
                         //k_beta.th=0;
                    /*
