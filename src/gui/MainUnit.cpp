@@ -201,7 +201,7 @@ bool TMainForm::CreateInputData(bool display_err)
 	}
 
 	try{
-		Error=Solver->CreateBeam();
+		Error=Solver->CreateBeam(true);
 		if (Error!=ERR_NO) {
 			//if (display_err)
 				DisplayError();
