@@ -309,24 +309,30 @@ inline int GetSeparatrix(double &gamma,double phi,double bw,double A, double H,b
     double Ah=0, b=0, c=0, D=0;
     int Nroots=0;
 
-    Ah=A*sin(DegToRad(phi))/(2*pi)+H;
-    b=Ah/(bw-1/bw);
-    c=-(sqr(Ah)+1)/(1-sqr(1/bw));
+	Ah=A*sin(DegToRad(phi))/(2*pi)+H;
 
-    D=sqr(b)-c;
+	if (bw==1){
+		Nroots=1;
+        gamma=0.5*(Ah+1/Ah);
+	} else {
+		b=Ah/(bw-1/bw);
+		c=-(sqr(Ah)+1)/(1-sqr(1/bw));
 
-    if (D<0)
-        Nroots=0;
-    else if (D==0) {
-        gamma=-b;
-        Nroots=1;
-    }else {
-        if (Neg)
-            gamma=-b-sqrt(D);
-        else
-            gamma=-b+sqrt(D);
-        Nroots=2;
-    }
+		D=sqr(b)-c;
+
+		if (D<0)
+			Nroots=0;
+		else if (D==0) {
+			gamma=-b;
+			Nroots=1;
+		}else {
+			if (Neg)
+				gamma=-b-sqrt(D);
+			else
+				gamma=-b+sqrt(D);
+			Nroots=2;
+		}
+	}
 
     return Nroots;
 }

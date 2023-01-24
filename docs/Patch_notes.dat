@@ -1,3 +1,6 @@
+01/24/2023
+- Fixed a bug with separatice error for beta_phase=1
+
 01/23/2023
 - Fixed a bug with incorrect attenuation integration
 
