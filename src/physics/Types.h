@@ -41,14 +41,11 @@ enum TError {ERR_NO,ERR_NOFILE,ERR_OPENFILE,ERR_COUPLER,ERR_SOLENOID,ERR_BEAM,ER
 				ERR_CURRENT,ERR_DRIFT,ERR_CELL,ERR_CELLS,ERR_OPTIONS,ERR_DUMP,ERR_PARTICLE,
 				ERR_FORMAT,ERR_IMPORT,ERR_SPCHARGE,ERR_ABORT,ERR_STRUCT,ERR_OTHER};
 
-enum TBeamParameter {R_PAR, TH_PAR, BR_PAR, BTH_PAR, BZ_PAR, PHI_PAR, Z0_PAR, ZREL_PAR, BETA_PAR, X_PAR, Y_PAR, BX_PAR, BY_PAR,
-			GBX_PAR, GBY_PAR, GBZ_PAR, GBR_PAR, GBTH_PAR, GAMMA_PAR,
-			AR_PAR,ATH_PAR,AX_PAR,AY_PAR,AZ_PAR,W_PAR,RTH_PAR,NO_PAR,LIVE_PAR} ;
-
+enum TBeamParameter {R_PAR,TH_PAR,BR_PAR,BTH_PAR,BZ_PAR,PHI_PAR,Z0_PAR,ZREL_PAR,BETA_PAR,X_PAR,Y_PAR,BX_PAR,BY_PAR,
+					AR_PAR,ATH_PAR,AX_PAR,AY_PAR,AZ_PAR,W_PAR,RTH_PAR,NO_PAR,LIVE_PAR} ;
 enum TStructureParameter {KSI_PAR,Z_PAR,A_PAR,RP_PAR,ALPHA_PAR,SBETA_PAR,RA_PAR,RB_PAR,BZ_EXT_PAR,BR_EXT_PAR,NUM_PAR,
 					E0_PAR,EREAL_PAR,PRF_PAR,PBEAM_PAR,BBETA_PAR,WAV_PAR,WMAX_PAR,XB_PAR,YB_PAR,
 					ER_PAR,EX_PAR,EY_PAR,ENR_PAR,ENX_PAR,ENY_PAR,E4D_PAR,E4DN_PAR,ET_PAR,ENT_PAR} ;
-
 enum TSplineType {ZSPLINE,LSPLINE,CSPLINE,SSPLINE};
 enum TChartType {CH_EMITTANCE,CH_SECTION,CH_PORTRAIT,CH_PHASE,CH_ENERGY,CH_BETA,CH_A,CH_B,CH_ELP,CH_ATT,CH_APP,CH_BEXT,CH_CLEAR};
 
@@ -60,7 +57,7 @@ enum TGraphType {TRANS_SEC,LONGT_SEC,TRANS_SPACE,LONGT_SPACE,LONGT_MOTION,PHASE_
 				R_TRACE,PHI_TRACE,W_TRACE,E_PLOT,EPS_PLOT,P_PLOT,W_PLOT,BETA_PLOT,R_PLOT,F_NONE};
 enum TOptType {BUNCHER,ACCELERATOR};
 enum TParseStage {DIM_STEP,PIV_STEP,DATA_STEP};
-enum TBeamType {NOBEAM, ASTRA, CST_PID, CST_PIT, TWISS_2D,TWISS_4D,SPH_2D,ELL_2D,FILE_1D,FILE_2D,TWO_FILES_2D,FILE_4D,NORM_1D,NORM_2D,PARMELA_T2};
+enum TBeamType {NOBEAM,ASTRA,CST_PID,CST_PIT,TWISS_2D,TWISS_4D,SPH_2D,ELL_2D,FILE_1D,FILE_2D,TWO_FILES_2D,FILE_4D,NORM_1D,NORM_2D,PARMELA_T2};
 
 enum TImportType {NO_ELEMENT,ANALYTIC_0D,ANALYTIC_1D,IMPORT_1D,IMPORT_2DC,IMPORT_2DR,IMPORT_3DC,IMPORT_3DR};
 enum TMagnetType {MAG_GENERAL,MAG_SOLENOID,MAG_DIPOLE,MAG_QUAD,MAG_NO};
@@ -205,7 +202,6 @@ struct TFieldMap2D
 	TField **Field;
 };
 
-/* IVP
 struct TParticle
 {
 	double r;  //x/lmb (-Rb<x<Rb) - rename to r
@@ -214,20 +210,6 @@ struct TParticle
 	double phi;
 	double z;
 	double beta0; //full beta. distinguish beta from bz!
-	TLoss lost;
-};
-IVP */
-
-struct TParticle
-{
-        double r;  //x/lmb (-Rb<x<Rb) - rename to r
-        double th;
-        double z;
-
-        TField gb; // gamma*\vec{beta}
-        double g;  // gamma
-        double phi;
-
 	TLoss lost;
 };
 
@@ -383,40 +365,22 @@ struct TSpectrumBar
 	double yAv;
 	double yRMS;
 };
-
-/* IVP
 struct TIntegration
 {
-   double phi;
-    TField E;
-    TField H;
-    TField beta; */
+	double phi;
+	TField E;
+	TField H;
+	TField beta;
 	/*double Az;
-        double Ar;
+    double Ar;
 	double Hth;
 	double br;
 	double bth;
 	double bz;   */
-/*  double r;
+	double r;
     double th;
     double A;
 };
-IVP */
-
-struct TIntegration
-{
-    double phi;
-    double A;
-
-    TField E;
-    TField H;
-
-    TField gb;
-
-    double r;
-    double th;
-};
-
 struct TIntParameters
 {
     double h;
