@@ -553,7 +553,7 @@ static int NumPointsInFile(AnsiString &F,int NumRow)
 	//Line is valid if number of elements in a row == NumRow and they are numbers
 	int N=0;
 	AnsiString L,S;
-	double x;
+	//double x;
 	bool Num=false;
 	std::ifstream fs(F.c_str());
 

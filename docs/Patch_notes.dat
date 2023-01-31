@@ -1,5 +1,9 @@
+01/31/2023
+- Added the feature of SW component in coupler cells 
+- Added the capability to simulate 1/2-cells (with no SW components)
+
 01/24/2023
-- Fixed a bug with separatice error for beta_phase=1
+- Fixed a bug with separatrix error for beta_phase=1
 
 01/23/2023
 - Fixed a bug with incorrect attenuation integration
