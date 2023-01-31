@@ -15,6 +15,7 @@ class TIniFile {
         TIniFile() {};
         long ReadInteger(const AnsiString section, const AnsiString ident, long d);
         double ReadFloat(const AnsiString section, const AnsiString ident, double d);
+        bool ReadBool(const AnsiString section, const AnsiString ident, bool d);
         AnsiString ReadString(const AnsiString section, const AnsiString ident, const AnsiString d);
         void fromString(std::string &s);
 };
