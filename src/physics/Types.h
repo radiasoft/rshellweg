@@ -365,6 +365,12 @@ struct TIntegration
 	TField E;
 	TField H;
 	TField beta;
+	/*double Az;
+    double Ar;
+	double Hth;
+	double br;
+	double bth;
+	double bz;   */
 	double r;
     double th;
     double A;
