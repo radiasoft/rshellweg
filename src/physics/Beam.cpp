@@ -461,14 +461,14 @@ bool TBeam::BeamFromTwiss(TBeamInput *BeamPar)
 //---------------------------------------------------------------------------
 bool TBeam::BeamFromFile(TBeamInput *BeamPar)
 {
-	std::cerr << "BeamFromFile functionality currently disabled \n";
+	//std::cerr << "BeamFromFile functionality is disabled in this branch\n";
 	double **X=NULL, **Y=NULL;
 	double x=0,y=0,px=0,py=0;
 	double r=0,th=0,p=0,pr=0,pth=0,beta=0;
 	int i=0;
 	bool Success=false,Full4D=true;
 	TPhaseSpace C;
-/*IVP 
+
 	X=ImportFromFile(BeamPar->RBeamType,BeamPar,true);
 	if (BeamPar->RBeamType==TWO_FILES_2D)
 		Y=ImportFromFile(FILE_2D,BeamPar,true);
@@ -484,9 +484,11 @@ bool TBeam::BeamFromFile(TBeamInput *BeamPar)
                     //x=X[0][i];
 					px=X[1][i];
 					Particle[i].r=0.01*x/lmb;
-					Particle[i].beta.r=px*Particle[i].beta0;
-					//Particle[i].Th=0;
-					Particle[i].beta.th=0;
+					//IVP  Particle[i].beta.r=px*Particle[i].beta0;
+					Particle[i].gb.r = px *sqrt(sqr(Particle[i].g) -1.0);
+					//Particle[i].Th=0;  // IVP wonders: Why is theta not assigned a value?
+					//IVP  Particle[i].beta.th=0;
+					Particle[i].gb.th = 0.0;
 					Full4D=false;
 					break;
 				}
@@ -517,12 +519,15 @@ bool TBeam::BeamFromFile(TBeamInput *BeamPar)
 				pth=C.py;
 
 				Particle[i].r=0.01*r/lmb;
-				Particle[i].beta.r=pr*Particle[i].beta0;
+				//IVP  Particle[i].beta.r=pr*Particle[i].beta0;
+				Particle[i].gb.r = pr *sqrt(sqr(Particle[i].g) -1.0);
 				Particle[i].th=th;
-				Particle[i].beta.th=pth*Particle[i].beta0; //check! debugging may be required
+				//IVP  Particle[i].beta.th=pth*Particle[i].beta0; //check! debugging may be required
+				Particle[i].gb.th = pth *sqrt(sqr(Particle[i].g) -1.0); 
 			}
 			//CHECK sqrt(negative)!
-			Particle[i].beta.z = BzFromOther(Particle[i].beta0, Particle[i].beta.r, Particle[i].beta.th);//double-check!!!
+			//IVP  Particle[i].beta.z = BzFromOther(Particle[i].beta0, Particle[i].beta.r, Particle[i].beta.th);//double-check!!!
+			Particle[i].gb.z = sqrt(sqr(Particle[i].g) -1. -sqr(Particle[i].gb.r) -sqr(Particle[i].gb.th));
 		}
 		int N=0;
 		switch (BeamPar->RBeamType){
@@ -535,7 +540,7 @@ bool TBeam::BeamFromFile(TBeamInput *BeamPar)
 		Success=true;
 	} else
 		Success=false;
-IVP */
+
 	return Success;
 }
 //---------------------------------------------------------------------------
