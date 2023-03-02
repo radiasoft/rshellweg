@@ -192,7 +192,7 @@ bool TBeam::ImportEnergy(TBeamInput *BeamPar)
 				{
 					Particle[i].phi=DegreeToRad(X[0][i]);
 					//IVP  Particle[i].beta0=MeVToVelocity(X[1][i],W0);
-					Particle[i].g = MeVToGamma(X[0][i], W0);
+					Particle[i].g = MeVToGamma(X[1][i], W0);
 					break;
 				}
 				default: {};

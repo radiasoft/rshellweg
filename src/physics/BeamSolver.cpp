@@ -4,7 +4,7 @@
 #pragma hdrstop
 
 #include "BeamSolver.h"
-#include <mcheck.h>
+// #include <mcheck.h>
 // #include "Types.h"
 
 //---------------------------------------------------------------------------
@@ -47,7 +47,7 @@ __fastcall TBeamSolver::~TBeamSolver()
 //---------------------------------------------------------------------------
 void TBeamSolver::Initialize()
 {
-    mcheck(NULL);
+   //  mcheck(NULL);
 
 	MaxCells=DEFAULT_MAX_CELLS;
     Nmesh=DEFAULT_MESH;
