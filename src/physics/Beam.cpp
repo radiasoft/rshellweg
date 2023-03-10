@@ -604,6 +604,7 @@ bool TBeam::BeamFromSphere(TBeamInput *BeamPar)
 
 	delete[] X;
 	delete[] Y;
+	delete[] V;
 
 	return true;
 }
@@ -1132,7 +1133,7 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 		if (P==TH_PAR) {
 			Z = GetLivingParameter(R_PAR);
 		}
-	}
+
 
 	double Sx=0, Spx=0, Sxpx=0;
 	double Sr=0, Sprpf=0, Srpr=0, Srpf=0;
@@ -1165,7 +1166,8 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 
    /*	if (P==TH_PAR)
 		Sx=1;
-	else */if (GetLivingNumber()>1) {
+	else */
+		if (GetLivingNumber()>1) {
 			Gx = GetStatistics(P); //r/lmb
 			Gy = GetStatistics(P1); // rad
 	  /*	if (P==R_PAR)
@@ -1174,7 +1176,7 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 
 	if (E4D) {
 	   //	T.epsilon=sqrt(Sx*(Spx+Spy)-sqr(Sxpx)-sqr(Sxpy))/(2*Nliv);
-			T.epsilon = sqrt(Sr*Sprpf -sqr(Srpr) -sqr(Srpf))/(2*Nliv);
+		T.epsilon = sqrt(Sr*Sprpf -sqr(Srpr) -sqr(Srpf))/(2*Nliv);
 	  /*	if (T.epsilon==0) {
         	T.epsilon=1e-12;
 		}
@@ -1188,9 +1190,8 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 			T.alpha=-((Sxpx+Sxpy)/Nliv)/T.epsilon;  */
 	}else{
 		T.epsilon = sqrt(Sx*Spx -sqr(Sxpx))/Nliv;
-		if (T.epsilon==0) {
+		if (T.epsilon==0)  
 			T.epsilon=1e-12;
-		}
 		T.beta = sqr(Gx.sigma)/T.epsilon;
 		//T.gamma=sqr(Gy.sigma)/T.epsilon;
 	   /*	if (T.gamma*T.beta-1>0) {
@@ -1214,6 +1215,11 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 	DeleteArray(X);
 	DeleteArray(Y);
 	DeleteArray(Z);
+	} else {
+                T.epsilon=0;
+                T.alpha=0;
+                T.beta=0;
+    }
 
    //	fclose(logFile);
 
@@ -1416,6 +1422,12 @@ bool TBeam::IsRectangular(TBeamParameter P)
 	return Rec;
 }
 //---------------------------------------------------------------------------
+void TBeam::KillParticles(TParticle *P)
+{
+        for (int i=0;i<Np;i++)
+                Particle[i].lost=P==NULL?KILLED:P[i].lost;
+}
+//---------------------------------------------------------------------------
 double *TBeam::GetLivingParameter(TBeamParameter P)
 {
 	double *X=NULL;
@@ -1458,6 +1470,7 @@ TGauss TBeam::GetStatistics(double *X,bool FWHM,bool Core)
 		G.core=Spectrum->GetCore();
 
 	delete Spectrum;
+//TM0323	delete[] X;
 
 	return G;
 }
@@ -1766,13 +1779,13 @@ TGauss TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices)
 	TGauss G;
 	int j=0;
 	double *L;
+
+	CountLiving();
 	L=new double [Nliv];
 
 	//	double L[Nliv];
 	double phi=0,Iphi=0,x=0,beta=1,Ib=0,b=1;
 	double gamma = 1, gammai = 1;
-
-	CountLiving();
 
     for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){
@@ -1798,7 +1811,7 @@ TGauss TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices)
 	bool FWHM=false,Core=true;
 	G=GetStatistics(L,FWHM,Core);
 
-	delete[] L;
+	//delete[] L;
 
 	return G;
 }
@@ -1807,13 +1820,13 @@ TGauss TBeam::iGetBeamRadius(TIntParameters& Par,TIntegration *I,TBeamParameter 
 {
 	TGauss G;
 	int j=0;
-	double *R;
+	double *R=NULL;
 
+	CountLiving();
 	R=new double [Nliv];
 	//double R[Nliv];
 	double r=0, th=0,Ir=0,Ith=0,x=0;
 	//TSpectrumBar *Spectrum;
-	CountLiving();
 
     for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){
@@ -1844,7 +1857,7 @@ TGauss TBeam::iGetBeamRadius(TIntParameters& Par,TIntegration *I,TBeamParameter 
 	bool FWHM=false,Core=true;
 	G=GetStatistics(R,FWHM,Core);
 
-	delete[] R;
+	//delete[] R;
 
 	return G;
 }

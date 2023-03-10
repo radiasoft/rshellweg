@@ -34,6 +34,11 @@ __fastcall TBeamSolver::~TBeamSolver()
         delete[] K[i];
     delete[] K;
 
+//TM0323    if (BeamExport!=NULL){
+//TM0323                delete[] BeamExport;
+//TM0323                BeamExport=NULL;
+//TM0323        }
+
     #ifndef RSLINAC
 	if (SmartProgress!=NULL)
         delete SmartProgress;
@@ -2209,7 +2214,7 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 {
 	int Ni=0, Nsec=0, Ns=0, Nq=0, Ndat=0;
 	double dF=0;
-	double F_last=0, P_last=0;
+	double F_last=0, P_last=0, master_phase=0;
 
 	TError Error=ERR_NO;
 
@@ -2310,6 +2315,10 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 			case POWER:{
 				Error=ParsePower(&Lines[k],Nsec);
 				if (Error==ERR_NO){
+//TM0323					double phi=StructPar.Sections[Nsec].PhaseShift;
+//TM0323                                        StructPar.Sections[Nsec].PhaseShift-=master_phase;
+//TM0323                                        master_phase=phi;
+
 				   	Nsec++;
 					NewCell=true;
 					PowerDefined=true;
@@ -2783,7 +2792,7 @@ TFieldMap2D TBeamSolver::ParseMapFile(AnsiString &F)
 	}
 
 	fs.close();
-	DeleteDoubleArray(Unq,NumDim);
+	DeleteDoubleArray(Unq,NumRow);
 
 	return Map;
 }
@@ -2814,10 +2823,10 @@ void TBeamSolver::CreateMaps()
 				QuadMaps[q].Piv.Y[k]*=StructPar.Cells[i].F0/c;
 			}
 			q++;
-		}  else {
-		   QuadMaps[q].Piv.X=NULL;
-           QuadMaps[q].Piv.Y=NULL;
-        }
+		} else {  //TM0323:  else block commented out in trunk  
+			QuadMaps[q].Piv.X=NULL;
+           		QuadMaps[q].Piv.Y=NULL;
+        	}     
 	}
 }
 //---------------------------------------------------------------------------
@@ -2831,10 +2840,8 @@ void TBeamSolver::CreateStrucutre()
 	for (int i=0;i<StructPar.NElements;i++){
 		Extra=0;
 		Map.Field=NULL;
-		if (i==StructPar.NElements-1)
-			Extra=1;
-		else if (StructPar.Cells[i+1].First)
-			Extra=1;
+		if ((i==StructPar.NElements-1) || StructPar.Cells[i+1].First)
+                        Extra=1;
 
 		if (StructPar.Cells[i].First)
 			z-=zm;
@@ -2896,7 +2903,8 @@ void TBeamSolver::CreateStrucutre()
 			Structure[k].ksi=z/lmb;
 			Structure[k].lmb=lmb;
 			Structure[k].P=P0;
-			Structure[k].dF=0;
+//TM0323			if (j>0) 
+				Structure[k].dF=0;
 
 			if (StructPar.Cells[i].beta<1)
 				Structure[k].betta=beta;
@@ -3354,7 +3362,7 @@ void TBeamSolver::ParseSolenoidFile(TParseStage P)
 		}
 	}
 
-	DeleteDoubleArray(Unq,NumDim);
+	DeleteDoubleArray(Unq,NumRow);
 }
 //---------------------------------------------------------------------------
 void TBeamSolver::CreateMagneticMap()
@@ -4567,6 +4575,7 @@ void TBeamSolver::CountLiving(int Si)
 			fprintf(F,"\n");
 		}
 		fclose(F);   */
+//TM0323	        KillParticles(Si+1,Npoints-1); 
 		#ifndef RSLINAC
 		AnsiString S="Beam Lost!";
 		ShowError(S);
@@ -4575,6 +4584,20 @@ void TBeamSolver::CountLiving(int Si)
 		SolverStop=ERR_BEAM;
         return;
     }
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::KillParticles(int Si)
+{
+        if (Si>0)
+                Beam[Si]->KillParticles(Beam[Si-1]->Particle);
+        else
+                Beam[Si]->KillParticles();
+}
+//---------------------------------------------------------------------------
+void TBeamSolver::KillParticles(int Si, int Sj)
+{
+        for (int i=Si;i<=Sj;i++)
+                KillParticles(i);
 }
 //---------------------------------------------------------------------------
 void TBeamSolver::DumpHeader(ofstream &fo,TDump *ExportParameters,int jmin,int jmax)
@@ -5249,6 +5272,7 @@ TError TBeamSolver::Solve()
 	#endif
 
 	double phi0 =0, phi_s =0, phi_p =0;
+//TM0323	bool DriftOverride=false;
 	double gbr, gbth, gbz, g; 
 
   //    logFile=fopen("beam.log","w");
@@ -5316,6 +5340,9 @@ TError TBeamSolver::Solve()
 			Beam[i]->Next(Beam[i+1]);
 		}
 
+//TM0323		if (Structure[i].drift)
+//TM0323                        DriftOverride=true;
+
 		for (int j=0; j<BeamPar.NParticles; j++){
 			phi_s = Structure[i+1].ksi *2*pi;
 			if (Beam[i+1]->Particle[j].lost==LIVE){
@@ -5337,12 +5364,12 @@ TError TBeamSolver::Solve()
 				}
 				phi0 = Beam[0]->Particle[j].phi;
 				phi_p = Beam[i+1]->Particle[j].phi;
-				if ((phi_p -phi0 +phi_s) < -pi/2) {
+				if ((phi_p -phi0 +phi_s) < -pi/2) {  //TM0323  && !DriftOverride) {
 					Beam[i+1]->Particle[j].lost=PHASE_LOST;
 				}
 			}
 			Beam[i+1]->Particle[j].z = Structure[i+1].ksi *Structure[i+1].lmb;
-			Beam[i+1]->Particle[j].phi -= Structure[i+1].dF;
+			Beam[i+1]->Particle[j].phi -= Structure[i+1].dF; //TM0323: -= --> += in trunk 
 
 			/*
 			fprintf(logFile, "%f %f %f %f %f \n", Beam[i]->Particle[j].r, Beam[i]->Particle[j].gb.r,
