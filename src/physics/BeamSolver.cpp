@@ -34,10 +34,10 @@ __fastcall TBeamSolver::~TBeamSolver()
         delete[] K[i];
     delete[] K;
 
-//TM0323    if (BeamExport!=NULL){
-//TM0323                delete[] BeamExport;
-//TM0323                BeamExport=NULL;
-//TM0323        }
+    if (BeamExport!=NULL){
+                delete[] BeamExport;
+		BeamExport=NULL;
+        }
 
     #ifndef RSLINAC
 	if (SmartProgress!=NULL)

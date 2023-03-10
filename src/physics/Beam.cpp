@@ -1470,7 +1470,7 @@ TGauss TBeam::GetStatistics(double *X,bool FWHM,bool Core)
 		G.core=Spectrum->GetCore();
 
 	delete Spectrum;
-//TM0323	delete[] X;
+	delete[] X;
 
 	return G;
 }
