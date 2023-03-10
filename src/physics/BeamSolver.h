@@ -110,10 +110,10 @@ private:
 	TError ParseNorm (TInputLine *Line, AnsiString &F, int Nz,int Zpos);
 
 	//STRUCTURE
-	void DeleteBeam();
 	void CreateMesh();
 	void CreateStrucutre();
 	void DeleteMesh();
+	void DeleteBeam();
 
 	TImportType ParseSolenoidType(AnsiString &F);
 	TDimensions ParseSolenoidLines(TMagnetParameters &P);
@@ -154,6 +154,8 @@ private:
 	void Integrate(int Si, int Sj);
 	void SpaceCharge(int Si, int Sj);
 	void CountLiving(int Si);
+	void KillParticles(int Si);
+        void KillParticles(int Si, int Sj);
 	TIntegration **K;
 	TIntParameters *Par;
 
