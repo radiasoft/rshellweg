@@ -5369,7 +5369,7 @@ TError TBeamSolver::Solve()
 				}
 			}
 			Beam[i+1]->Particle[j].z = Structure[i+1].ksi *Structure[i+1].lmb;
-			Beam[i+1]->Particle[j].phi -= Structure[i+1].dF; //TM0323: -= --> += in trunk 
+			Beam[i+1]->Particle[j].phi += Structure[i+1].dF; //TM0323: -= --> += in trunk; no effect here, clear effect in trunk 
 
 			/*
 			fprintf(logFile, "%f %f %f %f %f \n", Beam[i]->Particle[j].r, Beam[i]->Particle[j].gb.r,
