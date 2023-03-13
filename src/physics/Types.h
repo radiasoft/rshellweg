@@ -295,7 +295,7 @@ struct TStructure
     double Rp;
     double B;
     double alpha;
-    double betta;
+    double beta;
     double Ra;
     TFieldMap2D Bmap;
 	//TField Hext;

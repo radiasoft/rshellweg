@@ -2907,9 +2907,9 @@ void TBeamSolver::CreateStrucutre()
 				Structure[k].dF=0;
 
 			if (StructPar.Cells[i].beta<1)
-				Structure[k].betta=beta;
+				Structure[k].beta = beta;
 			else
-				Structure[k].betta=MeVToVelocity(EnergyLimit,BeamPar.W0);
+				Structure[k].beta = MeVToVelocity(EnergyLimit, BeamPar.W0);
 
 			Structure[k].E=E;
 			Structure[k].A=A;
@@ -3976,7 +3976,7 @@ double TBeamSolver::GetStructureParameter(int Nknot, TStructureParameter P)
 			break;
 		}
 		case (SBETA_PAR):{
-			x=Structure[Nknot].betta;
+			x=Structure[Nknot].beta;
 			break;
 		}
 		case (BBETA_PAR):{
@@ -5078,11 +5078,11 @@ void TBeamSolver::Step(int Si)
     Par[2].h = Par[1].h;
     Par[3].h = dh;
 
-    double db = Structure[Si+1].betta -Structure[Si].betta;
-    Par[0].bw = Structure[Si].betta;
-    Par[1].bw = Structure[Si].betta +db/2;
+    double db = Structure[Si+1].beta -Structure[Si].beta;
+    Par[0].bw = Structure[Si].beta;
+    Par[1].bw = Structure[Si].beta +db/2;
     Par[2].bw = Par[1].bw;
-    Par[3].bw = Structure[Si+1].betta;
+    Par[3].bw = Structure[Si+1].beta;
 
     double dw = Structure[Si+1].alpha -Structure[Si].alpha;
     Par[0].w = Structure[Si].alpha*lmb;
@@ -5368,8 +5368,10 @@ TError TBeamSolver::Solve()
 					Beam[i+1]->Particle[j].lost=PHASE_LOST;
 				}
 			}
+			if(j==0) std::cerr << "i = " << i <<": Structure[i+1].dF = " << Structure[i+1].dF << '\n';
 			Beam[i+1]->Particle[j].z = Structure[i+1].ksi *Structure[i+1].lmb;
 			Beam[i+1]->Particle[j].phi += Structure[i+1].dF; //TM0323: -= --> += in trunk; no effect here, clear effect in trunk 
+			//if(i==500) Beam[i+1]->Particle[j].phi += 1.570796326794897; 
 
 			/*
 			fprintf(logFile, "%f %f %f %f %f \n", Beam[i]->Particle[j].r, Beam[i]->Particle[j].gb.r,
@@ -5518,7 +5520,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	double Pin=W0*I0;
 
 
-	double v=Structure[j].betta;
+	double v=Structure[j].beta;
 	double E=sqrt(2*Structure[j].Rp);
 	double Pb=E!=0?1e-6*sqr(Structure[j].A*BeamPar.Wnorm/E):0;
 
@@ -5591,7 +5593,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	OutputStrings->Add("Twiss Parameters (R):");
 	Line="alpha= "+s.FormatFloat("#0.00000",Result.RTwiss.alpha);
 	OutputStrings->Add(Line);
-	Line="betta = "+s.FormatFloat("#0.00000",100*Result.RTwiss.beta)+" cm/rad";
+	Line="beta = "+s.FormatFloat("#0.00000",100*Result.RTwiss.beta)+" cm/rad";
 	OutputStrings->Add(Line);
 	Line="emittance = "+s.FormatFloat("#0.000000",1e6*Result.RTwiss.epsilon)+" um";
 	OutputStrings->Add(Line);
@@ -5600,7 +5602,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	OutputStrings->Add("Twiss Parameters (X):");
 	Line="alpha= "+s.FormatFloat("#0.00000",Result.XTwiss.alpha);
 	OutputStrings->Add(Line);
-	Line="betta = "+s.FormatFloat("#0.00000",100*Result.XTwiss.beta)+" cm/rad";
+	Line="beta = "+s.FormatFloat("#0.00000",100*Result.XTwiss.beta)+" cm/rad";
 	OutputStrings->Add(Line);
 	Line="emittance = "+s.FormatFloat("#0.000000",1e6*Result.XTwiss.epsilon)+" um";
 	OutputStrings->Add(Line);
@@ -5609,7 +5611,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	OutputStrings->Add("Twiss Parameters (Y):");
 	Line="alpha= "+s.FormatFloat("#0.00000",Result.YTwiss.alpha);
 	OutputStrings->Add(Line);
-	Line="betta = "+s.FormatFloat("#0.00000",100*Result.YTwiss.beta)+" cm/rad";
+	Line="beta = "+s.FormatFloat("#0.00000",100*Result.YTwiss.beta)+" cm/rad";
 	OutputStrings->Add(Line);
 	Line="emittance = "+s.FormatFloat("#0.000000",1e6*Result.YTwiss.epsilon)+" um";
 	OutputStrings->Add(Line);
