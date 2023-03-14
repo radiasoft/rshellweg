@@ -1705,11 +1705,11 @@ double TBeam::BesselSum(TIntParameters& Par, TIntegration *I, TTrig Trig)
             else if (Trig==COS)
                 c=cos(phi);
 
-            arg=2*pi*sqrt(1-sqr(bw))*r/bw;
-            Bes=Ib0(arg)*c;
+            //arg=2*pi*sqrt(1-sqr(bw))*r/bw;
+            //Bes=Ib0(arg)*c;
 	    //BRTR: In the trunk, the 2 lines above are replaced by the 2 lines below:
-	    //arg=sqr(2*pi)*(1/sqr(bw)-1); //^2
-            //Bes=Ib0_beta(r,arg)*c;
+	    arg=sqr(2*pi)*(1/sqr(bw)-1); //^2
+            Bes=Ib0_beta(r,arg)*c;
 
            /*   if (mod(Bes)>100)
                 ShowMessage("this!");      */
@@ -2112,7 +2112,7 @@ void TBeam::Integrate(TIntParameters& Par, TIntegration **I, int Si)    // Si fr
 			        k_phi = 2*pi*(1/Par.bw -gamma/gb.z);
 
                         //RF FIELDS
-			//BRTR : this is part of the branch to be replaced w/trunk code below for testing/debugging
+			/*BRTR : this is part of the branch to be replaced w/trunk code below for testing/debugging
 			Sr = 2*pi *sqrt(1-sqr(Par.bw)) /Par.bw; 
                         
 			E.z = A *Ib0(r*Sr) *cos(phi) +Par.Eq[i].z;   //k_Az = Az
@@ -2122,9 +2122,9 @@ void TBeam::Integrate(TIntParameters& Par, TIntegration **I, int Si)    // Si fr
 			H.z = 0;
                         H.r = 0;
                         H.th = (Par.bw *A *Ib1(r*Sr) *sin(phi)) /sqrt(1-sqr(Par.bw));      //k_Hth = Hth 
-			//End of replaced branch code  BRTR
+			//End of replaced branch code  BRTR*/
 
-			/*BRTR : this is trunk code replacing the above branch code:
+			//BRTR : this is trunk code replacing the above branch code:
 			// Series for Bessel and then remove sqrt(1-b^2).
                         Sr = sqr(2*pi)*(1/sqr(Par.bw)-1); //Sr^2
                         E.z = A*Ib0_beta(r,Sr)*cos(phi) +Par.Eq[i].z;
@@ -2136,7 +2136,7 @@ void TBeam::Integrate(TIntParameters& Par, TIntegration **I, int Si)    // Si fr
                         H.r=0;
                                 //H.th=Par.bw*A*Ib1_beta(r,Sr)*sin(phi);      //should be beta/c? - need to check
                         H.th = 2*pi *A*Ib1_beta(r,Sr)*sin(phi);
-			// End of the trunk code replacing the branch code above  BRTR*/
+			// End of the trunk code replacing the branch code above  BRTR//
 
 
                         Hx.r=0;
