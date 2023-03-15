@@ -2315,9 +2315,9 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 			case POWER:{
 				Error=ParsePower(&Lines[k],Nsec);
 				if (Error==ERR_NO){
-//TM0323					double phi=StructPar.Sections[Nsec].PhaseShift;
-//TM0323                                        StructPar.Sections[Nsec].PhaseShift-=master_phase;
-//TM0323                                        master_phase=phi;
+					double phi=StructPar.Sections[Nsec].PhaseShift;
+					StructPar.Sections[Nsec].PhaseShift-=master_phase;
+					master_phase=phi;
 
 				   	Nsec++;
 					NewCell=true;
@@ -2823,10 +2823,10 @@ void TBeamSolver::CreateMaps()
 				QuadMaps[q].Piv.Y[k]*=StructPar.Cells[i].F0/c;
 			}
 			q++;
-		} else {  //TM0323:  else block commented out in trunk  
+		} /* else {  
 			QuadMaps[q].Piv.X=NULL;
            		QuadMaps[q].Piv.Y=NULL;
-        	}     
+        	} */  
 	}
 }
 //---------------------------------------------------------------------------
@@ -4575,7 +4575,7 @@ void TBeamSolver::CountLiving(int Si)
 			fprintf(F,"\n");
 		}
 		fclose(F);   */
-//TM0323	        KillParticles(Si+1,Npoints-1); 
+	        KillParticles(Si+1,Npoints-1); 
 		#ifndef RSLINAC
 		AnsiString S="Beam Lost!";
 		ShowError(S);
@@ -5272,7 +5272,7 @@ TError TBeamSolver::Solve()
 	#endif
 
 	double phi0 =0, phi_s =0, phi_p =0;
-//TM0323	bool DriftOverride=false;
+	bool DriftOverride=false;
 	double gbr, gbth, gbz, g; 
 
   //    logFile=fopen("beam.log","w");
@@ -5340,8 +5340,8 @@ TError TBeamSolver::Solve()
 			Beam[i]->Next(Beam[i+1]);
 		}
 
-//TM0323		if (Structure[i].drift)
-//TM0323                        DriftOverride=true;
+		if (Structure[i].drift)
+                        DriftOverride=true;
 
 		for (int j=0; j<BeamPar.NParticles; j++){
 			phi_s = Structure[i+1].ksi *2*pi;
@@ -5364,7 +5364,7 @@ TError TBeamSolver::Solve()
 				}
 				phi0 = Beam[0]->Particle[j].phi;
 				phi_p = Beam[i+1]->Particle[j].phi;
-				if ((phi_p -phi0 +phi_s) < -pi/2) {  //TM0323  && !DriftOverride) {
+				if ((phi_p -phi0 +phi_s) < -pi/2 && !DriftOverride) {
 					Beam[i+1]->Particle[j].lost=PHASE_LOST;
 				}
 			}
