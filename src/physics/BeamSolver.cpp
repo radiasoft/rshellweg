@@ -2903,7 +2903,7 @@ void TBeamSolver::CreateStrucutre()
 			Structure[k].ksi=z/lmb;
 			Structure[k].lmb=lmb;
 			Structure[k].P=P0;
-//TM0323			if (j>0) 
+			if (j>0) 
 				Structure[k].dF=0;
 
 			if (StructPar.Cells[i].beta<1)
@@ -5067,6 +5067,7 @@ void TBeamSolver::Step(int Si)
     betta0=Beam[i]->GetAverageEnergy();
 
     w=Structure[i]->alpha*lmb;        */
+
     drift=(Structure[Si].drift);
     for (int i=0;i<4;i++)
         Par[i].drift=Structure[Si].drift;
@@ -5349,6 +5350,7 @@ TError TBeamSolver::Solve()
 				if (Structure[i+1].Bmap.Field==NULL) {
 					if (mod(Beam[i+1]->Particle[j].r)>=Structure[i+1].Ra)
 						Beam[i+1]->Particle[j].lost=RADIUS_LOST;
+						//std::cerr << "Particle " << j << ": RADIUS_LOST (r > Ra) \n";
 				} else {
 					TPhaseSpace R;
 					double xmin=0,xmax=0,ymin=0,ymax=0;
@@ -5360,18 +5362,19 @@ TError TBeamSolver::Solve()
 					ymax=Structure[i+1].Bmap.Piv.Y[Structure[i+1].Bmap.Dim.Ny-1];
 					if (R.x<xmin || R.x>xmax || R.y<ymin || R.y>ymax) {
 						Beam[i+1]->Particle[j].lost=RADIUS_LOST;
+						std::cerr << "Particle " << j << ": RADIUS_LOST (outside x, y min/max) \n";
 					}
 				}
 				phi0 = Beam[0]->Particle[j].phi;
 				phi_p = Beam[i+1]->Particle[j].phi;
 				if ((phi_p -phi0 +phi_s) < -pi/2 && !DriftOverride) {
 					Beam[i+1]->Particle[j].lost=PHASE_LOST;
+					std::cerr << "Particle " << j << ": PHASE_LOST \n";
 				}
 			}
-			if(j==0) std::cerr << "i = " << i <<": Structure[i+1].dF = " << Structure[i+1].dF << '\n';
+			//if(j==0) std::cerr << "i = " << i <<": Structure[i+1].dF = " << Structure[i+1].dF << '\n';
 			Beam[i+1]->Particle[j].z = Structure[i+1].ksi *Structure[i+1].lmb;
-			Beam[i+1]->Particle[j].phi += Structure[i+1].dF; //TM0323: -= --> += in trunk; no effect here, clear effect in trunk 
-			//if(i==500) Beam[i+1]->Particle[j].phi += 1.570796326794897; 
+			Beam[i+1]->Particle[j].phi += Structure[i+1].dF; 
 
 			/*
 			fprintf(logFile, "%f %f %f %f %f \n", Beam[i]->Particle[j].r, Beam[i]->Particle[j].gb.r,

@@ -429,6 +429,7 @@ static bool IsNumber(AnsiString &S)   //Checks if the string is a number
 	}
 	return Success;
 }
+/*
 //---------------------------------------------------------------------------
 static AnsiString GetFileName(AnsiString &F)   //Gets the file name from path
 {
@@ -440,6 +441,29 @@ static AnsiString GetFileCaption(AnsiString &F)   //Gets the file name without e
 {
     std::string s = std::string(F.c_str());
 	return s.substr(0,s.find_last_of("/.")-1);
+}
+*/
+//---------------------------------------------------------------------------
+static AnsiString GetFileName(AnsiString &F)   //Gets the file name from path
+{
+//#ifdef RSHELLWEG_LINUX
+#ifdef RSLINAC 
+        std::string s = std::string(F.c_str());
+        return s.substr(s.find_last_of("/\\") + 1);
+#else
+        return F.SubString(F.LastDelimiter("/\\")+1,F.Length());
+#endif
+}
+//---------------------------------------------------------------------------
+static AnsiString GetFileCaption(AnsiString &F)   //Gets the file name without extension
+{
+//#ifdef RSHELLWEG_LINUX
+#ifdef RSLINAC 
+        std::string s = std::string(F.c_str());
+        return s.substr(0, s.find_last_of("/.") - 1);
+#else
+        return F.SubString(0,F.LastDelimiter("/.")-1);
+#endif
 }
 //---------------------------------------------------------------------------
 static bool CheckFile(AnsiString &F)   //Checks if the file exists
