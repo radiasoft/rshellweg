@@ -299,9 +299,11 @@ bool TBeamSolver::LoadFromFile(AnsiString& Fname)
 
     delete[] Structure;
 
-    for (int i=0;i<Np_beam;i++)
-        delete Beam[i];
-    delete[] Beam;
+    if (Beam) {
+        for (int i=0;i<Np_beam;i++)
+            delete Beam[i];
+        delete[] Beam;
+    }
 
     Beam=new TBeam*[Npoints];
     for (int i=0;i<Npoints;i++)
