@@ -64,10 +64,10 @@ void TBeam::SetKernel(double Ker)
 //---------------------------------------------------------------------------
 void TBeam::GenerateEnergy(TGauss G)
 {
-	std::cerr << "In GenerateEnergy(.) \n";
+	//std::cerr << "In GenerateEnergy(.) \n";
 	//std::cerr << "Calling MakeGaussDistribution(., Par) with hardwired Par=BETA_PAR \n";
 	//IVP  MakeGaussDistribution(G,BETA_PAR);
-	std::cerr << "Calling MakeGaussDistribution(., Par), now with hardwired Par=GAMMA_PAR \n";
+	//std::cerr << "Calling MakeGaussDistribution(., Par), now with hardwired Par=GAMMA_PAR \n";
 	MakeGaussDistribution(G, GAMMA_PAR);
 }
 //---------------------------------------------------------------------------
@@ -219,10 +219,10 @@ bool TBeam::ImportEnergy(TBeamInput *BeamPar)
 //---------------------------------------------------------------------------
 bool TBeam::BeamFromImport(TBeamInput *BeamPar)
 {
-	std::cerr << "In BeamFromImport(.) \n";
-	std::cerr << "BeamPar->RBeamType = " << BeamPar->RBeamType << '\n';
-	std::cerr << "BeamPar->ZBeamType = " << BeamPar->ZBeamType << '\n';
-	std::cerr << "BeamPar->ZCompress = " << BeamPar->ZCompress << '\n';
+	//PR std::cerr << "In BeamFromImport(.) \n";
+	//PR std::cerr << "BeamPar->RBeamType = " << BeamPar->RBeamType << '\n';
+	//PR std::cerr << "BeamPar->ZBeamType = " << BeamPar->ZBeamType << '\n';
+	//PR std::cerr << "BeamPar->ZCompress = " << BeamPar->ZCompress << '\n';
 	double **X=NULL;
 	double x=0,y=0,z=0,px=0,py=0,pz=0,t=0;
 	double phi=0,W=0;
@@ -461,7 +461,6 @@ bool TBeam::BeamFromTwiss(TBeamInput *BeamPar)
 //---------------------------------------------------------------------------
 bool TBeam::BeamFromFile(TBeamInput *BeamPar)
 {
-	//std::cerr << "BeamFromFile functionality is disabled in this branch\n";
 	double **X=NULL, **Y=NULL;
 	double x=0,y=0,px=0,py=0;
 	double r=0,th=0,p=0,pr=0,pth=0,beta=0;
@@ -687,8 +686,8 @@ TPhaseSpace *TBeam::MakeTwissDistribution(TTwiss T)
 //---------------------------------------------------------------------------
 void TBeam::SetParameters(double *X, TBeamParameter Par)
 {
-	std::cerr << "Entering TBeam::SetParameters(., Par) \n"; 
-	std::cerr << "Par = " << Par << '\n';
+	//PR std::cerr << "Entering TBeam::SetParameters(., Par) \n"; 
+	//PR std::cerr << "Par = " << Par << '\n';
 	switch (Par) {
 		case (R_PAR):{
 			for (int i=0;i<Np;i++)
@@ -783,11 +782,11 @@ double *TBeam::MakeEquiprobableDistribution(double Xav, double dX)
 //---------------------------------------------------------------------------
 void TBeam::MakeEquiprobableDistribution(double Xav, double dX, TBeamParameter Par)
 {
-	std::cerr << "In MakeEquiprobableDistribution(., ., Par) \n";
-	std::cerr << "Par = " << Par << '\n'; 
+	//std::cerr << "In MakeEquiprobableDistribution(., ., Par) \n";
+	//std::cerr << "Par = " << Par << '\n'; 
 	double *Xi;
 	Xi=MakeEquiprobableDistribution(Xav,dX); 
-	std::cerr << "Calling SetParameters(., Par) \n";
+	//std::cerr << "Calling SetParameters(., Par) \n";
     	SetParameters(Xi,Par);
 	delete[] Xi;
 }
@@ -873,20 +872,20 @@ double *TBeam::MakeRayleighDistribution(double Xav,double sX)
 //---------------------------------------------------------------------------
 void TBeam::MakeGaussDistribution(double Xav, double sX, TBeamParameter Par, double Xlim)
 {
-	std::cerr << "In MakeGaussDistribution(., ., Par, .) \n";
-        std::cerr << "Par = " << Par << '\n';
+	//std::cerr << "In MakeGaussDistribution(., ., Par, .) \n";
+        //std::cerr << "Par = " << Par << '\n';
 	double *Xi;
 	Xi=MakeGaussDistribution(Xav,sX,Xlim);
-	std::cerr << "Calling SetParameters(., Par) " << '\n';
+	//std::cerr << "Calling SetParameters(., Par) " << '\n';
 	SetParameters(Xi,Par);
 	delete[] Xi;
 }
 //---------------------------------------------------------------------------
 void TBeam::MakeGaussDistribution(TGauss G, TBeamParameter Par)
 {
-	std::cerr << "In MakeGaussDistribution(., Par) \n"; 
-	std::cerr << "Par = " << Par << '\n';
-	std::cerr << "Calling MakeGaussDistribution(., ., Par, .) \n"; 
+	//std::cerr << "In MakeGaussDistribution(., Par) \n"; 
+	//std::cerr << "Par = " << Par << '\n';
+	//std::cerr << "Calling MakeGaussDistribution(., ., Par, .) \n"; 
 	return MakeGaussDistribution(G.mean, G.sigma, Par, G.limit);
 }
 //---------------------------------------------------------------------------
@@ -1683,19 +1682,17 @@ double TBeam::BesselSum(TIntParameters& Par, TIntegration *I, TTrig Trig)
     double S=0,N=0,S1=0;
     double phi=0,r=0,bw=0,c=0,bz=0, arg=0, Bes=0;
     double Res=0; 
-    double gamma, gammai; 
+    double gamma; 
 
 	for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){ 
 			//IVP  bz=Particle[i].beta.z +I[i].beta.z*Par.h;
 			gamma = sqrt(1. +sqr(Particle[i].gb.r) +sqr(Particle[i].gb.th) +sqr(Particle[i].gb.z)); 
-			//gammai = sqrt(1. +sqr(I[i].gb.r) +sqr(I[i].gb.th) +sqr(I[i].gb.z));
-			//bz = Particle[i].gb.z /gamma +I[i].gb.z *Par.h /gammai;
 		        bz = Particle[i].gb.z /gamma +I[i].gb.z *Par.h /gamma;	
 
 			if (bz<0 || bz>1) {
 			  //	Particle[i].lost=BZ_LOST;
-				std::cerr << "Particle " << i << " has bz = " << bz << " in BesselSum(...) \n";
+				//PR std::cerr << "Particle " << i << " has bz = " << bz << " in BesselSum(...) \n";
 				continue;
 			}
             phi=Particle[i].phi+I[i].phi*Par.h;
@@ -1905,12 +1902,15 @@ void TBeam::Integrate(TIntParameters& Par, TIntegration **I, int Si)    // Si fr
         double r=0, r0=0, phi=0, th=0;//,bz=0,br=0,bth=0;
         double s=-1;
         double rev=1;
+
         TField E;
         TField H;
         TField Hx,Hm;
-        TField gb;
+        
+	TField gb;
         TField k_gb;
-        //logFile=fopen("beam.log","a");
+        
+	//logFile=fopen("beam.log","a");
 	//std::cerr << "In TBeam::Integrate(TIntPar-s& Par, TInt-n **I, int Si): Si = " << Si; // << '\n';
 
         if (Reverse)
@@ -1950,7 +1950,7 @@ void TBeam::Integrate(TIntParameters& Par, TIntegration **I, int Si)    // Si fr
                         //bz=beta;  //I don't understand why, but without it, the emittance doesn't preserve
                         if (beta0 > 1) {
                                 Particle[i].lost = STEP_LOST;
-				std::cerr << "Particle " << i << ": STEP_LOST, beta0 = " << beta0 << "\n";
+				//PR std::cerr << "Particle " << i << ": STEP_LOST, beta0 = " << beta0 << "\n";
                                 continue;
                         }
                         //IVP gamma=VelocityToEnergy(beta0);
@@ -1959,11 +1959,19 @@ void TBeam::Integrate(TIntParameters& Par, TIntegration **I, int Si)    // Si fr
                         //C=Particle[i].Cmag;
 
                         r = Particle[i].r +I[Si][i].r *Par.h;
-			if (r <= 0.0){
-				std::cerr << "Particle " << i << ": r = " << r << " in TBeam::Integrate(...) \n";
-			}
                         th = Particle[i].th +I[Si][i].th *Par.h;
                         phi = Particle[i].phi +I[Si][i].phi *Par.h;
+			/*//NR correction:
+                        if (r < 0.0){
+                                std::cerr << "Correcting for r<0 in in TBeam::Integrate(...), particle " << i << '\n';
+                                r = -r;
+                                gb.r = -gb.r;
+				th = th +3.14159;  // this is a rough approximation 
+                        }
+                        // end of NR correction */
+                        //PR if (r <= 0.0){
+                        //PR        std::cerr << "Particle " << i << ": r = " << r << " in TBeam::Integrate(...) \n";
+                        //PR }
 
                         if (!Par.drift)
                                 //IVP k_phi=2*pi*(1/Par.bw-1/beta.z)+2*Par.B*Par.SumSin/A;
@@ -2146,6 +2154,16 @@ IVP */
                         nParticle[i].gb.th = 0;
                         dgbth = (I[0][i].gb.th +I[1][i].gb.th +2*I[2][i].gb.th +2*I[3][i].gb.th) *Par.h /6;
                         nParticle[i].gb.th = Particle[i].gb.th +dgbth;
+
+			/*//NR correction:
+                        if (nParticle[i].r < 0.0){
+                                std::cerr << "Correcting for r<0 in in TBeam::Next(., ., .), particle " << i << '\n';
+                                nParticle[i].r = -nParticle[i].r;
+                                nParticle[i].gb.r = -nParticle[i].gb.r;
+                                nParticle[i].th += 3.14159;  // this is a rough approximation
+                        }
+                        // end of NR correction */
+
 /* IVP 
 			//nParticle[i].Bz=0;
 			//nParticle[i].Bz=sqrt(sqr(nParticle[i].beta)-sqr(nParticle[i].Br)-sqr(nParticle[i].Bth));
@@ -2178,27 +2196,27 @@ IVP */
 
 			if(gb /gamma > 1.0){
 				nParticle[i].lost = BETA_LOST;
-				std::cerr << "Particle " << i << ": BETA_LOST (total beta > 1) \n";
+				//PR std::cerr << "Particle " << i << ": BETA_LOST (total beta > 1) \n";
 			}
 
 			if(mod(nParticle[i].gb.r) /gamma > 1.0){ 
                                 nParticle[i].lost = BETA_LOST; 
-				std::cerr << "Particle " << i << ": BETA_LOST (beta_r > 1) \n";
+				//PR std::cerr << "Particle " << i << ": BETA_LOST (beta_r > 1) \n";
 			}
 
 			if(mod(nParticle[i].gb.th) /gamma > 1.0){
                                 nParticle[i].lost = BETA_LOST; 
-				std::cerr << "Particle " << i << ": BETA_LOST (beta_th > 1) \n";
+				//PR std::cerr << "Particle " << i << ": BETA_LOST (beta_th > 1) \n";
 			}
 
 			if(mod(nParticle[i].gb.z) /gamma > 1.0){
                                 nParticle[i].lost = BZ_LOST; 
-				std::cerr << "Particle " << i << ": BZ_LOST (beta_z > 1) \n";
+				//PR std::cerr << "Particle " << i << ": BZ_LOST (beta_z > 1) \n";
 			}
 
 			if(nParticle[i].gb.z < 0.0){
                                nParticle[i].lost = PHASE_LOST;
-			       std::cerr << "Particle " << i << ": PHASE_LOST (beta_z < 0) \n";
+			       //PR std::cerr << "Particle " << i << ": PHASE_LOST (beta_z < 0) \n";
 			}
 
 			for (int j=0; j<4; j++){

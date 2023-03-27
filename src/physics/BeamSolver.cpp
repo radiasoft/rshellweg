@@ -4806,7 +4806,7 @@ void TBeamSolver::DumpT2(ofstream &fo,TDump *ExportParameters,int j)
 //---------------------------------------------------------------------------
 void TBeamSolver::DumpCST(ofstream &fo, TDump *ExportParameters, int j)
 {
-	if(j < 2) std::cerr << "In TBeamSolver::DumpCST(., ., j), j = " << j << '\n';
+	//PR if(j < 2) std::cerr << "In TBeamSolver::DumpCST(., ., j), j = " << j << '\n';
 	AnsiString s;
 	double x=0, y=0, z=0;
 	double px=0, py=0, pz=0;
@@ -4838,7 +4838,7 @@ void TBeamSolver::DumpCST(ofstream &fo, TDump *ExportParameters, int j)
         py = Beam[Si]->GetParameter(j, GBY_PAR);
         pz = Beam[Si]->GetParameter(j, GBZ_PAR);
 	
-	if(j < 2) std::cerr << "px = " << px << ", py = " << py <<"\n\n";
+	//PR if(j < 2) std::cerr << "px = " << px << ", py = " << py <<"\n\n";
 
 	q=qe;
 	switch (BeamPar.Species.Type){
@@ -4904,7 +4904,7 @@ void TBeamSolver::DumpBeam(TDump *ExportParameters)
 	AnsiString F=ExportParameters->File.c_str();
 	AnsiString s;
 
-	std::cerr << "In TBeamSolver::DumpBeam(.):  ExportParameters->SpecialFormat  = " << ExportParameters->SpecialFormat << "\n";
+	//PR std::cerr << "In TBeamSolver::DumpBeam(.):  ExportParameters->SpecialFormat  = " << ExportParameters->SpecialFormat << "\n";
 
 	switch (ExportParameters->SpecialFormat) {
 		case CST_PID:{F+=".pid";break;}
@@ -5315,7 +5315,7 @@ TError TBeamSolver::Solve()
 
 		//fprintf(logFile, "%i \n", i);
 		//fprintf(logFile_b, "%i \n", i);
-		std::cerr << '\n' << "In TBeamSolver::Solve():  i = " << i << '\n';
+		//PR std::cerr << '\n' << "In TBeamSolver::Solve():  i = " << i << '\n';
 
         //for (int j=0;j<Np;j++){
 
@@ -5362,14 +5362,14 @@ TError TBeamSolver::Solve()
 					ymax=Structure[i+1].Bmap.Piv.Y[Structure[i+1].Bmap.Dim.Ny-1];
 					if (R.x<xmin || R.x>xmax || R.y<ymin || R.y>ymax) {
 						Beam[i+1]->Particle[j].lost=RADIUS_LOST;
-						std::cerr << "Particle " << j << ": RADIUS_LOST (outside x, y min/max) \n";
+						//PR std::cerr << "Particle " << j << ": RADIUS_LOST (outside x, y min/max) \n";
 					}
 				}
 				phi0 = Beam[0]->Particle[j].phi;
 				phi_p = Beam[i+1]->Particle[j].phi;
 				if ((phi_p -phi0 +phi_s) < -pi/2 && !DriftOverride) {
 					Beam[i+1]->Particle[j].lost=PHASE_LOST;
-					std::cerr << "Particle " << j << ": PHASE_LOST \n";
+					//PR std::cerr << "Particle " << j << ": PHASE_LOST \n";
 				}
 			}
 			//if(j==0) std::cerr << "i = " << i <<": Structure[i+1].dF = " << Structure[i+1].dF << '\n';
