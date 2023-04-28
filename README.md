@@ -1,19 +1,17 @@
 ### Utilities for modeling [linacs](https://en.wikipedia.org/wiki/Linear_particle_accelerator)
-The rshellweg repository is where RadiaSoft maintains open source software for modeling linacs.  'Linac' is a long-time nickname for 'linear accelerator'. This includes the Hellweg C++ physics kernel, the Windows-only Hellweg GUI, and associated Python code for testing. In the future, rshellweg will be broadened to include other software specific to modeling linacs.
+The rshellweg repository is where RadiaSoft maintains open source software for modeling linacs.  'Linac' is a long-time nickname for 'linear accelerator'. This includes the Hellweg C++ physics kernel, the Windows-only Hellweg GUI, and associated Python code for testing.
 
 #### Support
-For support or more information, please [create an issue](https://github.com/radiasoft/rslinac/issues) in this repository.
+For support or more information, please [create an issue](https://github.com/radiasoft/rshellweg/issues) in this repository.
 
 #### Author
 Original author and primary developer: [Sergey V. Kutsaev](https://www.linkedin.com/in/sergey-kutsaev-9990147), RadiaBeam Technologies LLC
 
 Hellweg was initially developed at the [RF laboratory of the National Research Nuclear University (MEPhI)](http://rflab.mephi.ru/en/).
 
-Contributing developer: [Yury Eidelman](http://radiasoft.net/about/ourstaff), RadiaSoft LLC
+Contributing developers: Ilya Pogorelov, Paul Moeller, Robert Nagler, Garret Sugarbaker and Evan Carlin (RadiaSoft LLC), Yury Eidelman (Eidelman Scientific Consulting)
 
-Porting to GNU/Linux: [Jose 'Pepe' Barbe-Welzel](https://github.com/elventear)
-
-Porting to the cloud: [Paul Moeller](https://www.linkedin.com/in/paul-moeller-a002b0) and [Robert Nagler](https://www.linkedin.com/in/robnagler), RadiaSoft LLC
+Original port to GNU/Linux: [Jose 'Pepe' Barbe-Welzel](https://github.com/elventear)
 
 #### Rapid simulation of beams in cavities, with beam loading
 [Hellweg](https://github.com/radiasoft/rslinac/blob/master/README.md)
@@ -45,6 +43,6 @@ Support for Hellweg and rshellweg development has been provided by the US Depart
 ### License
 License: http://www.apache.org/licenses/LICENSE-2.0.html
 
-Copyright (c) 2015-2019 [RadiaSoft LLC](http://radiasoft.net/open-source).  All Rights Reserved.
+Copyright (c) 2015-2023 [RadiaSoft LLC](http://radiasoft.net/open-source).  All Rights Reserved.
 
 ![RadiaSoft](https://github.com/radiasoft/images/blob/master/corporate/RadiaSoftLogoTransparent.png)
