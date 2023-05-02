@@ -4,7 +4,7 @@
 #pragma hdrstop
 
 #include "BeamSolver.h"
-
+// #include <mcheck.h>
 // #include "Types.h"
 
 //---------------------------------------------------------------------------
@@ -39,7 +39,14 @@ __fastcall TBeamSolver::~TBeamSolver()
 		BeamExport=NULL;
 	}
 
+
+    if (BeamExport!=NULL){
+                delete[] BeamExport;
+		BeamExport=NULL;
+        }
+
     #ifndef RSHELLWEG_LINUX
+
 	if (SmartProgress!=NULL)
         delete SmartProgress;
     #endif
@@ -52,6 +59,9 @@ __fastcall TBeamSolver::~TBeamSolver()
 //---------------------------------------------------------------------------
 void TBeamSolver::Initialize()
 {
+
+   //  mcheck(NULL);
+
 	MaxCells=DEFAULT_MAX_CELLS;
     Nmesh=DEFAULT_MESH;
 	//Kernel=0;
@@ -2329,7 +2339,9 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 					StructPar.Sections[Nsec].PhaseShift-=master_phase;
 					master_phase=phi;
 
-					Nsec++;
+
+				   	Nsec++;
+
 					NewCell=true;
 					PowerDefined=true;
 				} else
@@ -2833,10 +2845,12 @@ void TBeamSolver::CreateMaps()
 				QuadMaps[q].Piv.Y[k]*=StructPar.Cells[i].F0/c;
 			}
 			q++;
-		} /* else {
-		   QuadMaps[q].Piv.X=NULL;
-           QuadMaps[q].Piv.Y=NULL;
-        }     */
+
+		} /* else {  
+			QuadMaps[q].Piv.X=NULL;
+           		QuadMaps[q].Piv.Y=NULL;
+        	} */  
+
 	}
 }
 //---------------------------------------------------------------------------
@@ -2850,8 +2864,10 @@ void TBeamSolver::CreateStrucutre()
 	for (int i=0;i<StructPar.NElements;i++){
 		Extra=0;
 		Map.Field=NULL;
-		if (i==StructPar.NElements-1 || StructPar.Cells[i+1].First)
-			Extra=1;
+
+		if ((i==StructPar.NElements-1) || StructPar.Cells[i+1].First)
+                        Extra=1;
+
 
 		if (StructPar.Cells[i].First)
 			z-=zm;
@@ -2914,13 +2930,15 @@ void TBeamSolver::CreateStrucutre()
 			Structure[k].ksi=z/lmb;
 			Structure[k].lmb=lmb;
 			Structure[k].P=P0;
-			if (j>0)
+
+			if (j>0) 
 				Structure[k].dF=0;
 
-		   //	if (StructPar.Cells[i].beta<1)
-			Structure[k].beta=beta;
-		  //	else
-			  //	Structure[k].betta=MeVToVelocity(EnergyLimit,BeamPar.W0);   */
+			if (StructPar.Cells[i].beta<1)
+				Structure[k].beta = beta;
+			else
+				Structure[k].beta = MeVToVelocity(EnergyLimit, BeamPar.W0);
+
 
 			Structure[k].E=E;
 			Structure[k].A=A;
@@ -3513,7 +3531,7 @@ TError TBeamSolver::CreateBeam()
 	Beam=new TBeam*[Npoints];
 	for (int i=0;i<Npoints;i++){
 		Beam[i]=new TBeam(BeamPar.NParticles);
-	  //  Beam[i]->SetBarsNumber(Nbars);
+	  	//Beam[i]->SetBarsNumber(Nbars);
 		//Beam[i]->SetKernel(Kernel);
 		Beam[i]->lmb=Structure[i].lmb;
 		Beam[i]->SetInputCurrent(BeamPar.Current);
@@ -3522,16 +3540,22 @@ TError TBeamSolver::CreateBeam()
 		//Beam[i]->Cmag=c*Cmag/(Structure[i].lmb*We0); //Cmag = c*B*lmb/Wo * (1/lmb^2 from r normalization)
 		for (int j=0;j<BeamPar.NParticles;j++){
 			Beam[i]->Particle[j].lost=LIVE;
+			/* IVP 
 			Beam[i]->Particle[j].beta0=0;
 			Beam[i]->Particle[j].beta.z=0;
 			Beam[i]->Particle[j].beta.r=0;
 			Beam[i]->Particle[j].beta.th=0;
+			IVP */
+		       	Beam[i]->Particle[j].g = 1;
+                        Beam[i]->Particle[j].gb.z = 0;
+                        Beam[i]->Particle[j].gb.r = 0;
+                        Beam[i]->Particle[j].gb.th = 0;
 			//Beam[i]->Particle[j].Br=0;
-			Beam[i]->Particle[j].phi=0;
-		   //	Beam[i]->Particle[j].Bth=0;
-			Beam[i]->Particle[j].r=0;
+			Beam[i]->Particle[j].phi = 0;
+		   	//Beam[i]->Particle[j].Bth=0;
+			Beam[i]->Particle[j].r = 0;
 			//Beam[i]->Particle[j].Cmag=0;
-			Beam[i]->Particle[j].th=0;
+			Beam[i]->Particle[j].th = 0;
 		}
 	}
 	Beam[0]->SetCurrent(BeamPar.Current);
@@ -3569,7 +3593,7 @@ TError TBeamSolver::CreateBeam()
 		case CST_PID:{
 			Beam[0]->GeneratePhase(BeamPar.ZNorm);
 		}
-        case PARMELA_T2:{
+        	case PARMELA_T2:{
 		}
 		case CST_PIT:{
 			if (!Beam[0]->BeamFromImport(&BeamPar))
@@ -4355,6 +4379,7 @@ void TBeamSolver::SpaceCharge(int Si, int Sj)
 				for (int i=0;i<BeamPar.NParticles;i++){
 					if (Particle[i].lost==LIVE){
 						double x=0,y=0,z=0,r=0,th=0,phi=0,gamma=1,beta_z=1,beta=1,g2=1;
+						double gb; 
 						double Ex=0,Ey=0,Ez=0,Lx=0,Ly=0,Lz=0;
 						double r3=0,r2=0,rv=0,s=0;
 
@@ -4362,18 +4387,22 @@ void TBeamSolver::SpaceCharge(int Si, int Sj)
 						r=(Particle[i].r+K[Sj][i].r*Par[Sj].h)*lmb;
 						th=Particle[i].th+K[Sj][i].th*Par[Sj].h;
 
-						beta_z=Particle[i].beta.z+K[Sj][i].beta.z*Par[Sj].h;
-						beta=Particle[i].beta0;
+						//IVP  beta_z=Particle[i].beta.z+K[Sj][i].beta.z*Par[Sj].h;
+						//IVP  beta=Particle[i].beta0;
 						//+K[Sj][i].beta.z*Par[Sj].h;
+
+						gb = sqrt(sqr(Particle[i].gb.r) +sqr(Particle[i].gb.th) +sqr(Particle[i].gb.z)); 
+						gamma = sqrt(1. +sqr(gb)); 
+						beta = gb /gamma; 
 
 						x=r*cos(th)-x0;
 						y=r*sin(th)-y0;
-						z=phi*beta*lmb/(2*pi)-z0;
+						z=phi*beta*lmb/(2*pi)-z0; //IVP: should beta_z be used here instead?
 
 						r3=sqr(x/rx)+sqr(y/ry)+sqr(z/rz);
 //					   	z=rz;
 
-						gamma=VelocityToEnergy(beta); //change to beta
+						//IVP  gamma=VelocityToEnergy(beta); //change to beta
 						g2=1/sqr(gamma);
 
 						if  (BeamPar.SpaceCharge.Type==SPCH_LPST) { //Lapostolle
@@ -4472,33 +4501,63 @@ void TBeamSolver::SpaceCharge(int Si, int Sj)
 	}
 }
 //---------------------------------------------------------------------------
-void TBeamSolver::Integrate(int Si, int Sj)
+void TBeamSolver::Integrate(int Si, int Sj)    // Si is the "timestep" index, Sj is from 0 to 3 
 {
-	double gamma0=1;
+	//if(Si < 2){
+	//std::cerr << "In TBeamSolver::Integrate(Si, Sj) with Si = " << Si << ", Sj = " << Sj << '\n';
+	//}
+	
+	double gamma0 = 1;
 
 	//phic=Beam[Si]->iGetAveragePhase(Par[Sj],K[Sj]);
-	Par[Sj].SumSin=0;
-	Par[Sj].SumCos=0;
-	Par[Sj].SumSin=Beam[Si]->SinSum(Par[Sj],K[Sj]);
-	Par[Sj].SumCos=Beam[Si]->CosSum(Par[Sj],K[Sj]);
+	Par[Sj].SumSin = 0;
+	Par[Sj].SumCos = 0;
+	Par[Sj].SumSin = Beam[Si]->SinSum(Par[Sj], K[Sj]);
+	Par[Sj].SumCos = Beam[Si]->CosSum(Par[Sj], K[Sj]);
 
-	gamma0=Beam[Si]->iGetAverageEnergy(Par[Sj],K[Sj]);
-	Par[Sj].gamma=gamma0;
+	gamma0 = Beam[Si]->iGetAverageEnergy(Par[Sj], K[Sj]);
+	Par[Sj].gamma = gamma0;
 
-	Par[Sj].Eq=new TField[BeamPar.NParticles];
+	Par[Sj].Eq = new TField[BeamPar.NParticles];
 
-	for (int i=0;i<BeamPar.NParticles;i++){
-		Par[Sj].Eq[i].z=0;
-		Par[Sj].Eq[i].r=0;
-		Par[Sj].Eq[i].th=0;
+	for (int i=0; i<BeamPar.NParticles; i++){
+		Par[Sj].Eq[i].z =0;
+		Par[Sj].Eq[i].r =0;
+		Par[Sj].Eq[i].th =0;
 	}
 
 	SpaceCharge(Si,Sj);
 
-	Beam[Si]->Integrate(Par[Sj],K,Sj);
+	/*if(Si < 2){
+	std::cerr << "Par[Sj].SumSin = " << Par[Sj].SumSin << " Par[Sj].SumCos = " << Par[Sj].SumCos << " gamma0 = " << gamma0 << '\n';
+	std::cerr << "K.A, K.phi, K.r, K.theta: \n";
+	std::cerr << K[Sj][0].A << " " << K[Sj][0].phi << " " << K[Sj][0].r << " " << K[Sj][0].th << '\n';
+	std::cerr << "K.gb.r, K.gb.th, K.gb.z: \n";
+	std::cerr << K[Sj][0].gb.r << " " << K[Sj][0].gb.th << " " << K[Sj][0].gb.z << '\n';
+	std::cerr << "K.E.r, K.E.th, K.E.z: \n";
+        std::cerr << K[Sj][0].E.r << " " << K[Sj][0].E.th << " " << K[Sj][0].E.z << '\n';
+	std::cerr << "K.H.r, K.H.th, K.H.z: \n";
+        std::cerr << K[Sj][0].H.r << " " << K[Sj][0].H.th << " " << K[Sj][0].H.z << '\n';
+	std::cerr << "Calling Beam[Si]->Integrate(Par[Sj], K, Sj) with Si = " << Si << ", Sj = " << Sj << '\n';
+	}*/
+	
+	Beam[Si]->Integrate(Par[Sj], K, Sj);
 
 	delete[] Par[Sj].Eq;
 	//delete[] Par[Sj].Aqr;
+	
+	/*if(Si < 2){ 
+	std::cerr << "After Beam[Si]->Integrate(Par[Sj], K, Sj): \n";
+	std::cerr << "K.A, K.phi, K.r, K.theta: \n";
+        std::cerr << K[Sj][0].A << " " << K[Sj][0].phi << " " << K[Sj][0].r << " " << K[Sj][0].th << '\n';
+        std::cerr << "K.gb.r, K.gb.th, K.gb.z: \n";
+        std::cerr << K[Sj][0].gb.r << " " << K[Sj][0].gb.th << " " << K[Sj][0].gb.z << '\n';
+        std::cerr << "K.E.r, K.E.th, K.E.z: \n";
+        std::cerr << K[Sj][0].E.r << " " << K[Sj][0].E.th << " " << K[Sj][0].E.z << '\n';
+        std::cerr << "K.H.r, K.H.th, K.H.z: \n";
+        std::cerr << K[Sj][0].H.r << " " << K[Sj][0].H.th << " " << K[Sj][0].H.z << '\n';
+	std::cerr << "Exiting TBeamSolver::Integrate(Si, Sj) with Si = " << Si << ", Sj = " << Sj << "\n\n";
+	}*/
 }
 //---------------------------------------------------------------------------
  double TBeamSolver::GaussIntegration(double r,double z,double Rb,double Lb,int component)
@@ -4545,8 +4604,10 @@ void TBeamSolver::CountLiving(int Si)
 			fprintf(F,"\n");
 		}
 		fclose(F);   */
+
 		KillParticles(Si+1,Npoints-1);
 		#ifndef RSHELLWEG_LINUX
+
 		AnsiString S="Beam Lost!";
 		ShowError(S);
         SmartProgress->ShowMessage(S.c_str());
@@ -4558,16 +4619,20 @@ void TBeamSolver::CountLiving(int Si)
 //---------------------------------------------------------------------------
 void TBeamSolver::KillParticles(int Si)
 {
-	if (Si>0)
-		Beam[Si]->KillParticles(Beam[Si-1]->Particle);
-	else
-		Beam[Si]->KillParticles();
+
+        if (Si>0)
+                Beam[Si]->KillParticles(Beam[Si-1]->Particle);
+        else
+                Beam[Si]->KillParticles();
+
 }
 //---------------------------------------------------------------------------
 void TBeamSolver::KillParticles(int Si, int Sj)
 {
-	for (int i=Si;i<=Sj;i++)
-		KillParticles(i);
+
+        for (int i=Si;i<=Sj;i++)
+                KillParticles(i);
+
 }
 //---------------------------------------------------------------------------
 void TBeamSolver::DumpHeader(ofstream &fo,TDump *ExportParameters,int jmin,int jmax)
@@ -4774,8 +4839,9 @@ void TBeamSolver::DumpT2(ofstream &fo,TDump *ExportParameters,int j)
 	}
 }
 //---------------------------------------------------------------------------
-void TBeamSolver::DumpCST(ofstream &fo,TDump *ExportParameters,int j)
+void TBeamSolver::DumpCST(ofstream &fo, TDump *ExportParameters, int j)
 {
+	//PR if(j < 2) std::cerr << "In TBeamSolver::DumpCST(., ., j), j = " << j << '\n';
 	AnsiString s;
 	double x=0, y=0, z=0;
 	double px=0, py=0, pz=0;
@@ -4786,21 +4852,30 @@ void TBeamSolver::DumpCST(ofstream &fo,TDump *ExportParameters,int j)
 		return;
 	}
 //	double l=Structure[Si].lmb;
-	double beta=Beam[Si]->GetParameter(j,BETA_PAR);
+	//IVP  double beta = Beam[Si]->GetParameter(j, BETA_PAR);
 
 	x=Beam[Si]->GetParameter(j,X_PAR);
 	y=Beam[Si]->GetParameter(j,Y_PAR);
 	//z=Beam[Si]->GetParameter(j,PHI_PAR)*beta*Structure[Si].lmb/(2*pi);
-	t = -Beam[Si]->GetParameter(j,PHI_PAR)*Structure[Si].lmb/(2.0*pi*c);
+
+	//IVP  t=Beam[Si]->GetParameter(j,PHI_PAR)*Structure[Si].lmb/(2.0*pi*c); //IVP: a missing minus sign? 
+	t = -Beam[Si]->GetParameter(j,PHI_PAR)*Structure[Si].lmb/(2.0*pi*c); 
+
 
    	//z=4.0*z*1.1;
-
+	/* IVP 
 	double W=Beam[Si]->GetParameter(j,W_PAR);
-	double p=MeVToBetaGamma(W,BeamPar.W0);
+	double p = MeVToBetaGamma(W, BeamPar.W0);
 
-	px=p*Beam[Si]->GetParameter(j,BX_PAR)/beta;
-	py=p*Beam[Si]->GetParameter(j,BY_PAR)/beta;
-	pz=p*Beam[Si]->GetParameter(j,BZ_PAR)/beta;
+	px = p *Beam[Si]->GetParameter(j, BX_PAR) /beta;
+	py = p *Beam[Si]->GetParameter(j, BY_PAR) /beta;
+	pz = p *Beam[Si]->GetParameter(j, BZ_PAR) /beta; 
+	IVP */
+	px = Beam[Si]->GetParameter(j, GBX_PAR);
+        py = Beam[Si]->GetParameter(j, GBY_PAR);
+        pz = Beam[Si]->GetParameter(j, GBZ_PAR);
+	
+	//PR if(j < 2) std::cerr << "px = " << px << ", py = " << py <<"\n\n";
 
 	q=qe;
 	switch (BeamPar.Species.Type){
@@ -4866,6 +4941,8 @@ void TBeamSolver::DumpBeam(TDump *ExportParameters)
 	AnsiString F=ExportParameters->File.c_str();
 	AnsiString s;
 
+	//PR std::cerr << "In TBeamSolver::DumpBeam(.):  ExportParameters->SpecialFormat  = " << ExportParameters->SpecialFormat << "\n";
+
 	switch (ExportParameters->SpecialFormat) {
 		case CST_PID:{F+=".pid";break;}
 		case CST_PIT:{F+=".pit";break;}
@@ -4908,8 +4985,8 @@ void TBeamSolver::DumpBeam(TDump *ExportParameters)
 	switch (ExportParameters->SpecialFormat) {
 		case CST_PIT: {}
 		case CST_PID: {
-			for (int j=jmin;j<jmax;j++)
-				DumpCST(fo,ExportParameters,j);
+			for (int j=jmin; j<jmax; j++)
+				DumpCST(fo, ExportParameters, j);
 			break;
 		}
 		case ASTRA: {
@@ -5011,10 +5088,13 @@ void TBeamSolver::SaveTrajectories(AnsiString& Fname)
 //---------------------------------------------------------------------------
 void TBeamSolver::Step(int Si)
 {
-    bool drift=false;
-	double lmb=Structure[Si].lmb;
-    Beam[Si]->lmb=lmb;
-	CountLiving(Si);
+    //std::cerr << "In TBeamSolver::Step(int Si):  Si = " << Si << '\n';
+    
+    bool drift = false;
+    double lmb = Structure[Si].lmb;
+    
+    Beam[Si]->lmb = lmb;
+    CountLiving(Si);
    //	I=BeamPar.Current*Nliv/BeamPar.NParticles;
   /*
     Rb=Beam[i]->GetBeamRadius();
@@ -5024,98 +5104,101 @@ void TBeamSolver::Step(int Si)
     betta0=Beam[i]->GetAverageEnergy();
 
     w=Structure[i]->alpha*lmb;        */
+
     drift=(Structure[Si].drift);
     for (int i=0;i<4;i++)
         Par[i].drift=Structure[Si].drift;
     //Par[3].drift=Structure[Si+1].drift;
 
-    dh=Structure[Si+1].ksi-Structure[Si].ksi;
-    Par[0].h=0;
-    Par[1].h=dh/2;
-    Par[2].h=Par[1].h;
-	Par[3].h=dh;
 
-	double db=Structure[Si+1].beta-Structure[Si].beta;
-	Par[0].bw=Structure[Si].beta;
-	Par[1].bw=Structure[Si].beta+db/2;
-    Par[2].bw=Par[1].bw;
-	Par[3].bw=Structure[Si+1].beta;
+    dh = Structure[Si+1].ksi -Structure[Si].ksi;
+    Par[0].h = 0;
+    Par[1].h = dh/2;
+    Par[2].h = Par[1].h;
+    Par[3].h = dh;
 
-	double dw=Structure[Si+1].alpha-Structure[Si].alpha;
-    Par[0].w=Structure[Si].alpha*lmb;
-    Par[1].w=(Structure[Si].alpha+dw/2)*lmb;
-    Par[2].w=Par[1].w;
-    Par[3].w=Structure[Si+1].alpha*lmb;
+    double db = Structure[Si+1].beta -Structure[Si].beta;
+    Par[0].bw = Structure[Si].beta;
+    Par[1].bw = Structure[Si].beta +db/2;
+    Par[2].bw = Par[1].bw;
+    Par[3].bw = Structure[Si+1].beta;
 
-    double dE=Structure[Si+1].E-Structure[Si].E;
-    Par[0].E=Structure[Si].E;
-    Par[1].E=Structure[Si].E+dE/2;
-    Par[2].E=Par[1].E;
-    Par[3].E=Structure[Si+1].E;
+    double dw = Structure[Si+1].alpha -Structure[Si].alpha;
+    Par[0].w = Structure[Si].alpha*lmb;
+    Par[1].w = (Structure[Si].alpha +dw/2)*lmb;
+    Par[2].w = Par[1].w;
+    Par[3].w = Structure[Si+1].alpha*lmb;
 
-    double dA=Structure[Si+1].A-Structure[Si].A;
-    Par[0].A=Structure[Si].A;
-    Par[1].A=Structure[Si].A;//+dA/2;
-    Par[2].A=Par[1].A;
-    Par[3].A=Structure[Si].A;
+    double dE = Structure[Si+1].E -Structure[Si].E;
+    Par[0].E = Structure[Si].E;
+    Par[1].E = Structure[Si].E +dE/2;
+    Par[2].E = Par[1].E;
+    Par[3].E = Structure[Si+1].E;
 
-    double dB=Structure[Si+1].B-Structure[Si].B;
-    Par[0].B=Structure[Si].B;
-    Par[1].B=Structure[Si].B+dB/2;
-    Par[2].B=Par[1].B;
-    Par[3].B=Structure[Si+1].B;
+    double dA = Structure[Si+1].A -Structure[Si].A;
+    Par[0].A = Structure[Si].A;
+    Par[1].A = Structure[Si].A;//+dA/2;
+    Par[2].A = Par[1].A;
+    Par[3].A = Structure[Si].A;
+
+    double dB = Structure[Si+1].B -Structure[Si].B;
+    Par[0].B = Structure[Si].B;
+    Par[1].B = Structure[Si].B +dB/2;
+    Par[2].B = Par[1].B;
+    Par[3].B = Structure[Si+1].B;
+
 
    /*   for(int i=0;i<4;i++)
         Par[i].B*=I;  */
 
-    double d2E=0;
-    double d2A=0;
-	double d2h=0;
-	double d2B=0;
-	double dR=0;
+    double d2E =0;
+    double d2A =0;
+    double d2h =0;
+    double d2B =0;
+    double dR =0;
     if (Structure[Si+1].Rp!=0 && Structure[Si].Rp!=0)
-        dR=ln(Structure[Si+1].Rp)-ln(Structure[Si].Rp);
-    double d2R=0;
+        dR = ln(Structure[Si+1].Rp) -ln(Structure[Si].Rp);
+    double d2R =0;
 
     if (drift){
-        for (int i=0;i<4;i++){
-            Par[i].dL=0;
-            Par[i].dA=0;
+        for (int i=0; i<4; i++){
+            Par[i].dL = 0;
+            Par[i].dA = 0;
         }
 	} else {
 		if (Si==0 || (Si!=0 && Structure[Si].jump)){
-			Par[0].dL=dE/(Structure[Si].E*dh);
+			Par[0].dL = dE/(Structure[Si].E*dh);
 			//Par[0].dL=dR/dh;
-			Par[0].dA=dA/dh;
+			Par[0].dA = dA/dh;
 		}else{
-			d2E=Structure[Si+1].E-Structure[Si-1].E;
-			d2A=Structure[Si+1].A-Structure[Si-1].A;
-			d2h=Structure[Si+1].ksi-Structure[Si-1].ksi;
-			Par[0].dL=d2E/(Structure[Si].E*d2h);
+			d2E = Structure[Si+1].E -Structure[Si-1].E;
+			d2A = Structure[Si+1].A -Structure[Si-1].A;
+			d2h = Structure[Si+1].ksi -Structure[Si-1].ksi;
+			Par[0].dL = d2E /(Structure[Si].E*d2h);
 		   //   d2R=ln(Structure[Si+1].Rp)-ln(Structure[Si-1].Rp);
 		   //   Par[0].dL=d2R/d2h;
-			Par[0].dA=d2A/d2h;
+			Par[0].dA = d2A /d2h;
 		}
 
-        Par[1].dL=dE/((Structure[Si].E+dE/2)*dh);
-        //Par[1].dL=dR/dh;
-        Par[2].dL=Par[1].dL;
+		Par[1].dL = dE /((Structure[Si].E +dE/2)*dh);
+		//Par[1].dL=dR/dh;
+		Par[2].dL = Par[1].dL;
 
-		Par[1].dA=dA/dh;
-		Par[2].dA=Par[1].dA;
+		Par[1].dA = dA/dh;
+		Par[2].dA = Par[1].dA;
 
 		if (Si==Npoints-2 || (Si<Npoints-2 && Structure[Si+2].jump)){
-            Par[3].dL=dE/(Structure[Si+1].E*dh);
-            //Par[3].dL=dR/dh;
-			Par[3].dA=dA/dh;
+			Par[3].dL = dE /(Structure[Si+1].E*dh);
+            		//Par[3].dL=dR/dh;
+			Par[3].dA = dA/dh;
 		}else{
-           //   d2E=Structure[Si+2].E-Structure[Si].E;
-			d2A=Structure[Si+2].A-Structure[Si].A;
-			d2h=Structure[Si+2].ksi-Structure[Si].ksi;
-            Par[3].dL=d2E/(Structure[Si+1].E*d2h);
-            //d2R=ln(Structure[Si+2].Rp)-ln(Structure[Si].Rp);
-            ///Par[0].dL=d2R/d2h;
-			Par[3].dA=d2A/d2h;
+           		//   d2E=Structure[Si+2].E-Structure[Si].E;
+			d2A = Structure[Si+2].A -Structure[Si].A;
+			d2h = Structure[Si+2].ksi -Structure[Si].ksi;
+			Par[3].dL = d2E /(Structure[Si+1].E*d2h);
+            		//d2R=ln(Structure[Si+2].Rp)-ln(Structure[Si].Rp);
+            		///Par[0].dL=d2R/d2h;
+			Par[3].dA = d2A/d2h;
         }
 	}
 
@@ -5204,8 +5287,8 @@ void TBeamSolver::Step(int Si)
 
 	fclose(logFile);   */
 
-    for (int j=0;j<Ncoef;j++)
-		Integrate(Si,j);
+    for (int j=0; j<Ncoef; j++)
+		Integrate(Si, j);
 
 	for (int k = 0; k < 4; k++) {
 		for (int i = 0; i < ExternalMagnetic.Dim.Ny; i++) {
@@ -5213,6 +5296,8 @@ void TBeamSolver::Step(int Si)
 		}
 		delete[] Par[k].Hext.Field;
 	}
+	
+	//std::cerr << "Exiting TBeamSolver::Step(Si) with Si = " << Si  << '\n';
 }
 //---------------------------------------------------------------------------
 TError TBeamSolver::Solve()
@@ -5221,34 +5306,62 @@ TError TBeamSolver::Solve()
 	if (SmartProgress==NULL){
 		//ShowMessage("System Message: ProgressBar not assigned! Code needs to be corrected");
         return ERR_OTHER;
-    }
+	}
 	SmartProgress->Reset(Npoints-1/*Np*/);
-    SmartProgress->ShowMessage("Running...");
+	SmartProgress->ShowMessage("Running...");
 	#endif
 
-	double phi0=0, phi_s=0, phi_p=0;
+	double phi0 =0, phi_s =0, phi_p =0;
 	bool DriftOverride=false;
+	double gbr, gbth, gbz, g; 
+
 
   //    logFile=fopen("beam.log","w");
- /* for (int i=0;i<Np;i++){
-      //    fprintf(logFile,"%f %f\n",Beam[0]->Particle[i].x,Beam[0]->Particle[i].x/Structure[0].lmb);
-        Beam[0]->Particle[i].x/=Structure[0].lmb;
+ /* for (int i=0; i<Np; i++){
+      //    fprintf(logFile, "%f %f\n", Beam[0]->Particle[i].x, Beam[0]->Particle[i].x /Structure[0].lmb);
+        Beam[0]->Particle[i].x /= Structure[0].lmb;
     }                                             */
  // fclose(logFile);
+	
+	//FILE *logFile = fopen("BS_Solve_beam.log", "a"); 
+	//FILE *logFile_b = fopen("BS_Solve_beam_beta.log", "a");
+	
+	for (int i=0; i<BeamPar.NParticles; i++){
+		gbr = Beam[0]->Particle[i].gb.r;
+		gbth = Beam[0]->Particle[i].gb.th;
+		gbz = Beam[0]->Particle[i].gb.z;
+		g = sqrt(1. +sqr(gbr) +sqr(gbth) +sqr(gbz));
+		
+		/*
+		fprintf(logFile, "%f %f %f %f %f \n", Beam[0]->Particle[i].r, Beam[0]->Particle[i].gb.r, 
+				Beam[0]->Particle[i].th, Beam[0]->Particle[i].gb.th, Beam[0]->Particle[i].phi); 
+		fprintf(logFile_b, "%f %f %f %f %f \n", Beam[0]->Particle[i].r, Beam[0]->Particle[i].gb.r /g,
+                                Beam[0]->Particle[i].th, Beam[0]->Particle[i].gb.th /g, Beam[0]->Particle[i].phi);
+		*/
+	} 
 
-    for (int i=0;i<Ncoef;i++){
+	//fprintf(logFile, "\n \n");
+	//fprintf(logFile_b, "\n \n");
+
+    for (int i=0; i<Ncoef; i++){
         delete[] K[i];
-		K[i]=new TIntegration[BeamPar.NParticles];
+	K[i] = new TIntegration[BeamPar.NParticles];
     }
-    K[0][0].A=Structure[0].A;
+
+    K[0][0].A = Structure[0].A;
    //   Beam[0]->Particle[j].z=Structure[0].ksi*Structure[0].lmb;
    //
-	for (int i=0;i<Npoints;i++){
+	for (int i=0; i<Npoints; i++){
+
+		//fprintf(logFile, "%i \n", i);
+		//fprintf(logFile_b, "%i \n", i);
+		//PR std::cerr << '\n' << "In TBeamSolver::Solve():  i = " << i << '\n';
+
         //for (int j=0;j<Np;j++){
 
             //if (i==0)
            //   Nliv=Beam[i]->GetLivingNumber();
-		for (int j = 0; j < Ndump; j++) {
+		for (int j=0; j<Ndump; j++) {
 			if (BeamExport[j].Nmesh==i) {
 				DumpBeam(j);
 			}
@@ -5257,46 +5370,113 @@ TError TBeamSolver::Solve()
 		if (i==Npoints-1) break; // Nowhere to iterate
 
 		if (!Structure[i+1].jump){
+			//std::cerr << "Calling Step(i) with i = " << i << '\n';
 			Step(i);
-			Structure[i+1].A=Structure[i].A+dh*(K[0][0].A+K[1][0].A+2*K[2][0].A+2*K[3][0].A)/6;
-			//  fprintf(logFile,"%f %f %f %f %f\n",K[1][0].A,K[2][0].A,K[3][0].A,K[0][0].A,Structure[i+1].A);
-			Beam[i]->Next(Beam[i+1],Par[3],K);
+			Structure[i+1].A = Structure[i].A +dh*(K[0][0].A +K[1][0].A +2*K[2][0].A +2*K[3][0].A)/6;
+			//  fprintf(logFile,"%f %f %f %f %f\n", K[1][0].A, K[2][0].A, K[3][0].A, K[0][0].A, Structure[i+1].A);
+			//std::cerr << "Calling Beam[i]->Next(Beam[i+1], Par[3], K) with i = " << i << '\n';
+			Beam[i]->Next(Beam[i+1], Par[3], K);
 		} else {
-			//Structure[i+1].A=Structure[i].A ;
+			//Structure[i+1].A = Structure[i].A ;
 			Beam[i]->Next(Beam[i+1]);
 		}
 
 		if (Structure[i].drift)
-			DriftOverride=true;
 
-		for (int j=0;j<BeamPar.NParticles;j++){
-			phi_s=Structure[i+1].ksi*2*pi;
+                        DriftOverride=true;
+
+		for (int j=0; j<BeamPar.NParticles; j++){
+			phi_s = Structure[i+1].ksi *2*pi;
+
 			if (Beam[i+1]->Particle[j].lost==LIVE){
 				if (Structure[i+1].Bmap.Field==NULL) {
 					if (mod(Beam[i+1]->Particle[j].r)>=Structure[i+1].Ra)
 						Beam[i+1]->Particle[j].lost=RADIUS_LOST;
+						//std::cerr << "Particle " << j << ": RADIUS_LOST (r > Ra) \n";
 				} else {
 					TPhaseSpace R;
 					double xmin=0,xmax=0,ymin=0,ymax=0;
-					R.x=Beam[i+1]->Particle[j].r*cos(Beam[i+1]->Particle[j].th);
-					R.y=Beam[i+1]->Particle[j].r*sin(Beam[i+1]->Particle[j].th);
+					R.x = Beam[i+1]->Particle[j].r *cos(Beam[i+1]->Particle[j].th);
+					R.y = Beam[i+1]->Particle[j].r *sin(Beam[i+1]->Particle[j].th);
 					xmin=Structure[i+1].Bmap.Piv.X[0];
 					xmax=Structure[i+1].Bmap.Piv.X[Structure[i+1].Bmap.Dim.Nx-1];
 					ymin=Structure[i+1].Bmap.Piv.Y[0];
 					ymax=Structure[i+1].Bmap.Piv.Y[Structure[i+1].Bmap.Dim.Ny-1];
 					if (R.x<xmin || R.x>xmax || R.y<ymin || R.y>ymax) {
 						Beam[i+1]->Particle[j].lost=RADIUS_LOST;
+						//PR std::cerr << "Particle " << j << ": RADIUS_LOST (outside x, y min/max) \n";
 					}
 				}
-				phi0=Beam[0]->Particle[j].phi;
-				phi_p=Beam[i+1]->Particle[j].phi;
-				if ((phi_p-phi0+phi_s)<-pi/2 && !DriftOverride) {
+
+				phi0 = Beam[0]->Particle[j].phi;
+				phi_p = Beam[i+1]->Particle[j].phi;
+				if ((phi_p -phi0 +phi_s) < -pi/2 && !DriftOverride) {
+
 					Beam[i+1]->Particle[j].lost=PHASE_LOST;
+					//PR std::cerr << "Particle " << j << ": PHASE_LOST \n";
 				}
 			}
-			Beam[i+1]->Particle[j].z=Structure[i+1].ksi*Structure[i+1].lmb;
-			Beam[i+1]->Particle[j].phi+=Structure[i+1].dF;
+
+			//if(j==0) std::cerr << "i = " << i <<": Structure[i+1].dF = " << Structure[i+1].dF << '\n';
+			Beam[i+1]->Particle[j].z = Structure[i+1].ksi *Structure[i+1].lmb;
+			Beam[i+1]->Particle[j].phi += Structure[i+1].dF; 
+
+			/*
+			fprintf(logFile, "%f %f %f %f %f \n", Beam[i]->Particle[j].r, Beam[i]->Particle[j].gb.r,
+					Beam[i]->Particle[j].th, Beam[i]->Particle[j].gb.th, Beam[i]->Particle[j].phi);
+			fprintf(logFile, "%f %f %f %f %f \n\n", Beam[i+1]->Particle[j].r, Beam[i+1]->Particle[j].gb.r,
+					Beam[i+1]->Particle[j].th, Beam[i+1]->Particle[j].gb.th, Beam[i+1]->Particle[j].phi);
+			*/
+
+			gbr = Beam[i]->Particle[j].gb.r;
+                	gbth = Beam[i]->Particle[j].gb.th;
+                	gbz = Beam[i]->Particle[j].gb.z;
+                	g = sqrt(1. +sqr(gbr) +sqr(gbth) +sqr(gbz));
+
+			/*if (i < 5 && j < 3){
+			std::cerr << "Beam[" << i << "]->Particle[" << j << "].  r, gb.r, th, gb.th, phi: \n";
+			std::cerr << Beam[i]->Particle[j].r << " " << Beam[i]->Particle[j].gb.r << " " << Beam[i]->Particle[j].th 
+				 << " " << Beam[i]->Particle[j].gb.th << " " << Beam[i]->Particle[j].phi << '\n';
+			//std::cerr << "Beam[" << i << "]->Particle[" << j << "]: gamma, beta_r, beta_th: \n";
+			//std::cerr << g << " " << Beam[i]->Particle[j].gb.r /g << " " << Beam[i]->Particle[j].gb.th /g << "\n\n";
+			std::cerr << "Beam[" << i << "]->Particle[" << j << "]: gamma, beta, beta_r, beta_th, beta_z: \n";
+                        std::cerr << g << " " << sqrt(g*g -1.) /g << " " << Beam[i]->Particle[j].gb.r /g << " " 
+				  << Beam[i]->Particle[j].gb.th /g << " " << Beam[i]->Particle[j].gb.z /g << "\n\n";
+			}*/
+
+			/*
+			fprintf(logFile_b, "%f %f %f %f %f \n", Beam[i]->Particle[j].r, Beam[i]->Particle[j].gb.r /g,
+                                        Beam[i]->Particle[j].th, Beam[i]->Particle[j].gb.th /g, Beam[i]->Particle[j].phi);
+			*/
+
+			gbr = Beam[i+1]->Particle[j].gb.r;
+                        gbth = Beam[i+1]->Particle[j].gb.th;
+                        gbz = Beam[i+1]->Particle[j].gb.z;
+                        g = sqrt(1. +sqr(gbr) +sqr(gbth) +sqr(gbz));
+
+			/*
+                        fprintf(logFile_b, "%f %f %f %f %f \n\n", Beam[i+1]->Particle[j].r, Beam[i+1]->Particle[j].gb.r /g,
+                                        Beam[i+1]->Particle[j].th, Beam[i+1]->Particle[j].gb.th /g, Beam[i+1]->Particle[j].phi);
+			*/
+
+			/*if (i < 5 && j < 3){
+			std::cerr << "Beam[" << i+1 << "]->Particle[" << j << "].  r, gb.r, th, gb.th, phi: \n";
+                        std::cerr << Beam[i+1]->Particle[j].r << " " << Beam[i+1]->Particle[j].gb.r << " " << Beam[i+1]->Particle[j].th
+                                 << " " << Beam[i+1]->Particle[j].gb.th << " " << Beam[i+1]->Particle[j].phi << '\n';
+                        //std::cerr << "Beam[" << i+1 << "]->Particle[" << j << "]: gamma, beta_r, beta_th: \n";
+                        //std::cerr << g << " " << Beam[i+1]->Particle[j].gb.r /g << " " << Beam[i+1]->Particle[j].gb.th /g << "\n\n";
+			std::cerr << "Beam[" << i+1 << "]->Particle[" << j << "]: gamma, beta, beta_r, beta_th, beta_z: \n";
+                        std::cerr << g << " " << sqrt(g*g -1.) /g << " " << Beam[i+1]->Particle[j].gb.r /g << " "
+                                  << Beam[i+1]->Particle[j].gb.th /g << " " << Beam[i+1]->Particle[j].gb.z /g << "\n\n";
+			std::cerr << "-------- \n\n";
+
+			}*/
+
 		}
+
+		//fprintf(logFile, "\n \n");
+		//fprintf(logFile_b, "\n \n");
+
 
 		#ifndef RSHELLWEG_LINUX
 		SmartProgress->operator ++();
@@ -5320,17 +5500,18 @@ TError TBeamSolver::Solve()
             memset(K[i], 0, sizeof(TIntegration));
         //}
     }
-
-   //
+    
+    //fclose(logFile);
+    //fclose(logFile_b);
 
     #ifndef RSHELLWEG_LINUX
     SmartProgress->SetPercent(100);
-	SmartProgress->SetTime(0);
-	SmartProgress->TerminateTime();
+    SmartProgress->SetTime(0);
+    SmartProgress->TerminateTime();
     SmartProgress->ShowMessage("Finished");
-	#endif
+    #endif
 
-	return ERR_NO;
+    return ERR_NO;
 }
 //---------------------------------------------------------------------------
 #ifndef RSHELLWEG_LINUX
