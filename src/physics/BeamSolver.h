@@ -37,13 +37,12 @@ private:
 
 	//These should be removed sometimes
 	double Smooth;
-	//double Kernel,AngErr;
 	double dh;
-	//int Ngraph,Nav;
 
 	int Np_beam,Nstat,Nliv,Ndump;  //Move to TMeshParameters
 
 	TSplineType SplineType;
+
 	//STRUCTURE
 	TStructure *Structure;
 	TStringList *InputStrings,*ParsedStrings;
@@ -60,7 +59,8 @@ private:
 	void ResetStructData();
 	void DeleteStructData(TStructData &D);
 
-	int Mode_N,Mode_M,MaxCells,Nmesh,Npoints;// //Move to TMeshParameters
+	int Mode_N,Mode_M,MaxCells,Nmesh,Npoints,Nmesh_max;// //Move to TMeshParameters
+	bool Adjust_Mesh;
 
 	//int GetSolenoidPoints();
 	bool ReadSolenoid(int Nz,double *Z,double* B);
@@ -115,6 +115,7 @@ private:
 	void CreateStrucutre();
 	void DeleteMesh();
 	void DeleteBeam();
+    TError AdjustMesh(double Winj);
 
 	TImportType ParseSolenoidType(AnsiString &F);
 	TDimensions ParseSolenoidLines(TMagnetParameters &P);
@@ -204,12 +205,11 @@ public:
 	void SaveToFile(AnsiString& Fname);
 	void SaveOutput(AnsiString& Fname, bool binary=false);
 	void SaveTrajectories(AnsiString& Fname);
-    bool LoadFromFile(AnsiString& Fname);
-   // bool LoadEnergyFromFile(AnsiString& Fname, int NpEnergy);     move to beam.h
+	bool LoadFromFile(AnsiString& Fname);
 
-
-    TError CreateBeam();
-    TError CreateGeometry();
+	TError CreateBeam();
+	TError CreateBeam(bool adjusted);
+	TError CreateGeometry();
 
     void SetBarsNumber(double Nbin);
     void ChangeInputCurrent(double Ib);
@@ -218,12 +218,9 @@ public:
     int GetNumberOfPoints();
     int GetMeshPoints();
 	int GetNumberOfParticles();
-	//int GetNumberOfChartPoints();
-    //int GetNumberOfBars();
 	int GetNumberOfCells();
 	int GetNumberOfSections();
 	double GetInputCurrent();
-   //   double GetMode(int *N=NULL,int *M=NULL);
    	TParticleType GetParticleType();
 	double GetParticleMass();
 	int GetParticleCharge();
@@ -235,7 +232,6 @@ public:
 	TTwiss GetInputTwiss(TBeamParameter P);
 	double GetInputWavelength();
 
-	//bool CheckMagnetization();
 	bool CheckReverse();
 	bool CheckDrift(int Nknot);
 	TSpaceCharge GetSpaceChargeInfo();
