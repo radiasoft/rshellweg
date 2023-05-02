@@ -1120,9 +1120,11 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 	if (E4D)
 		P = R_PAR;
 
+
 	//FILE *logFile;
 	//logFile=fopen("TwissRead.log","a");
 	TBeamParameter P1 = ComplementaryParameter(P);
+
 
 	if (GetLivingNumber()>1) {
 		X = GetLivingParameter(P); //r/lmb
@@ -1163,25 +1165,30 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 			}
 	}
 
+
    /*	if (P==TH_PAR)
 		Sx=1;
 	else */
 		if (GetLivingNumber()>1) {
 			Gx = GetStatistics(P); //r/lmb
 			Gy = GetStatistics(P1); // rad
+
 	  /*	if (P==R_PAR)
 			Gz=GetStatistics(ATH_PAR);  */
 		}
 
+
 	if (E4D) {
 	   //	T.epsilon=sqrt(Sx*(Spx+Spy)-sqr(Sxpx)-sqr(Sxpy))/(2*Nliv);
 		T.epsilon = sqrt(Sr*Sprpf -sqr(Srpr) -sqr(Srpf))/(2*Nliv);
+
 	  /*	if (T.epsilon==0) {
-        	T.epsilon=1e-12;
+			T.epsilon=1e-12;
 		}
 
-		T.beta=sqr(Gx.sigma)/T.epsilon;
-		T.gamma=(sqr(Gy.sigma)+sqr(Gz.sigma))/T.epsilon;
+			T.beta=sqr(Gx.sigma)/T.epsilon;
+			T.gamma=(sqr(Gy.sigma)+sqr(Gz.sigma))/T.epsilon;
+
 
 		if (T.gamma*T.beta-1>0)
 			T.alpha=sqrt(T.gamma*T.beta-1);
@@ -1192,18 +1199,21 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 		if (T.epsilon==0)  
 			T.epsilon=1e-12;
 		T.beta = sqr(Gx.sigma)/T.epsilon;
+
 		//T.gamma=sqr(Gy.sigma)/T.epsilon;
 	   /*	if (T.gamma*T.beta-1>0) {
 			T.alpha=sqrt(T.gamma*T.beta-1);
 		} else   */
+
 		T.alpha = -(Sxpx/Nliv)/T.epsilon;
 		T.gamma = (sqr(T.alpha)+1)/T.beta;
 		if (P==R_PAR || P==TH_PAR){
 			T.epsilon/=2;
 			T.alpha/=4;
 			T.beta*=2;
+
 		}
-	}
+
 
 	if (Norm) {
 		double W = GetAverageEnergy();
@@ -1221,6 +1231,7 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
     }
 
    //	fclose(logFile);
+
 
 	return T;
 }
@@ -1423,8 +1434,10 @@ bool TBeam::IsRectangular(TBeamParameter P)
 //---------------------------------------------------------------------------
 void TBeam::KillParticles(TParticle *P)
 {
+
         for (int i=0;i<Np;i++)
                 Particle[i].lost=P==NULL?KILLED:P[i].lost;
+
 }
 //---------------------------------------------------------------------------
 double *TBeam::GetLivingParameter(TBeamParameter P)
@@ -1680,6 +1693,7 @@ double TBeam::CosSum(TIntParameters& Par, TIntegration *I)
 double TBeam::BesselSum(TIntParameters& Par, TIntegration *I, TTrig Trig)
 {
     double S=0,N=0,S1=0;
+
     double phi=0,r=0,bw=0,c=0,bz=0, arg=0, Bes=0;
     double Res=0; 
     double gamma; 
@@ -1788,6 +1802,7 @@ TGauss TBeam::iGetBeamLength(TIntParameters& Par,TIntegration *I, int Nslices)
 	//	double L[Nliv];
 	double phi=0,Iphi=0,x=0,beta=1,Ib=0,b=1;
 	double gamma = 1, gammai = 1;
+
 
     for (int i=0;i<Np;i++){
 		if (Particle[i].lost==LIVE){
@@ -2082,6 +2097,7 @@ void TBeam::Integrate(TIntParameters& Par, TIntegration **I, int Si)    // Si fr
                         I[Sj][i].r = k_r; 
 
                 }
+
     }
 
    //fclose(logFile);

@@ -3,7 +3,7 @@
 #ifndef ConstUnitH
 #define ConstUnitH
 
-#ifndef RSLINAC
+#ifndef RSHELLWEG_LINUX
 #include <Graphics.hpp>
 #endif
 //SYSTEM
@@ -57,7 +57,7 @@ const int ZMESH_0D=8;//trapeze + derivative
 const double DerAccuracy=1e-3;
 
 //COLORS
-#ifndef RSLINAC
+#ifndef RSHELLWEG_LINUX
 const TColor Line1_col_a=clRed;
 const TColor Line1_col_b=clMaroon;
 const TColor Line2_col_a=clBlue;

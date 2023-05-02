@@ -9,7 +9,7 @@
 //#endif
 
 //---------------------------------------------------------------------------
-#ifndef RSLINAC
+#ifndef RSHELLWEG_LINUX
 inline int round(double x){
 	return (x-floor(x))>(ceil(x)-x)?ceil(x):floor(x);
 }
@@ -182,16 +182,17 @@ inline double Ib0_beta(double r,double b2){  //I0(r*x)
 
         for (int k=0;k<=NumBessel;k++)
                 //f+=Pow(sqr(r)*b2/2,k)/sqr(Fact(k));
-		f+=Pow(sqr(r)*b2/4,k)/sqr(Fact(k));
+		f+=Pow(sqr(r)*b2/4,k)/sqr(Fact(k)); //check!
 
         return f;
+
 }
 //---------------------------------------------------------------------------
 inline double Ib1(double x){
 	double f=0;
 
     for (int k=0;k<=NumBessel;k++)
-        f+=Pow(x/2,2*k+1)/(Fact(k)*Fact(k+1));
+		f+=Pow(x/2,2*k+1)/(Fact(k)*Fact(k+1));
 
     return f;
 }
@@ -203,6 +204,7 @@ inline double Ib1_beta(double r,double b2){   //I1(r*x)/x
                 f+=Pow(r/2,2*k+1)*Pow(b2,k)/(Fact(k)*Fact(k+1));
 
         return f;
+
 }
 //---------------------------------------------------------------------------
 inline void TwoRandom(double& Ran1,double& Ran2)
@@ -433,14 +435,22 @@ static bool IsNumber(AnsiString &S)   //Checks if the string is a number
 //---------------------------------------------------------------------------
 static AnsiString GetFileName(AnsiString &F)   //Gets the file name from path
 {
-    std::string s = std::string(F.c_str());
-    return s.substr(s.find_last_of("/\\") + 1);
+#ifdef RSHELLWEG_LINUX
+        std::string s = std::string(F.c_str());
+	return s.substr(s.find_last_of("/\\") + 1);
+#else
+	return F.SubString(F.LastDelimiter("/\\")+1,F.Length());
+#endif
 }
 //---------------------------------------------------------------------------
 static AnsiString GetFileCaption(AnsiString &F)   //Gets the file name without extension
 {
-    std::string s = std::string(F.c_str());
-	return s.substr(0,s.find_last_of("/.")-1);
+#ifdef RSHELLWEG_LINUX
+        std::string s = std::string(F.c_str());
+	return s.substr(0, s.find_last_of("/.") - 1);
+#else
+        return F.SubString(0,F.LastDelimiter("/.")-1);
+#endif
 }
 */
 //---------------------------------------------------------------------------

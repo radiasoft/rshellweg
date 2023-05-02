@@ -32,14 +32,21 @@ __fastcall TBeamSolver::~TBeamSolver()
     delete[] Par;
     for (int i=0;i<Ncoef;i++)
         delete[] K[i];
-    delete[] K;
+	delete[] K;
+
+    if (BeamExport!=NULL){
+		delete[] BeamExport;
+		BeamExport=NULL;
+	}
+
 
     if (BeamExport!=NULL){
                 delete[] BeamExport;
 		BeamExport=NULL;
         }
 
-    #ifndef RSLINAC
+    #ifndef RSHELLWEG_LINUX
+
 	if (SmartProgress!=NULL)
         delete SmartProgress;
     #endif
@@ -52,6 +59,7 @@ __fastcall TBeamSolver::~TBeamSolver()
 //---------------------------------------------------------------------------
 void TBeamSolver::Initialize()
 {
+
    //  mcheck(NULL);
 
 	MaxCells=DEFAULT_MAX_CELLS;
@@ -129,7 +137,7 @@ void TBeamSolver::Initialize()
 
 	BeamExport=NULL;
 
-    #ifndef RSLINAC
+    #ifndef RSHELLWEG_LINUX
     SmartProgress=NULL;
     #endif
 }
@@ -263,7 +271,7 @@ void TBeamSolver::ResetDump(int Ns)
 //---------------------------------------------------------------------------
 void TBeamSolver::ShowError(AnsiString &S)
 {
-	 /*   #ifndef RSLINAC
+	 /*   #ifndef RSHELLWEG_LINUX
 	ShowMessage(S);
         #endif           */
 	ParsedStrings->Add(S);
@@ -301,9 +309,11 @@ bool TBeamSolver::LoadFromFile(AnsiString& Fname)
 
     delete[] Structure;
 
-    for (int i=0;i<Np_beam;i++)
-        delete Beam[i];
-    delete[] Beam;
+    if (Beam) {
+        for (int i=0;i<Np_beam;i++)
+            delete Beam[i];
+        delete[] Beam;
+    }
 
     Beam=new TBeam*[Npoints];
     for (int i=0;i<Npoints;i++)
@@ -343,7 +353,7 @@ bool TBeamSolver::LoadFromFile(AnsiString& Fname)
     return Success;
 }
 //---------------------------------------------------------------------------
-#ifndef RSLINAC
+#ifndef RSHELLWEG_LINUX
 void TBeamSolver::AssignSolverPanel(TObject *SolverPanel)
 {
     SmartProgress=new TSmartProgress(static_cast <TWinControl *>(SolverPanel));
@@ -507,48 +517,51 @@ TMagnetParameters TBeamSolver::GetSolenoidInfo()
 //---------------------------------------------------------------------------
 bool TBeamSolver::IsKeyWord(AnsiString &S)
 {
-    return S=="POWER" ||
-        S=="SOLENOID" ||
-        S=="BEAM" ||
-        S=="CURRENT" ||
-		S=="DRIFT" ||
-		S=="QUAD" ||
-        S=="CELL" ||
-		S=="CELLS" ||
-		S=="SAVE" ||
-		S=="OPTIONS" ||
-		S=="STRUCT" ||
-		S=="SPCHARGE" ||
-		S=="PARTICLES";
-	  //	S=="COMMENT";
+    const AnsiString u = S.UpperCase();
+
+    return u=="POWER" ||
+        u=="SOLENOID" ||
+        u=="BEAM" ||
+        u=="CURRENT" ||
+		u=="DRIFT" ||
+		u=="QUAD" ||
+        u=="CELL" ||
+		u=="CELLS" ||
+		u=="SAVE" ||
+		u=="OPTIONS" ||
+		u=="STRUCT" ||
+		u=="SPCHARGE" ||
+		u=="PARTICLES";
+	  //	u=="COMMENT";
 }
 //---------------------------------------------------------------------------
 TBeamType TBeamSolver::ParseDistribution(AnsiString &S)
 {
+	const AnsiString u = S.UpperCase();
 	 TBeamType D=NOBEAM;
-		if (S=="CST_PID")
+		if (u=="CST_PID")
 			D=CST_PID;
-		else if (S=="CST_PIT")
+		else if (u=="CST_PIT")
 			D=CST_PIT;
-		else if (S=="TWISS2D")
+		else if (u=="TWISS2D")
 			D=TWISS_2D;
-		else if (S=="TWISS4D")
+		else if (u=="TWISS4D")
 			D=TWISS_4D;
-		else if (S=="SPH2D")
+		else if (u=="SPH2D")
 			D=SPH_2D;
-		else if (S=="ELL2D")
+		else if (u=="ELL2D")
 			D=ELL_2D;
-		else if (S=="FILE1D")
+		else if (u=="FILE1D")
 			D=FILE_1D;
-		else if (S=="FILE2D")
+		else if (u=="FILE2D")
 			D=FILE_2D;
-		else if (S=="FILE4D")
+		else if (u=="FILE4D")
 			D=FILE_4D;
-		else if (S=="NORM2D")
+		else if (u=="NORM2D")
 			D=NORM_2D;
-		else if (S=="PARMELA_T2")
+		else if (u=="PARMELA_T2")
 			D=PARMELA_T2;
-		/*else if (S=="NORM4D")
+		/*else if (u=="NORM4D")
 			D=NORM_4D;  */
 	 return D;
 }
@@ -630,52 +643,54 @@ bool TBeamSolver::IsImportType(TImportType T)
 //---------------------------------------------------------------------------
 TInputParameter TBeamSolver::Parse(AnsiString &S)
 {
+    const AnsiString u = S.UpperCase();
     TInputParameter P;
    // FILE *logFile;
 
 /*    logFile=fopen("BeamSolver.log","a");
 	fprintf(logFile,"Parse: S=%s\n",S);
 	fclose(logFile); */
-	if (S=="POWER")
+	if (u=="POWER")
 		P=POWER;
-    else if (S=="SOLENOID")
+    else if (u=="SOLENOID")
         P=SOLENOID;
-    else if (S=="BEAM")
+    else if (u=="BEAM")
         P=BEAM;
-    else if (S=="CURRENT")
+    else if (u=="CURRENT")
 		P=CURRENT;
-    else if (S=="DRIFT")
+    else if (u=="DRIFT")
 		P=DRIFT;
-	else if (S=="QUAD")
+	else if (u=="QUAD")
 		P=QUAD;
-    else if (S=="CELL")
+    else if (u=="CELL")
         P=CELL;
-    else if (S=="CELLS")
+    else if (u=="CELLS")
         P=CELLS;
-    else if (S=="OPTIONS")
+    else if (u=="OPTIONS")
 		P=OPTIONS;
-	else if (S=="SAVE")
+	else if (u=="SAVE")
 		P=DUMP;
-    else if (S=="SPCHARGE")
+    else if (u=="SPCHARGE")
 		P=SPCHARGE;
-	else if (S=="STRUCT")
+	else if (u=="STRUCT")
 		P=STRUCT;
-	else if (S=="PARTICLES")
+	else if (u=="PARTICLES")
 		P=PARTICLES;
-	else if (S[1]=='!')
+	else if (u[1]=='!')
 		P=COMMENT;
 	return  P;
 }
 //---------------------------------------------------------------------------
 TSpaceChargeType TBeamSolver::ParseSpchType(AnsiString &S)
 {
+	const AnsiString u = S.UpperCase();
 	TSpaceChargeType T;;
 
-	if (S=="COULOMB")
+	if (u=="COULOMB")
 		T=SPCH_LPST;
-	else if (S=="ELLIPTIC")
+	else if (u=="ELLIPTIC")
 		T=SPCH_ELL;
-	else if (S=="GWMETHOD")
+	else if (u=="GWMETHOD")
 		T=SPCH_GW;
 	else
 		T=SPCH_NO;
@@ -927,6 +942,7 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 	while (!fs.eof()){
 		L=GetLine(fs);   //Now reads line by line
 		S=ReadWord(L,1);
+		//S=S.UpperCase();
 	   //	S=GetLine(fs);   //Hid common actions inside the function
 		if (S=="")
 			continue;
@@ -955,6 +971,7 @@ TInputLine *TBeamSolver::ParseFile(int& N)
 	while (!fs.eof()){
 		L=GetLine(fs);   //Now reads line by line
 		S=ReadWord(L,1);  //Gets the first word in the line (should be a key word)
+		//S=S.UpperCase();
 		if (S=="END")
 			break;
 		else if (S=="") //empty line
@@ -1052,7 +1069,7 @@ TError TBeamSolver::ParsePIT(TInputLine *Line, AnsiString &F)
 		F+=AddLines(Line,0,1);
 
 		if (Line->N == 3){
-			if (Line->S[2]=="COMPRESS") {
+			if (Line->S[2].UpperCase()=="COMPRESS") {
 				BeamPar.ZCompress=true;
 				F+=" COMPRESS";
 			} else {
@@ -1295,15 +1312,16 @@ TError TBeamSolver::ParseOptions(TInputLine *Line)
 	AnsiString F="OPTIONS ";
 
 	for (int j=0;j<Line->N;j++){
-		if (Line->S[j]=="REVERSE")
+		const AnsiString s = Line->S[j].UpperCase();
+		if (s=="REVERSE")
 			StructPar.Reverse=true;
-		if (Line->S[j]=="DEMAGNETIZE")
+		if (s=="DEMAGNETIZE")
 			BeamPar.Demagnetize=true;
 
-	/*	if (Line->S[j]=="MAGNETIZED")
+	/*	if (s=="MAGNETIZED")
 			BeamPar.Magnetized=true;   */
 
-		F=F+"\t"+Line->S[j];
+		F=F+"\t"+s;
 	}
 	ParsedStrings->Add(F);
 
@@ -1314,23 +1332,24 @@ TError TBeamSolver::ParseParticleType(TInputLine *Line)
 {
 	TError Error=ERR_NO;
 	AnsiString S="", F="PARTICLES ";
+	const AnsiString s = Line->S[0].UpperCase();
 
 
-	if (Line->S[0]=="ELECTRON" || Line->S[0]=="ELECTRONS"){
+	if (s=="ELECTRON" || s=="ELECTRONS"){
 		BeamPar.Species.Type=ELECTRON;
 		BeamPar.Species.A=1;
 		BeamPar.Species.Q=1;
 		F+="ELECTRONS ";
 		if (Line->N > 1)
 			S="!WARNING: Excessive parameters for electrons will be ignored\n";
-	} else if (Line->S[0]=="PROTON" || Line->S[0]=="PROTONS"){
+	} else if (s=="PROTON" || s=="PROTONS"){
 		BeamPar.Species.Type=PROTON;
 		BeamPar.Species.A=1;
 		BeamPar.Species.Q=1;
 		F+="PROTONS ";
 		if (Line->N > 1)
 			S="!WARNING: Excessive parameters for protons will be ignored\n";
-	} else if (Line->S[0]=="ION" || Line->S[0]=="IONS"){
+	} else if (s=="ION" || s=="IONS"){
 		F+="IONS ";
 		BeamPar.Species.Type=ION;
 		if (Line->N == 1) {
@@ -1389,7 +1408,7 @@ TError TBeamSolver::ParseSpaceCharge(TInputLine *Line)
 		F=F+"\t"+"ELLIPTIC";
 	}else{
 		for (int i = 1; i < Line->N; i++) {
-			if (Line->S[i]=="TRAIN") {
+			if (Line->S[i].UpperCase()=="TRAIN") {
 				//Ntr++;//=i+1;
 				Ntr=Line->N-i;
 				break;
@@ -2121,54 +2140,55 @@ TError TBeamSolver::ParseDump(TInputLine *Line, int Ns, int Ni)
 			}
 			if (Line->N>=2 && Line->N<=9) {
 				for (int j=Nkey;j<Line->N;j++){
-					if (Line->S[j]=="PID") {
+					const AnsiString s = Line->S[j].UpperCase();
+					if (s=="PID") {
 						BeamExport[Ns].SpecialFormat=CST_PID;
 						F=F0+" PID";
 						DefaultSet=false;
 						break;
 					}
-					else if (Line->S[j]=="PIT") {
+					else if (s=="PIT") {
 						BeamExport[Ns].SpecialFormat=CST_PIT;
 						F=F0+" PIT";
 						DefaultSet=false;
 						break;
 					}
-					else if (Line->S[j]=="ASTRA") {
+					else if (s=="ASTRA") {
 						BeamExport[Ns].SpecialFormat=ASTRA;
 						F=F0+" ASTRA";
 						DefaultSet=false;
 						break;
 					}
-					else if (Line->S[j]=="LOST") {
+					else if (s=="LOST") {
 						BeamExport[Ns].LiveOnly=false;
 						F=F+" LOST";
 					}
-					else if (Line->S[j]=="PHASE") {
+					else if (s=="PHASE") {
 						BeamExport[Ns].Phase=true;
 						F=F+" PHASE";
 						DefaultSet=false;
 					}
-					else if (Line->S[j]=="ENERGY") {
+					else if (s=="ENERGY") {
 						BeamExport[Ns].Energy=true;
 						F=F+" ENERGY";
 						DefaultSet=false;
 					}
-					else if (Line->S[j]=="RADIUS") {
+					else if (s=="RADIUS") {
 						BeamExport[Ns].Radius=true;
 						F=F+" RADIUS";
 						DefaultSet=false;
 					}
-					else if (Line->S[j]=="AZIMUTH") {
+					else if (s=="AZIMUTH") {
 						BeamExport[Ns].Azimuth=true;
 						F=F+" AZIMUTH";
 						DefaultSet=false;
 					}
-					else if (Line->S[j]=="DIVERGENCE") {
+					else if (s=="DIVERGENCE") {
 						BeamExport[Ns].Divergence=true;
 						F=F+" DIVERGENCE";
 						DefaultSet=false;
 					} else {
-						S="WARNING: The keyword "+Line->S[j]+" in SAVE line is not recognized and will be ignored";
+						S="WARNING: The keyword "+s+" in SAVE line is not recognized and will be ignored";
 						ShowError(S);
 					}
 				}
@@ -2319,7 +2339,9 @@ TError TBeamSolver::ParseLines(TInputLine *Lines,int N,bool OnlyParameters)
 					StructPar.Sections[Nsec].PhaseShift-=master_phase;
 					master_phase=phi;
 
+
 				   	Nsec++;
+
 					NewCell=true;
 					PowerDefined=true;
 				} else
@@ -2823,10 +2845,12 @@ void TBeamSolver::CreateMaps()
 				QuadMaps[q].Piv.Y[k]*=StructPar.Cells[i].F0/c;
 			}
 			q++;
+
 		} /* else {  
 			QuadMaps[q].Piv.X=NULL;
            		QuadMaps[q].Piv.Y=NULL;
         	} */  
+
 	}
 }
 //---------------------------------------------------------------------------
@@ -2840,8 +2864,10 @@ void TBeamSolver::CreateStrucutre()
 	for (int i=0;i<StructPar.NElements;i++){
 		Extra=0;
 		Map.Field=NULL;
+
 		if ((i==StructPar.NElements-1) || StructPar.Cells[i+1].First)
                         Extra=1;
+
 
 		if (StructPar.Cells[i].First)
 			z-=zm;
@@ -2888,6 +2914,7 @@ void TBeamSolver::CreateStrucutre()
 		}
 		zm=D/StructPar.Cells[i].Mesh;
 		k0=k;
+
 		Structure[k].dF=StructPar.Cells[i].dF;
 
 		double P0=StructPar.Cells[i].P0;
@@ -2903,6 +2930,7 @@ void TBeamSolver::CreateStrucutre()
 			Structure[k].ksi=z/lmb;
 			Structure[k].lmb=lmb;
 			Structure[k].P=P0;
+
 			if (j>0) 
 				Structure[k].dF=0;
 
@@ -2910,6 +2938,7 @@ void TBeamSolver::CreateStrucutre()
 				Structure[k].beta = beta;
 			else
 				Structure[k].beta = MeVToVelocity(EnergyLimit, BeamPar.W0);
+
 
 			Structure[k].E=E;
 			Structure[k].A=A;
@@ -4099,7 +4128,7 @@ double *TBeamSolver::GetStructureParameters(TStructureParameter P)
 void TBeamSolver::Abort()
 {
 	SolverStop=ERR_ABORT;
-	#ifndef RSLINAC
+	#ifndef RSHELLWEG_LINUX
 	SmartProgress->ShowMessage("Aborted");
 	#endif
 }
@@ -4565,7 +4594,7 @@ void TBeamSolver::Integrate(int Si, int Sj)    // Si is the "timestep" index, Sj
 //---------------------------------------------------------------------------
 void TBeamSolver::CountLiving(int Si)
 {
-    Nliv=Beam[Si]->GetLivingNumber();
+	Nliv=Beam[Si]->GetLivingNumber();
     if (Nliv==0){
 	  /*    FILE *F;
 		F=fopen("beam.log","w");
@@ -4575,8 +4604,10 @@ void TBeamSolver::CountLiving(int Si)
 			fprintf(F,"\n");
 		}
 		fclose(F);   */
-	        KillParticles(Si+1,Npoints-1); 
-		#ifndef RSLINAC
+
+		KillParticles(Si+1,Npoints-1);
+		#ifndef RSHELLWEG_LINUX
+
 		AnsiString S="Beam Lost!";
 		ShowError(S);
         SmartProgress->ShowMessage(S.c_str());
@@ -4588,16 +4619,20 @@ void TBeamSolver::CountLiving(int Si)
 //---------------------------------------------------------------------------
 void TBeamSolver::KillParticles(int Si)
 {
+
         if (Si>0)
                 Beam[Si]->KillParticles(Beam[Si-1]->Particle);
         else
                 Beam[Si]->KillParticles();
+
 }
 //---------------------------------------------------------------------------
 void TBeamSolver::KillParticles(int Si, int Sj)
 {
+
         for (int i=Si;i<=Sj;i++)
                 KillParticles(i);
+
 }
 //---------------------------------------------------------------------------
 void TBeamSolver::DumpHeader(ofstream &fo,TDump *ExportParameters,int jmin,int jmax)
@@ -4822,8 +4857,10 @@ void TBeamSolver::DumpCST(ofstream &fo, TDump *ExportParameters, int j)
 	x=Beam[Si]->GetParameter(j,X_PAR);
 	y=Beam[Si]->GetParameter(j,Y_PAR);
 	//z=Beam[Si]->GetParameter(j,PHI_PAR)*beta*Structure[Si].lmb/(2*pi);
+
 	//IVP  t=Beam[Si]->GetParameter(j,PHI_PAR)*Structure[Si].lmb/(2.0*pi*c); //IVP: a missing minus sign? 
 	t = -Beam[Si]->GetParameter(j,PHI_PAR)*Structure[Si].lmb/(2.0*pi*c); 
+
 
    	//z=4.0*z*1.1;
 	/* IVP 
@@ -5073,6 +5110,7 @@ void TBeamSolver::Step(int Si)
         Par[i].drift=Structure[Si].drift;
     //Par[3].drift=Structure[Si+1].drift;
 
+
     dh = Structure[Si+1].ksi -Structure[Si].ksi;
     Par[0].h = 0;
     Par[1].h = dh/2;
@@ -5108,6 +5146,7 @@ void TBeamSolver::Step(int Si)
     Par[1].B = Structure[Si].B +dB/2;
     Par[2].B = Par[1].B;
     Par[3].B = Structure[Si+1].B;
+
 
    /*   for(int i=0;i<4;i++)
         Par[i].B*=I;  */
@@ -5263,7 +5302,7 @@ void TBeamSolver::Step(int Si)
 //---------------------------------------------------------------------------
 TError TBeamSolver::Solve()
 {
-	#ifndef RSLINAC
+	#ifndef RSHELLWEG_LINUX
 	if (SmartProgress==NULL){
 		//ShowMessage("System Message: ProgressBar not assigned! Code needs to be corrected");
         return ERR_OTHER;
@@ -5275,6 +5314,7 @@ TError TBeamSolver::Solve()
 	double phi0 =0, phi_s =0, phi_p =0;
 	bool DriftOverride=false;
 	double gbr, gbth, gbz, g; 
+
 
   //    logFile=fopen("beam.log","w");
  /* for (int i=0; i<Np; i++){
@@ -5342,10 +5382,12 @@ TError TBeamSolver::Solve()
 		}
 
 		if (Structure[i].drift)
+
                         DriftOverride=true;
 
 		for (int j=0; j<BeamPar.NParticles; j++){
 			phi_s = Structure[i+1].ksi *2*pi;
+
 			if (Beam[i+1]->Particle[j].lost==LIVE){
 				if (Structure[i+1].Bmap.Field==NULL) {
 					if (mod(Beam[i+1]->Particle[j].r)>=Structure[i+1].Ra)
@@ -5365,13 +5407,16 @@ TError TBeamSolver::Solve()
 						//PR std::cerr << "Particle " << j << ": RADIUS_LOST (outside x, y min/max) \n";
 					}
 				}
+
 				phi0 = Beam[0]->Particle[j].phi;
 				phi_p = Beam[i+1]->Particle[j].phi;
 				if ((phi_p -phi0 +phi_s) < -pi/2 && !DriftOverride) {
+
 					Beam[i+1]->Particle[j].lost=PHASE_LOST;
 					//PR std::cerr << "Particle " << j << ": PHASE_LOST \n";
 				}
 			}
+
 			//if(j==0) std::cerr << "i = " << i <<": Structure[i+1].dF = " << Structure[i+1].dF << '\n';
 			Beam[i+1]->Particle[j].z = Structure[i+1].ksi *Structure[i+1].lmb;
 			Beam[i+1]->Particle[j].phi += Structure[i+1].dF; 
@@ -5432,13 +5477,14 @@ TError TBeamSolver::Solve()
 		//fprintf(logFile, "\n \n");
 		//fprintf(logFile_b, "\n \n");
 
-		#ifndef RSLINAC
+
+		#ifndef RSHELLWEG_LINUX
 		SmartProgress->operator ++();
 		Application->ProcessMessages();
 		#endif
 		if (SolverStop!=ERR_NO){
 
-			#ifndef RSLINAC
+			#ifndef RSHELLWEG_LINUX
 			AnsiString S="Solve Process Aborted!";
 			ShowError(S);
 			if (SolverStop==ERR_ABORT)
@@ -5458,7 +5504,7 @@ TError TBeamSolver::Solve()
     //fclose(logFile);
     //fclose(logFile_b);
 
-    #ifndef RSLINAC
+    #ifndef RSHELLWEG_LINUX
     SmartProgress->SetPercent(100);
     SmartProgress->SetTime(0);
     SmartProgress->TerminateTime();
@@ -5468,7 +5514,7 @@ TError TBeamSolver::Solve()
     return ERR_NO;
 }
 //---------------------------------------------------------------------------
-#ifndef RSLINAC
+#ifndef RSHELLWEG_LINUX
 TResult TBeamSolver::Output(AnsiString& FileName,TMemo *Memo)
 #else
 TResult TBeamSolver::Output(AnsiString& FileName)
@@ -5667,7 +5713,7 @@ TResult TBeamSolver::Output(AnsiString& FileName)
 	OutputStrings->Add("========================================");
 
 
-    #ifndef RSLINAC
+    #ifndef RSHELLWEG_LINUX
 	if (Memo!=NULL){
 		Memo->Lines->AddStrings(OutputStrings);
                 Memo->Lines->SaveToFile(FileName);

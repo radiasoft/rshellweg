@@ -14,7 +14,7 @@
 #include <cmath>
 #include <cstdlib>
 
-#ifndef RSLINAC
+#ifndef RSHELLWEG_LINUX
 
 #include <system.hpp>
 #include <conio.h>
@@ -50,7 +50,7 @@ enum TStructureParameter {KSI_PAR,Z_PAR,A_PAR,RP_PAR,ALPHA_PAR,SBETA_PAR,RA_PAR,
 					ER_PAR,EX_PAR,EY_PAR,ENR_PAR,ENX_PAR,ENY_PAR,E4D_PAR,E4DN_PAR,ET_PAR,ENT_PAR} ;
 
 enum TSplineType {ZSPLINE,LSPLINE,CSPLINE,SSPLINE};
-enum TChartType {CH_EMITTANCE,CH_SECTION,CH_PORTRAIT,CH_PHASE,CH_ENERGY,CH_BETTA,CH_A,CH_B,CH_ELP,CH_ATT,CH_APP,CH_BEXT,CH_CLEAR};
+enum TChartType {CH_EMITTANCE,CH_SECTION,CH_PORTRAIT,CH_PHASE,CH_ENERGY,CH_BETA,CH_A,CH_B,CH_ELP,CH_ATT,CH_APP,CH_BEXT,CH_CLEAR};
 
 enum TInputParameter {UNDEFINED,POWER,SOLENOID,BEAM,CURRENT,DRIFT,CELL,CELLS,OPTIONS,DUMP,COMMENT,SPCHARGE,QUAD,STRUCT,PARTICLES};
 enum TTrig {SIN,COS,TG,CTG,SEC,CSC};
@@ -70,7 +70,7 @@ enum TParticleType {ELECTRON, PROTON, ION};
 const int MaxParameters=14;  //Maximum number of parameters after a keyword. Currently: BEAM
 const int NumBessel=6;
 
-#ifdef RSLINAC
+#ifdef RSHELLWEG_LINUX
 typedef long double Extended;
 
 inline Extended DegToRad(const Extended Degrees) {
@@ -298,6 +298,7 @@ struct TStructure
     double beta;
     double Ra;
     TFieldMap2D Bmap;
+
 	//TField Hext;
    /*	double Bz_ext;
 	double Br_ext;   */
