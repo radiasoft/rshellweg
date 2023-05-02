@@ -178,12 +178,14 @@ inline double Ib0(double x){
 }
 //---------------------------------------------------------------------------
 inline double Ib0_beta(double r,double b2){  //I0(r*x)
-	double f=0;
+        double f=0;
 
-	for (int k=0;k<=NumBessel;k++)
-		f+=Pow(sqr(r)*b2/2,k)/sqr(Fact(k));
+        for (int k=0;k<=NumBessel;k++)
+                //f+=Pow(sqr(r)*b2/2,k)/sqr(Fact(k));
+		f+=Pow(sqr(r)*b2/4,k)/sqr(Fact(k)); //check!
 
-	return f;
+        return f;
+
 }
 //---------------------------------------------------------------------------
 inline double Ib1(double x){
@@ -196,12 +198,13 @@ inline double Ib1(double x){
 }
 //---------------------------------------------------------------------------
 inline double Ib1_beta(double r,double b2){   //I1(r*x)/x
-	double f=0;
+        double f=0;
 
-	for (int k=0;k<=NumBessel;k++)
-		f+=Pow(r/2,2*k+1)*Pow(b2,k)/(Fact(k)*Fact(k+1));
+        for (int k=0;k<=NumBessel;k++)
+                f+=Pow(r/2,2*k+1)*Pow(b2,k)/(Fact(k)*Fact(k+1));
 
-	return f;
+        return f;
+
 }
 //---------------------------------------------------------------------------
 inline void TwoRandom(double& Ran1,double& Ran2)
@@ -374,25 +377,25 @@ inline TPhaseSpace CylinricalToCartesian(TPhaseSpace C)
 inline TPhaseSpace CartesianToCylinrical(double x, double y, double px, double py)
 {
 	TPhaseSpace C;
-	double r=0,th=0,pr=0,pth=0;
+	double r=0, th=0, pr=0, pth=0;
 
-	r=sqrt(sqr(x)+sqr(y));
+	r = sqrt(sqr(x)+sqr(y));
 	if (y==0 && x==0)
 		th=0;
 	else
-		th=atan2(y,x);
+		th = atan2(y,x);
    /*	th=x==0?pi/2:arctg(y/x);
 
 	if (x<0)
 		th+=pi;  */
 
-	pr=px*cos(th)+py*sin(th);
-	pth=-px*sin(th)+py*cos(th);
+	pr  =  px*cos(th) +py*sin(th);
+	pth = -px*sin(th) +py*cos(th);
 
-	C.x=r;
-	C.y=th;
-	C.px=pr;
-	C.py=pth;
+	C.x = r;
+	C.y = th;
+	C.px = pr;
+	C.py = pth;
 
 	return C;
 }
@@ -434,6 +437,7 @@ static bool IsNumber(AnsiString &S)   //Checks if the string is a number
 	}
 	return Success;
 }
+/*
 //---------------------------------------------------------------------------
 static AnsiString GetFileName(AnsiString &F)   //Gets the file name from path
 {
@@ -450,6 +454,29 @@ static AnsiString GetFileCaption(AnsiString &F)   //Gets the file name without e
 #ifdef RSHELLWEG_LINUX
         std::string s = std::string(F.c_str());
 	return s.substr(0, s.find_last_of("/.") - 1);
+#else
+        return F.SubString(0,F.LastDelimiter("/.")-1);
+#endif
+}
+*/
+//---------------------------------------------------------------------------
+static AnsiString GetFileName(AnsiString &F)   //Gets the file name from path
+{
+//#ifdef RSHELLWEG_LINUX
+#ifdef RSLINAC 
+        std::string s = std::string(F.c_str());
+        return s.substr(s.find_last_of("/\\") + 1);
+#else
+        return F.SubString(F.LastDelimiter("/\\")+1,F.Length());
+#endif
+}
+//---------------------------------------------------------------------------
+static AnsiString GetFileCaption(AnsiString &F)   //Gets the file name without extension
+{
+//#ifdef RSHELLWEG_LINUX
+#ifdef RSLINAC 
+        std::string s = std::string(F.c_str());
+        return s.substr(0, s.find_last_of("/.") - 1);
 #else
         return F.SubString(0,F.LastDelimiter("/.")-1);
 #endif
