@@ -137,6 +137,7 @@ public:
 
 	int GetLivingNumber();
 	void KillParticles(TParticle *P=NULL);
+    void Renormalize(double lmb0);
 
     void Integrate(TIntParameters& Par,TIntegration **I,int Si);
     void Next(TBeam *nBeam,TIntParameters& Par,TIntegration **I);
