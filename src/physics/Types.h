@@ -52,7 +52,7 @@ enum TStructureParameter {KSI_PAR,Z_PAR,A_PAR,RP_PAR,ALPHA_PAR,SBETA_PAR,RA_PAR,
 enum TSplineType {ZSPLINE,LSPLINE,CSPLINE,SSPLINE};
 enum TChartType {CH_EMITTANCE,CH_SECTION,CH_PORTRAIT,CH_PHASE,CH_ENERGY,CH_BETA,CH_A,CH_B,CH_ELP,CH_ATT,CH_APP,CH_BEXT,CH_CLEAR};
 
-enum TInputParameter {UNDEFINED,POWER,SOLENOID,BEAM,CURRENT,DRIFT,HALF,CELL,CELLS,OPTIONS,DUMP,COMMENT,SPCHARGE,QUAD,STRUCT,PARTICLES};
+enum TInputParameter {UNDEFINED,POWER,SOLENOID,BEAM,CURRENT,DRIFT,CELL,CELLS,OPTIONS,DUMP,COMMENT,SPCHARGE,QUAD,STRUCT,PARTICLES};
 enum TTrig {SIN,COS,TG,CTG,SEC,CSC};
 enum TDeviation {D_RMS,D_FWHM};
 enum TLoss {LIVE,RADIUS_LOST,PHASE_LOST,BZ_LOST,BR_LOST,BTH_LOST,BETA_LOST,STEP_LOST,KILLED};
@@ -66,8 +66,6 @@ enum TImportType {NO_ELEMENT,ANALYTIC_0D,ANALYTIC_1D,IMPORT_1D,IMPORT_2DC,IMPORT
 enum TMagnetType {MAG_GENERAL,MAG_SOLENOID,MAG_DIPOLE,MAG_QUAD,MAG_NO};
 enum TSpaceChargeType {SPCH_NO,SPCH_LPST,SPCH_ELL,SPCH_GW};
 enum TParticleType {ELECTRON, PROTON, ION};
-enum TCellPosition {FIRST_CELL,END_CELL,REGULAR_CELL};
-enum TCellType {TW_CELL, HALF_CELL, DRIFT_CELL};
 
 const int MaxParameters=14;  //Maximum number of parameters after a keyword. Currently: BEAM
 const int NumBessel=6;
@@ -278,13 +276,13 @@ struct TCell
     double Mode;
     double F0;
     double P0;
-
-double dF;
-	int Mesh;
-    TCellPosition Position;
-	TCellType Type;
-	TMagnetParameters Magnet;
-
+    double dF;
+    int Mesh;
+    bool Drift;
+    bool First;
+    TMagnetParameters Magnet;
+   /*	bool Dump;
+	TDump DumpParameters;  */
 };
 struct TStructure
 {
@@ -298,16 +296,24 @@ struct TStructure
     double B;
     double alpha;
     double beta;
-	double Ra;
-	TFieldMap2D Bmap;
+    double Ra;
+    TFieldMap2D Bmap;
+
+	//TField Hext;
+   /*	double Bz_ext;
+	double Br_ext;   */
+	//TFieldMap Hext;
     bool jump;
     bool drift;
-	int CellNumber;
+    int CellNumber;
+  /*	bool Dump;
+	TDump DumpParameters;    */
 };
 
 struct TSectionParameters
 {
 	double Frequency;
+	//double Wavelength;
 	double Power;
 	double PhaseShift;
 	double NCells;
@@ -325,7 +331,6 @@ struct TStructureInput
 	TStructData *StructData;
 	TMagnetParameters SolenoidPar;
 	bool Reverse;
-    bool CouplerPhase;
 };
 
 struct TResult
@@ -419,15 +424,22 @@ struct TIntParameters
     double bw;
     double w;
     double dL;
-	double A;
+    double A;
+    double dA;
 	double B;
 	double E;
 	TFieldMap2D Hext;
 	TFieldMap2D Hmap;
+	//TField dHext;
+	/*double Bz_ext;
+	double Br_ext;  */
 	double dH;
-    double SumSin;
+	//double Cmag;
+	double SumSin;
 	double SumCos;
 	TField *Eq;
+	/*double *Aqz;
+	double *Aqr;  */
     double gamma;
     bool drift;
 };

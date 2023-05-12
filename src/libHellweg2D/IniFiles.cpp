@@ -18,10 +18,6 @@ AnsiString TIniFile::ReadString(const AnsiString section, const AnsiString ident
     return AnsiString(tree.get(getLocator(section, ident), d.s));
 }
 
-bool TIniFile::ReadBool(const AnsiString section, const AnsiString ident, bool d) {
-    return tree.get(getLocator(section, ident), d);
-}
-
 std::string TIniFile::getLocator(const AnsiString &section, const AnsiString &ident) {
     return section.s + "." + ident.s;
 }

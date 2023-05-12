@@ -14,6 +14,16 @@ __fastcall TMainForm::TMainForm(TComponent* Owner)
     : TForm(Owner)
 {
 }
+//----------------------------------------------------------------------------
+/*int round(double x){
+    return (x-floor(x))>(ceil(x)-x)?ceil(x):floor(x);
+}       */
+//---------------------------------------------------------------------------
+double Trim(double x,int N)
+{
+    //return round(x*IntPower(10,N))/IntPower(10,N);
+    return 1;
+}
 //---------------------------------------------------------------------------
 void TMainForm::DisplayError()
 {
@@ -43,6 +53,7 @@ void TMainForm::DisplayError()
 void TMainForm::Initialize()
 {
 	AnsiString Line;
+	bool IniFileLoaded=false;
 
 	Path=Application->ExeName;
 	Path=ExtractFileDir(Path);
@@ -52,10 +63,25 @@ void TMainForm::Initialize()
 	Solver=new TBeamSolver(UserIniPath);
 	Solver->AssignSolverPanel(SolverGroup);
 
-	bool IniFileLoaded=LoadIniFile();
+	/*ActiveGUI=true;
+	SaveOutput=false;
+	OutputBinary=false;
+	OutputTraj=false;
+
+	InputFileName=DefaultInput;
+	OutputName=DefaultOutput;     */
+
+	IniFileLoaded=LoadIniFile();
 
   	ResultsMemo->Clear();
 	ResultsMemo->Visible=true;
+
+  /*	Line="Hellweg.ini file initialized ";
+	if (!IniFileLoaded)
+		Line=Line+"incorrectly!";
+
+	Line=Line+"successfully";
+	ResultsMemo->Lines->Add(Line);   */
 
 	OutputCheck->Checked=SaveOutput;
 	OutputFileEdit->Text=OutputName;
@@ -63,9 +89,19 @@ void TMainForm::Initialize()
 	TrajectoryCheck->Checked=SaveTraj;
 	InterfaceVisibility();
 
+	//Solver->LoadIni
+	//ActiveGUI
+	//InputFileName
+	//OutputFileName
+
    	ReloadData=false;
     DataReady=false;
-	InputReady=CreateInputData(false);
+	InputReady=false;
+   //	DataReady=LoadInputData(false);
+  //	if (DataReady) {
+		InputReady=CreateInputData(false);
+  //	}
+
 }
 //---------------------------------------------------------------------------
 void TMainForm::Terminate()
@@ -148,25 +184,35 @@ bool TMainForm::CreateInputData(bool display_err)
 	InputFileEdit->Text=InputFileName;
 
 	if (!DataReady){
+	  //	if (display_err){
 		ResultsMemo->Lines->Add("Error occurred while reading input file. Check the file format!");
+			//ShowMessage("Error occurred while reading input file! Impossible to start solver.");
+	   //	}
 		return false;
 	}
 
 	try{
 		Solver->CreateGeometry();
 	} catch(...){
-		ResultsMemo->Lines->Add("Error occurred while initializing the geometry. Check the values in input file!");
+	   //	if (display_err)
+			ResultsMemo->Lines->Add("Error occurred while initializing the geometry. Check the values in input file!");
+	   //		ShowMessage("Error occurred while creating geometry. Check the values in input file!");
 		return false;
 	}
 
 	try{
-		Error=Solver->CreateBeam(true);
+		Error=Solver->CreateBeam();
 		if (Error!=ERR_NO) {
-			DisplayError();
+			//if (display_err)
+				DisplayError();
+		   /*	Solver->Abort();
+			Application->Terminate();    */
 			return false;
 		}
 	}  catch(...){
 		ResultsMemo->Lines->Add("Error occurred while initializing the beam. Check the values in input file!");
+	   //	if (display_err)
+		   //	ShowMessage("Error occurred while creating beam. Check the values in input file!");
 		return false;
 	}
 	DisplayInputData();
@@ -337,6 +383,7 @@ void TMainForm::DisplayInputData()
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::ExitButtonClick(TObject *Sender)
 {
+  //	Terminate();
     Solver->Abort();
 	Application->Terminate();
 }

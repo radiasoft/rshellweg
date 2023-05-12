@@ -444,9 +444,7 @@ void TResForm::DrawPlots(TStructureParameter P1,TStructureParameter P2)
 			   //	break;
 			}
 			case PRF_PAR: {
-			  /*	if (100*Z[i+1]>0.45)
-					x=0;        */
-				x=1e-6*x;//MW
+				x=1e-6*x;//MeV
 				break;
 			}
 			case RB_PAR: {}
