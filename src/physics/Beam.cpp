@@ -1134,6 +1134,7 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 		if (P==TH_PAR) {
 			Z = GetLivingParameter(R_PAR);
 		}
+        }
 
 
 	double Sx=0, Spx=0, Sxpx=0;
@@ -1162,7 +1163,7 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 			Sx += sqr(X[i]);
 			Spx += sqr(Y[i]);
 			Sxpx += X[i]*Y[i];
-			}
+                }
 	}
 
 
@@ -1213,6 +1214,7 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 			T.beta*=2;
 
 		}
+        }
 
 
 	if (Norm) {
