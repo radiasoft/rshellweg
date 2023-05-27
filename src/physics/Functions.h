@@ -88,11 +88,27 @@ inline double MeVToGamma(double W, double W0){
 }
 //---------------------------------------------------------------------------
 inline double EnergyToVelocity(double g){
-    return sqrt(1-1/sqr(g));
+	return sqrt(1-1/sqr(g));
 }
 //---------------------------------------------------------------------------
 inline double VelocityToEnergy(double b){
-    return 1/sqrt(1-sqr(b));
+	return 1/sqrt(1-sqr(b));
+}
+//---------------------------------------------------------------------------
+inline double VelocityToMomentum(double b){
+	return b/sqrt(1-sqr(b));
+}
+//---------------------------------------------------------------------------
+inline double MomentumToVelocity(double p){
+	return p/sqrt(1+sqr(p));
+}
+//---------------------------------------------------------------------------
+inline double EnergyToMomentum(double g){
+	return sqrt(sqr(g)-1);
+}
+//---------------------------------------------------------------------------
+inline double MomentumToEnergy(double p){
+	return sqrt(1+sqr(p));
 }
 //---------------------------------------------------------------------------
 inline double VelocityToMeV(double b, double W0){
@@ -181,8 +197,8 @@ inline double Ib0_beta(double r,double b2){  //I0(r*x)
         double f=0;
 
         for (int k=0;k<=NumBessel;k++)
-                //f+=Pow(sqr(r)*b2/2,k)/sqr(Fact(k));
-		f+=Pow(sqr(r)*b2/4,k)/sqr(Fact(k)); //check!
+		   //	f+=Pow(sqr(r)*b2/2,k)/sqr(Fact(k));
+			f+=Pow(sqr(r)*b2/4,k)/sqr(Fact(k)); //this is correct
 
         return f;
 
