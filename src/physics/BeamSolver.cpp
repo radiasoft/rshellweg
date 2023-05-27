@@ -657,7 +657,7 @@ TSpaceChargeType TBeamSolver::ParseSpchType(AnsiString &S)
 	const AnsiString u = S.UpperCase();
 	TSpaceChargeType T;;
 
-	if (u=="COULOMB")
+	if (u=="LAPOSTOLLE")
 		T=SPCH_LPST;
 	else if (u=="ELLIPTIC")
 		T=SPCH_ELL;
@@ -2748,7 +2748,7 @@ void TBeamSolver::CreateMesh()
 		}
 	}
 
-	Structure=new TStructure[Npoints+1];
+	Structure=new TStructure[Npoints];
 }
 //---------------------------------------------------------------------------
 TError TBeamSolver::AdjustMesh(double Winj)
@@ -5153,9 +5153,9 @@ void TBeamSolver::Step(int Si)
     bool drift = false;
     double lmb = Structure[Si].lmb;
 
-	Beam[Si]->lmb = lmb;
+    Beam[Si]->lmb = lmb;
     if (Si>0 && lmb!=Beam[Si-1]->lmb)
-		Beam[Si]->Renormalize(Beam[Si-1]->lmb);
+        Beam[Si]->Renormalize(Beam[Si-1]->lmb);
     CountLiving(Si);
    //	I=BeamPar.Current*Nliv/BeamPar.NParticles;
   /*
@@ -5171,46 +5171,6 @@ void TBeamSolver::Step(int Si)
     for (int i=0;i<4;i++)
         Par[i].drift=Structure[Si].drift;
     //Par[3].drift=Structure[Si+1].drift;
-
-/*  This was replaced by code below, which seems to be only cosmetic...
-    dh=Structure[Si+1].ksi-Structure[Si].ksi;
-    Par[0].h=0;
-    Par[1].h=dh/2;
-    Par[2].h=Par[1].h;
-	Par[3].h=dh;
-
-	double db=Structure[Si+1].beta-Structure[Si].beta;
-	Par[0].bw=Structure[Si].beta;
-	Par[1].bw=Structure[Si].beta+db/2;
-    Par[2].bw=Par[1].bw;
-	Par[3].bw=Structure[Si+1].beta;
-
-	double dw=Structure[Si+1].alpha-Structure[Si].alpha;
-    Par[0].w=Structure[Si].alpha*lmb;
-    Par[1].w=(Structure[Si].alpha+dw/2)*lmb;
-    Par[2].w=Par[1].w;
-    Par[3].w=Structure[Si+1].alpha*lmb;
-
-    double dE=Structure[Si+1].E-Structure[Si].E;
-    Par[0].E=Structure[Si].E;
-	Par[1].E=Structure[Si].E+dE/2;
-    Par[2].E=Par[1].E;
-    Par[3].E=Structure[Si+1].E;
-
-	double dA=Structure[Si+1].A-Structure[Si].A;
-	//if (dA!=0)
-	//	dA=dA;
-	Par[0].A=Structure[Si].A;
-	Par[1].A=Structure[Si].A;//+dA/2;
-	Par[2].A=Par[1].A;
-	Par[3].A=Structure[Si].A;
-
-    double dB=Structure[Si+1].B-Structure[Si].B;
-    Par[0].B=Structure[Si].B;
-    Par[1].B=Structure[Si].B+dB/2;
-    Par[2].B=Par[1].B;
-    Par[3].B=Structure[Si+1].B;
-*/
 
     dh = Structure[Si+1].ksi -Structure[Si].ksi;
     Par[0].h = 0;
@@ -5248,7 +5208,6 @@ void TBeamSolver::Step(int Si)
     Par[2].B = Par[1].B;
     Par[3].B = Structure[Si+1].B;
 
-
    /*   for(int i=0;i<4;i++)
         Par[i].B*=I;  */
 
@@ -5274,44 +5233,6 @@ void TBeamSolver::Step(int Si)
 	   Par[3].dL=dE/(Par[3].E*dh);
 	}
 
-
-	/* else {
-		if (Si==0 || (Si!=0 && Structure[Si].jump)){
-			Par[0].dL = dE/(Structure[Si].E*dh);
-			//Par[0].dL=dR/dh;
-			//Par[0].dA=dA/dh;
-		}else{
-			d2E=Structure[Si+1].E-Structure[Si-1].E;
-			//d2A=Structure[Si+1].A-Structure[Si-1].A;
-			d2h=Structure[Si+1].ksi-Structure[Si-1].ksi;
-			Par[0].dL=d2E/(Structure[Si].E*d2h);
-		   //   d2R=ln(Structure[Si+1].Rp)-ln(Structure[Si-1].Rp);
-		   //   Par[0].dL=d2R/d2h;
-		   //	Par[0].dA=d2A/d2h;
-		}
-
-		Par[1].dL=dE/((Structure[Si].E+dE/2)*dh);
-        //Par[1].dL=dR/dh;
-        Par[2].dL=Par[1].dL;
-
-		//Par[1].dA=dA/dh;
-	   //	Par[2].dA=Par[1].dA;
-
-		if (Si==Npoints-2 || (Si<Npoints-2 && Structure[Si+2].jump)){
-			Par[3].dL=dE/(Structure[Si+1].E*dh);
-            //Par[3].dL=dR/dh;
-		  //	Par[3].dA=dA/dh;
-		}else{
-			d2E=Structure[Si+2].E-Structure[Si].E;
-			//d2A=Structure[Si+2].A-Structure[Si].A;
-			d2h=Structure[Si+2].ksi-Structure[Si].ksi;
-            Par[3].dL=d2E/(Structure[Si+1].E*d2h);
-            //d2R=ln(Structure[Si+2].Rp)-ln(Structure[Si].Rp);
-            ///Par[0].dL=d2R/d2h;
-		   //	Par[3].dA=d2A/d2h;
-
-        }
-	}       */
 
 	Par[0].Hmap=Structure[Si].Bmap;
 	Par[1].Hmap=Structure[Si].Bmap;
@@ -5353,52 +5274,10 @@ void TBeamSolver::Step(int Si)
 		Par[1].Hext.Field=NULL;
 		Par[2].Hext.Field=NULL;
 		Par[3].Hext.Field=NULL;
-    }
-
-  /*	double dBzx=Structure[Si+1].Hext.z-Structure[Si].Hext.z;
-	Par[0].Hext.z=Structure[Si].Hext.z;
-	Par[1].Hext.z=Structure[Si].Hext.z+dBzx/2;
-	Par[2].Hext.z=Par[1].Hext.z;
-	Par[3].Hext.z=Structure[Si+1].Hext.z;
-
-	double dBrx=Structure[Si+1].Hext.r-Structure[Si].Hext.r;
-	Par[0].Hext.r=Structure[Si].Hext.r;
-	Par[1].Hext.r=Structure[Si].Hext.r+dBrx/2;
-	Par[2].Hext.r=Par[1].Hext.r;
-	Par[3].Hext.r=Structure[Si+1].Hext.r;
-
-	double dBthx=Structure[Si+1].Hext.th-Structure[Si].Hext.th;
-	Par[0].Hext.th=Structure[Si].Hext.th;
-	Par[1].Hext.th=Structure[Si].Hext.th+dBthx/2;
-	Par[2].Hext.th=Par[1].Hext.th;
-	Par[3].Hext.th=Structure[Si+1].Hext.th;     */
+        }
 
 
-  /*	if (Si==0)
-		Par[0].dH=dBzx/dh;
-	else{
-		d2Bzx=Structure[Si+1].Hext.z-Structure[Si-1].Hext.z;
-		d2h=Structure[Si+1].ksi-Structure[Si-1].ksi;
-		Par[0].dH=d2Bzx/d2h;
-	}
-	Par[1].dH=dBzx/dh;
-	Par[2].dH=Par[1].dH;
-	if (Si==Npoints-2){
-		Par[3].dH=dBzx/dh;
-	} else {
-		d2Bzx=Structure[Si+2].Bz_ext-Structure[Si].Bz_ext;
-		d2h=Structure[Si+2].ksi-Structure[Si].ksi;
-		Par[3].dH=d2Bzx/d2h;
-	}
-
-   	FILE *logFile=fopen("beam.log","a");
-	//fprintf(logFile,"Phase Radius Betta\n");
-    //for (int i=0;i<Np;i++)
-		fprintf(logFile,"%i %f %f %f %f\n",Si,Par[0].dH,Par[1].dH,Par[2].dH,Par[3].dH);
-
-	fclose(logFile);   */
-
-    for (int j=0; j<Ncoef; j++)
+	for (int j=0; j<Ncoef; j++)
 		Integrate(Si, j);
 
 	for (int k = 0; k < 4; k++) {
@@ -5437,12 +5316,19 @@ TError TBeamSolver::Solve()
 	//FILE *logFile = fopen("BS_Solve_beam.log", "a");
 	//FILE *logFile_b = fopen("BS_Solve_beam_beta.log", "a");
 
- /*	for (int i=0; i<BeamPar.NParticles; i++){
+	for (int i=0; i<BeamPar.NParticles; i++){
 		gbr = Beam[0]->Particle[i].gb.r;
 		gbth = Beam[0]->Particle[i].gb.th;
 		gbz = Beam[0]->Particle[i].gb.z;
 		g = sqrt(1. +sqr(gbr) +sqr(gbth) +sqr(gbz));
-	}    */
+
+		/*
+		fprintf(logFile, "%f %f %f %f %f \n", Beam[0]->Particle[i].r, Beam[0]->Particle[i].gb.r,
+				Beam[0]->Particle[i].th, Beam[0]->Particle[i].gb.th, Beam[0]->Particle[i].phi);
+		fprintf(logFile_b, "%f %f %f %f %f \n", Beam[0]->Particle[i].r, Beam[0]->Particle[i].gb.r /g,
+                                Beam[0]->Particle[i].th, Beam[0]->Particle[i].gb.th /g, Beam[0]->Particle[i].phi);
+		*/
+	}
 
 	//fprintf(logFile, "\n \n");
 	//fprintf(logFile_b, "\n \n");
@@ -5462,9 +5348,8 @@ TError TBeamSolver::Solve()
 			//if (i==0)
 		   //   Nliv=Beam[i]->GetLivingNumber();
 		for (int j = 0; j < Ndump; j++) {
-			if (BeamExport[j].Nmesh==i) {
+			if (BeamExport[j].Nmesh==i)
 				DumpBeam(j);
-			}
 		}
 
 		if (i==Npoints-1) break; // Nowhere to iterate
@@ -5482,10 +5367,24 @@ TError TBeamSolver::Solve()
 		}
 
 		if (Structure[i].drift)
-
-                        DriftOverride=true;
+			DriftOverride=true;
 
 		for (int j=0; j<BeamPar.NParticles; j++){
+						//if(j==0) std::cerr << "i = " << i <<": Structure[i+1].dF = " << Structure[i+1].dF << '\n';
+			Beam[i+1]->Particle[j].z = Structure[i+1].ksi *Structure[i+1].lmb;
+			Beam[i+1]->Particle[j].phi += Structure[i+1].dF;
+
+		  /*	double gbr0, gbth0, gbz0, g0;
+			gbr0 = Beam[i]->Particle[j].gb.r;
+			gbth0 = Beam[i]->Particle[j].gb.th;
+			gbz0 = Beam[i]->Particle[j].gb.z;
+			g0 = sqrt(1. +sqr(gbr) +sqr(gbth) +sqr(gbz));
+
+			gbr = Beam[i+1]->Particle[j].gb.r;
+			gbth = Beam[i+1]->Particle[j].gb.th;
+			gbz = Beam[i+1]->Particle[j].gb.z;
+			g = sqrt(1. +sqr(gbr) +sqr(gbth) +sqr(gbz)); */
+
 			phi_s = Structure[i+1].ksi *2*pi;
 
 			if (Beam[i+1]->Particle[j].lost==LIVE){
@@ -5510,6 +5409,7 @@ TError TBeamSolver::Solve()
 
 				phi0 = Beam[0]->Particle[j].phi;
 				phi_p = Beam[i+1]->Particle[j].phi;
+
 				if ((phi_p -phi0 +phi_s) < -pi/2 && !DriftOverride) {
 
 					Beam[i+1]->Particle[j].lost=PHASE_LOST;
