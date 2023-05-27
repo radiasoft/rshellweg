@@ -478,8 +478,7 @@ static AnsiString GetFileCaption(AnsiString &F)   //Gets the file name without e
 //---------------------------------------------------------------------------
 static AnsiString GetFileName(AnsiString &F)   //Gets the file name from path
 {
-//#ifdef RSHELLWEG_LINUX
-#ifdef RSLINAC 
+#ifdef RSHELLWEG_LINUX
         std::string s = std::string(F.c_str());
         return s.substr(s.find_last_of("/\\") + 1);
 #else
@@ -489,8 +488,7 @@ static AnsiString GetFileName(AnsiString &F)   //Gets the file name from path
 //---------------------------------------------------------------------------
 static AnsiString GetFileCaption(AnsiString &F)   //Gets the file name without extension
 {
-//#ifdef RSHELLWEG_LINUX
-#ifdef RSLINAC 
+#ifdef RSHELLWEG_LINUX
         std::string s = std::string(F.c_str());
         return s.substr(0, s.find_last_of("/.") - 1);
 #else

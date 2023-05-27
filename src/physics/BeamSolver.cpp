@@ -2742,7 +2742,7 @@ void TBeamSolver::CreateMesh()
 	for(int i=0;i<StructPar.NElements;i++){
 		Npoints+=StructPar.Cells[i].Mesh;
 		//if (StructPar.Cells[i].First){
-		if (StructPar.Cells[i].Position==FIRST_CELL){
+		if (i==StructPar.NElements-1 || StructPar.Cells[i].Position==FIRST_CELL){
 			Npoints++;
 			//Njmp++;
 		}
@@ -5198,8 +5198,8 @@ void TBeamSolver::Step(int Si)
     Par[3].E=Structure[Si+1].E;
 
 	double dA=Structure[Si+1].A-Structure[Si].A;
-	/*if (dA!=0)
-		dA=dA;    */
+	//if (dA!=0)
+	//	dA=dA;
 	Par[0].A=Structure[Si].A;
 	Par[1].A=Structure[Si].A;//+dA/2;
 	Par[2].A=Par[1].A;

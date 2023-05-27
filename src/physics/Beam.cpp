@@ -1134,6 +1134,7 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 		if (P==TH_PAR) {
 			Z = GetLivingParameter(R_PAR);
 		}
+        }
 
 
 	double Sx=0, Spx=0, Sxpx=0;
@@ -1214,6 +1215,7 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 
 		}
 
+<<<<<<< HEAD
 	}
 		if (Norm) {
 			double W = GetAverageEnergy();
@@ -1229,6 +1231,23 @@ TTwiss TBeam::GetTwiss(TBeamParameter P, bool Norm)
 		T.alpha=0;
 		T.beta=0;
 	}
+=======
+        }
+                
+	if (Norm) {
+		double W = GetAverageEnergy();
+		double beta_gamma = MeVToVelocity(W,W0)*MeVToGamma(W,W0);
+		T.epsilon = beta_gamma*T.epsilon;
+		T.beta = T.beta/beta_gamma;
+	} else {
+                T.epsilon=0;
+                T.alpha=0;
+                T.beta=0;
+        }
+	DeleteArray(X);
+	DeleteArray(Y);
+	DeleteArray(Z);
+>>>>>>> master
 
    //	fclose(logFile);
 
