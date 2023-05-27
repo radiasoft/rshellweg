@@ -1,3 +1,12 @@
+05/02/2023
+- Hellweg now solves the momentum equations (gamma*beta), instead of velocity (beta)
+- Fixed the bug with Bessel function series expansion
+
+04/22/2023
+-Fixed the bug when beam radius wasn't renormalized when frequency changes (or after the first drift tube element) 
+-Fixed the bug with multiple sections 
+-Changed keyword "COULOMB" to "LAPOSTOLLE"
+
 01/31/2023
 - Added the feature of SW component in coupler cells 
 - Added the capability to simulate 1/2-cells (with no SW components)
