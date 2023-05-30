@@ -100,7 +100,7 @@ void TResForm::CreateTable()
 	Table->Cells[colName][peps]="Emittance, mm*mrad";
 	Table->Cells[colName][pepsn]="Emittance (norm), mm*mrad";
 	Table->Cells[colName][palpha]="alpha";
-	Table->Cells[colName][pbetta]="betta, cm/rad";
+	Table->Cells[colName][pbetta]="beta, cm/rad";
 
 }
 //---------------------------------------------------------------------------
@@ -554,7 +554,7 @@ void TResForm::DrawEnergy()
 
 	AnsiString EU=GetEnergyUnit(Solver->GetParticleType());
 
-    PackChart->Title->Caption="Particles Energy";
+	PackChart->Title->Caption="Particle Energy";
     PackChart->BottomAxis->Title->Caption="z,cm";
 	PackChart->LeftAxis->Title->Caption="W, "+EU;
 
@@ -567,7 +567,7 @@ void TResForm::DrawPhase()
 	gType=PHI_TRACE;
     PackActive();
 
-    PackChart->Title->Caption="Particles Phase";
+	PackChart->Title->Caption="Particle Phase";
     PackChart->BottomAxis->Title->Caption="z,cm";
     PackChart->LeftAxis->Title->Caption="phi,deg";
 
@@ -580,7 +580,7 @@ void TResForm::DrawRadius()
 	gType=R_TRACE;
 	PackActive();
 
-	PackChart->Title->Caption="Particles Radius";
+	PackChart->Title->Caption="Particle Radius";
 	PackChart->BottomAxis->Title->Caption="z,cm";
 
 	TBeamParameter P;

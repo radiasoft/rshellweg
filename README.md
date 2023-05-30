@@ -1,5 +1,5 @@
-### Utilities for modeling [linacs](https://en.wikipedia.org/wiki/Linear_particle_accelerator)
-The rshellweg repository is where RadiaSoft maintains open source software for modeling linacs.  'Linac' is a long-time nickname for 'linear accelerator'. This includes the Hellweg C++ physics kernel, the Windows-only Hellweg GUI, and associated Python code for testing.
+### Utilities for working with the Hellweg code.
+The rshellweg repository is where RadiaSoft maintains open source software for modeling linacs. This includes the Hellweg C++ physics kernel, the Windows-only Hellweg GUI, and associated Python code for testing.
 
 #### Support
 For support or more information, please [create an issue](https://github.com/radiasoft/rshellweg/issues) in this repository.
