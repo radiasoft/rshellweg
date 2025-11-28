@@ -1,0 +1,67 @@
+[build-system]
+requires = [
+    "chronver",
+    "setuptools>=66",
+    "Cython>=3.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+authors = [
+    { name = "RadiaSoft LLC", email = "pip@radiasoft.net" },
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "pykern",
+    "Cython",
+]
+description = "description"
+dynamic = ["version"]
+name = "rshellweg"
+readme = "README.md"
+
+[project.scripts]
+rshellweg = "rshellweg.rshellweg_console:main"
+
+[project.urls]
+Homepage = "https://git.radiasoft.org/rshellweg"
+
+[tool.setuptools.package-data]
+rshellweg = ["package_data/**"]
+
+[tool.setuptools.packages.find]
+include = ["rshellweg*"]
+
+# Cython/C++ extension replacing the pykern.pksetup.setup(ext_modules=...)
+[[tool.setuptools.ext-modules]]
+name = "rshellweg.pyhellweg"
+language = "c++"
+extra-compile-args = ["-std=c++11", "-DRSHELLWEG_LINUX=1"]
+include-dirs = [
+    "src/libHellweg2D",
+    "src/physics",
+]
+sources = [
+    "pyhellweg.pyx",
+    "src/libHellweg2D/AnsiString.cpp",
+    "src/libHellweg2D/IniFiles.cpp",
+    "src/libHellweg2D/TStringList.cpp",
+    "src/libHellweg2D/libHellweg2D.cpp",
+    "src/physics/Beam.cpp",
+    "src/physics/BeamSolver.cpp",
+    "src/physics/ConstUnit.cpp",
+    "src/physics/Functions.cpp",
+    "src/physics/Matrix.cpp",
+    "src/physics/Spectrum.cpp",
+    "src/physics/SpectrumPhase.cpp",
+    "src/physics/Spline.cpp",
+    "src/physics/Types.cpp",
+]

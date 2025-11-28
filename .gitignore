@@ -1,68 +1,17 @@
 pyhellweg.cpp
-__history
+pyhellweg.o
 
-# Created by https://www.gitignore.io/api/c++
+pytest.ini
+tox.ini
+.python-version
+.#*
+\#*
+.idea/
+.vscode/
 
-### C++ ###
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-# Created by https://www.gitignore.io/api/cmake
-
-### CMake ###
-CMakeCache.txt
-CMakeFiles
-CMakeScripts
-Makefile
-cmake_install.cmake
-install_manifest.txt
-CTestTestfile.cmake
-
-# Backup files
-*.#00
-*.~1~
-*.~3~
-*.~4~
-*~
-
-
-# Created by https://www.gitignore.io/api/python
-
-### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*$py.class
 
 # C extensions
 *.so
@@ -74,8 +23,8 @@ build/
 develop-eggs/
 dist/
 downloads/
-eggs/
 .eggs/
+eggs/
 lib/
 lib64/
 parts/
@@ -104,7 +53,7 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *,cover
-.hypothesis/
+.pytest_cache
 
 # Translations
 *.mo
@@ -112,44 +61,10 @@ coverage.xml
 
 # Django stuff:
 *.log
-local_settings.py
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
 
 # Sphinx documentation
 docs/_build/
+_build_html/
 
 # PyBuilder
 target/
-
-# IPython Notebook
-.ipynb_checkpoints
-
-# pyenv
-.python-version
-
-# celery beat schedule file
-celerybeat-schedule
-
-# dotenv
-.env
-
-# virtualenv
-.venv/
-venv/
-ENV/
-.direnv/
-
-# Spyder project settings
-.spyderproject
-
-# Rope project settings
-.ropeproject
-
-PARSED.TXT
-MANIFEST.in

@@ -1,0 +1,3 @@
+include src/physics/*.h
+include src/libHellweg2D/*.h
+include src/libHellweg2D/*.hpp
