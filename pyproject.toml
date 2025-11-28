@@ -40,7 +40,6 @@ rshellweg = ["package_data/**"]
 [tool.setuptools.packages.find]
 include = ["rshellweg*"]
 
-# Cython/C++ extension replacing the pykern.pksetup.setup(ext_modules=...)
 [[tool.setuptools.ext-modules]]
 name = "rshellweg.pyhellweg"
 language = "c++"
