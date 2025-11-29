@@ -3,6 +3,10 @@ Welcome to rshellweg
 
 description
 
+.. autosummary::
+   :toctree: _autosummary
+   :recursive:
+
 .. toctree::
    :maxdepth: 2
 
